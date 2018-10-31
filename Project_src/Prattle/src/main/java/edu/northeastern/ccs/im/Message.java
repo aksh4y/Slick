@@ -221,6 +221,15 @@ public class Message {
 	}
 
 	/**
+	 * Return the message Type this message.
+	 *
+	 * @return String specifying the name of the message originator.
+	 */
+	public MessageType getMessageType() {
+		return msgType;
+	}
+
+	/**
 	 * Determine if this message is an acknowledgement message.
 	 * 
 	 * @return True if the message is an acknowledgement message; false otherwise.
