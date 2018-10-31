@@ -1,8 +1,6 @@
 package edu.northeastern.ccs.im;
 
 /**
- * @startuml
- * car --|> wheel
  * Each instance of this class represents a single transmission by our IM
  * clients.
  * 
@@ -13,10 +11,7 @@ package edu.northeastern.ccs.im;
  * assignment at Northeastern University.
  * 
  * @version 1.3
- * @enduml
  */
-
-
 public class Message {
 	/**
 	 * List of the different possible message types.
@@ -160,7 +155,7 @@ public class Message {
 		if (handle.compareTo(MessageType.QUIT.toString()) == 0) {
 			result = makeQuitMessage(srcName);
 		} else if (handle.compareTo(MessageType.HELLO.toString()) == 0) {
-			result = makeSimpleLoginMessage(srcName);
+			result = makeLoginMessage(srcName);
 		} else if (handle.compareTo(MessageType.BROADCAST.toString()) == 0) {
 			result = makeBroadcastMessage(srcName, text);
 		} else if (handle.compareTo(MessageType.ACKNOWLEDGE.toString()) == 0) {
@@ -198,8 +193,17 @@ public class Message {
 	 * @param myName Name of the user who has just logged in.
 	 * @return Instance of Message specifying a new friend has just logged in.
 	 */
-	public static Message makeSimpleLoginMessage(String myName) {
+	public static Message makeLoginMessage(String myName) {
 		return new Message(MessageType.HELLO, myName);
+	}
+	
+	/**
+	 * Return the type of this message.
+	 * 
+	 * @return MessageType for this message.
+	 */
+	public MessageType getType() {
+		return msgType;
 	}
 
 	/**
@@ -207,7 +211,7 @@ public class Message {
 	 * 
 	 * @return String specifying the name of the message originator.
 	 */
-	public String getName() {
+	public String getSender() {
 		return msgSender;
 	}
 

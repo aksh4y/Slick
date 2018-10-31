@@ -31,6 +31,7 @@ import edu.northeastern.ccs.im.Message;
  * 
  * @version 1.3
  */
+
 public abstract class Prattle {
 
 	/** Amount of time we should wait for a signal to arrive. */
@@ -84,12 +85,14 @@ public abstract class Prattle {
 	public static void main(String[] args) throws IOException {
 		// Connect to the socket on the appropriate port to which this server connects.
 		ServerSocketChannel serverSocket = ServerSocketChannel.open();
+
 		serverSocket.configureBlocking(false);
 		serverSocket.socket().bind(new InetSocketAddress(ServerConstants.PORT));
 		// Create the Selector with which our channel is registered.
 		Selector selector = SelectorProvider.provider().openSelector();
 		// Register to receive any incoming connection messages.
 		serverSocket.register(selector, SelectionKey.OP_ACCEPT);
+
 		// Create our pool of threads on which we will execute.
 		ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(THREAD_POOL_SIZE);
 		// Listen on this port until ...
