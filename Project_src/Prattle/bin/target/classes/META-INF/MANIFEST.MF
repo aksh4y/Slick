@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Built-By: nipun
+Build-Jdk: 9.0.4
+Main-Class: edu.northeastern.ccs.im.server.Prattle
+Created-By: Maven Integration for Eclipse
+
