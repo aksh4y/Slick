@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -15,17 +15,17 @@ import org.junit.jupiter.api.Test;
  */
 class ScanNetNBTest {
 	private int PORT = 4545;
-	private PrattleRunabale server;
+	private static PrattleRunabale server;
 
-	@BeforeClass
-	public  void setUp(){
+	@BeforeAll
+	public static void setUp(){
 	    System.out.println("Before");
 		server = new PrattleRunabale();
 		server.start();
 	}
 	
-	@AfterClass
-	public void stopServer() {
+	@AfterAll
+	public static void stopServer() {
 		server.terminate();
 	}
 	@Test
