@@ -10,6 +10,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This class is similar to the java.util.Scanner class, but this class's
@@ -44,6 +46,9 @@ public class ScanNetNB {
 	private ByteBuffer buff;
 
 	private Queue<Message> messages;
+	
+	private final static Logger LOGGER =
+            Logger.getLogger(Logger.class.getName());
 
 	/**
 	 * Creates a new instance of this class. Since, by definition, this class takes
@@ -212,6 +217,7 @@ public class ScanNetNB {
 			selector.close();
 		} catch (IOException e) {
 			System.err.print("Caught exception: ");
+			LOGGER.log(Level.INFO, e.getMessage());
 			e.printStackTrace();
 			assert false;
 		}

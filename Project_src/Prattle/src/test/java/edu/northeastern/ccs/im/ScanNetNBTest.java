@@ -4,22 +4,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
 
-@RunWith(MockitoJUnitRunner.class)
+/**
+ * Class to test ScanNetNB
+ * @author Nipun
+ * @version 1.0
+ */
 class ScanNetNBTest {
 	private int PORT = 4545;
 	private PrattleRunabale server;
 
 	@BeforeClass
 	public  void setUp(){
+	    System.out.println("Before");
 		server = new PrattleRunabale();
+		server.start();
 	}
 	
 	@AfterClass

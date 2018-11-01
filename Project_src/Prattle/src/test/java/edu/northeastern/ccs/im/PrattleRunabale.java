@@ -4,11 +4,19 @@ import java.io.IOException;
 
 import edu.northeastern.ccs.im.server.Prattle;
 
-public class PrattleRunabale  implements Runnable {
-	private  int PORT = 4545;
-	private  String HOST= "127.0.0.1";
-	private Prattle prattle;
+/**
+ * Creates an instance of Prattle.main and runs it on a new thread
+ * @author Nipun
+ * @version 1.0
+ */
+public class PrattleRunabale extends Thread {
+	private  int PORT = 4545;  // holds the port
+	private  String HOST= "127.0.0.1"; // holds the host
+	private Prattle prattle;   // the Prattle instance
 	
+	/**
+	 * Runs the thread
+	 */
 	public void run() {
 		String[] args = new String[2];
 		args[0]=HOST;
@@ -20,6 +28,9 @@ public class PrattleRunabale  implements Runnable {
 		}
 		
 	}
+	/**
+	 * Terminates the thread
+	 */
 	public void terminate(){
 		prattle.setDone(true);
 	}

@@ -148,10 +148,18 @@ public abstract class Prattle {
         }
     }
 
+    /**
+     * 
+     * @return the done flag
+     */
     public static boolean isDone() {
         return done;
     }
 
+    /**
+     * Sets the done flag
+     * @param done
+     */
     public static void setDone(boolean done) {
         Prattle.done = done;
     }
