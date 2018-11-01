@@ -45,6 +45,8 @@ public abstract class Prattle {
 
     /** Collection of threads that are currently being used. */
     private static ConcurrentLinkedQueue<ClientRunnable> active;
+    
+    private static boolean  done;
 
     /** All of the static initialization occurs in this "method" */
     static {
@@ -97,7 +99,7 @@ public abstract class Prattle {
             // Create our pool of threads on which we will execute.
             ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(THREAD_POOL_SIZE);
             // Listen on this port until ...
-            boolean done = false;
+            done = false;
             while (!done) {
                 // Check if we have a valid incoming request, but limit the time we may wait.
                 while (selector.select(DELAY_IN_MS) != 0) {
@@ -146,6 +148,13 @@ public abstract class Prattle {
         }
     }
 
+    public static boolean isDone() {
+        return done;
+    }
+
+    public static void setDone(boolean done) {
+        Prattle.done = done;
+    }
 
     /**
      * Remove the given IM client from the list of active threads.
