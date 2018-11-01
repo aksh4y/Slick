@@ -84,7 +84,13 @@ public abstract class Prattle {
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args) throws IOException {
 		// Connect to the socket on the appropriate port to which this server connects.
-		ServerSocketChannel serverSocket = ServerSocketChannel.open();
+	    ServerSocketChannel serverSocket = null;
+	    try {
+	        serverSocket = ServerSocketChannel.open();
+	    }
+	    catch(Exception e) {
+	        System.err.println("Exception while trying to open socket: " + e.toString());
+	    }
 
 		serverSocket.configureBlocking(false);
 		serverSocket.socket().bind(new InetSocketAddress(ServerConstants.PORT));
