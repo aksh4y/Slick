@@ -1,13 +1,11 @@
 package edu.northeastern.ccs.im;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class TestMessage {
     private final static Logger LOGGER =
@@ -48,24 +46,31 @@ public class TestMessage {
 
     @Test
     public void isAcknowledge(){
+
         assertTrue(message.makeAcknowledgeMessage(SENDER).isAcknowledge());
+        assertFalse(message.makeAcknowledgeMessage(SENDER).isBroadcastMessage());
     }
     @Test
     public void isBroadcastMessage(){
 
         assertTrue(message.makeBroadcastMessage(SENDER,MY_MESSAGE).isBroadcastMessage());
+        assertFalse(message.makeBroadcastMessage(SENDER,MY_MESSAGE).isAcknowledge());
         message.makeBroadcastMessage(SENDER,MY_MESSAGE).toString();
     }
     @Test
     public void isDisplayMessage(){
         assertTrue(message.makeBroadcastMessage(SENDER,MY_MESSAGE).isDisplayMessage());
+        assertFalse(message.makeBroadcastMessage(SENDER,MY_MESSAGE).isInitialization());
     }
     @Test
     public void isInitialization(){
         assertTrue(message.makeSimpleLoginMessage(SENDER).isInitialization());
+        assertFalse(message.makeSimpleLoginMessage(SENDER).isDisplayMessage());
     }
     @Test
     public void terminate(){
         assertTrue(message.makeQuitMessage(SENDER).terminate());
+        assertFalse(message.makeSimpleLoginMessage(SENDER).terminate());
     }
+
 }
