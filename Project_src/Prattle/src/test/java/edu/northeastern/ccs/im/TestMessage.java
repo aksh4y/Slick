@@ -1,14 +1,17 @@
 package edu.northeastern.ccs.im;
 
-import edu.northeastern.ccs.im.Message;
-import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.junit.jupiter.api.Test;
+
 public class TestMessage {
-    /*private final static Logger LOGGER =
-            Logger.getLogger(Logger.class.getName());*/
+    private final static Logger LOGGER =
+            Logger.getLogger(Logger.class.getName());
     Message message;
     private static final String SENDER = "Sender";
     private static final String MY_MESSAGE = "my_message_goes_here";
@@ -16,7 +19,7 @@ public class TestMessage {
     @Test
     public void makeQuitMessage(){
         message= message.makeQuitMessage("myName");
-       // LOGGER.log(Level.INFO, message.toString());
+        LOGGER.log(Level.INFO, message.toString());
         assertTrue(message.getName().equals("myName"));
     }
     @Test

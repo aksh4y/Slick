@@ -3,6 +3,8 @@ package edu.northeastern.ccs.im;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This class is similar to the java.io.PrintWriter class, but this class's
@@ -21,6 +23,9 @@ import java.nio.channels.SocketChannel;
 public class PrintNetNB {
 	/** Channel over which we will write out any messages. */
 	private final SocketChannel channel;
+	
+    private final static Logger LOGGER =
+            Logger.getLogger(Logger.class.getName());
 
 	/**
 	 * Number of times to try sending a message before we give up in frustration.
@@ -78,8 +83,10 @@ public class PrintNetNB {
 		}
 		// Check to see if we were successful in our attempt to write the message
 		if (wrapper.hasRemaining()) {
-			System.err.println("WARNING: Sent only " + bytesWritten + " out of " + wrapper.limit()
-					+ " bytes -- dropping this user.");
+			/*System.err.println("WARNING: Sent only " + bytesWritten + " out of " + wrapper.limit()
+					+ " bytes -- dropping this user.");*/
+			LOGGER.log(Level.INFO, "WARNING: Sent only " + bytesWritten + " out of " + wrapper.limit()
+                    + " bytes -- dropping this user.");
 			return false;
 		}
 		return true;

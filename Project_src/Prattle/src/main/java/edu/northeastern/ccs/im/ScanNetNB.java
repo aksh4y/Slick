@@ -10,6 +10,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This class is similar to the java.util.Scanner class, but this class's
@@ -45,6 +47,9 @@ public class ScanNetNB {
 
 	private Queue<Message> messages;
 	
+	private final static Logger LOGGER =
+            Logger.getLogger(Logger.class.getName());
+	
 	/**
 	 * Creates a new instance of this class. Since, by definition, this class takes
 	 * in input from the network, we need to supply the non-blocking Socket instance
@@ -55,7 +60,7 @@ public class ScanNetNB {
 	 */
 	public ScanNetNB(SocketChannel sockChan) {
 		// Create the queue that will hold the messages received from over the network
-		messages = new ConcurrentLinkedQueue<Message>();
+		messages = new ConcurrentLinkedQueue<>();
 		// Allocate the buffer we will use to read data
 		buff = ByteBuffer.allocate(BUFFER_SIZE);
 		// Remember the channel that we will be using.
@@ -67,7 +72,8 @@ public class ScanNetNB {
 			key = channel.register(selector, SelectionKey.OP_READ);
 		} catch (IOException e) {
 			// For the moment we are going to simply cover up that there was a problem.
-			System.err.println(e.toString());
+			//System.err.println(e.toString());
+			LOGGER.log(Level.WARNING,e.toString());
 			assert false;
 		}
 	}
@@ -203,7 +209,8 @@ public class ScanNetNB {
 			throw new NextDoesNotExistException("No next line has been typed in at the keyboard");
 		}
 		Message msg = messages.remove();
-		System.err.println(msg.toString());
+//		System.err.println(msg.toString());
+		LOGGER.log(Level.WARNING,msg.toString());
 		return msg;
 	}
 
@@ -211,7 +218,8 @@ public class ScanNetNB {
 		try {
 			selector.close();
 		} catch (IOException e) {
-			System.err.print("Caught exception: ");
+			//System.err.print("Caught exception: ");
+			LOGGER.log(Level.WARNING,e.toString());
 			e.printStackTrace();
 			assert false;
 		}
