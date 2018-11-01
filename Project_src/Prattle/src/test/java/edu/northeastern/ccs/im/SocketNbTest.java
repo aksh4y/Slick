@@ -17,7 +17,7 @@ import java.io.IOException;
  * @author Chetan Mahale
  * @version 1.0
  */
-public class SocketNbTests {
+public class SocketNbTest {
 
 
     private static PrattleRunabale server; // Holds the server instance
