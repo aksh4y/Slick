@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
  * @author Akshay
  * @version 1.0
  */
-public class PrintNetNBTests {
+public class PrintNetNBTest {
     
     private static PrattleRunabale server; // Holds the server instance
     SocketNB socket;    // holds the socket
