@@ -73,4 +73,26 @@ public class TestMessage {
         assertFalse(message.makeSimpleLoginMessage(SENDER).terminate());
     }
 
+    @Test
+    public void makeMessage(){
+        message = Message.makeMessage(Message.MessageType.QUIT.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.terminate());
+
+        message = Message.makeMessage(Message.MessageType.HELLO.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.getMessageType().toString().equals(Message.MessageType.HELLO.toString()));
+
+        message = Message.makeMessage(Message.MessageType.BROADCAST.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.isBroadcastMessage());
+
+        message = Message.makeMessage(Message.MessageType.ACKNOWLEDGE.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.isAcknowledge());
+
+        message = Message.makeMessage(Message.MessageType.NO_ACKNOWLEDGE.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.getMessageType().toString().equals(Message.MessageType.NO_ACKNOWLEDGE.toString()));
+
+        message = Message.makeHelloMessage(MY_MESSAGE);
+        assertTrue(message.getMessageType().toString().equals(Message.MessageType.HELLO.toString()));
+
+    }
+
 }
