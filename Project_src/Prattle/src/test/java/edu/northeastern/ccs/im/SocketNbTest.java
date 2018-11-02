@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 import java.io.IOException;
+import java.net.BindException;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
@@ -27,12 +28,12 @@ public class SocketNbTest {
 
     private static PrattleRunabale server; // Holds the server instance
 
-
     SocketNB socket;  // socket instance
 
     @BeforeAll
     public static void setUp(){
         server = new PrattleRunabale();
+//        server.terminate();
         server.start();
     }
 
@@ -48,8 +49,13 @@ public class SocketNbTest {
      */
     @Test
     public void socketInitialization() throws IOException {
-        socket = new SocketNB("127.0.0.1", 4545);
-        assertEquals(true, socket.getSocket().isConnected());
+        try {
+            socket = new SocketNB("127.0.0.1", 4545);
+            assertEquals(true, socket.getSocket().isConnected());
+            socket.close();
+        }catch (Exception e){
+            assertThrows(BindException.class, ()->socket = new SocketNB("127.0.0.1", 4545));
+        }
     }
     /**
      * @throws IOException If an I/O error occurs when creating the socket, this
@@ -58,33 +64,12 @@ public class SocketNbTest {
 
     @Test
     public void socketTermination() throws IOException{
-        socket = new SocketNB("127.0.0.1", 4545);
-        socket.close();
-        assertEquals(false, socket.getSocket().isConnected());
-    }
-
-    /**
-     * @throws IOException If an I/O error occurs when creating the socket, this
-     *                     will be thrown.
-     */
-
-    @Test
-    public void socketNotConnectibleTest() throws IOException{
-        assertThrows(IOException.class,()->socket = new SocketNB("127.0.0.1", 1111));
-    }
-
-
-    /**
-     * @throws IOException If an I/O error occurs when creating the socket, this
-     *                     will be thrown.
-     */
-    @Test
-    public void socketIncorrectInitializationTest() throws IOException{
         try {
-            socket = new SocketNB("127.0.0.1", 3306);
-            assertEquals(true, socket.getSocket().isConnected());
-        }catch (ConnectException e) {
-            assertThrows(ConnectException.class, () -> socket = new SocketNB("127.0.0.1", 3306));
+            socket = new SocketNB("127.0.0.1", 4545);
+            socket.close();
+            assertEquals(false, socket.getSocket().isConnected());
+        }catch (Exception e){
+            assertThrows(BindException.class, ()->socket = new SocketNB("127.0.0.1", 4545));
         }
     }
 }
