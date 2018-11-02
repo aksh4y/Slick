@@ -81,7 +81,11 @@ public class SocketNbTest {
      */
     @Test
     public void socketIncorrectInitializationTest() throws IOException{
-
-        assertThrows(ConnectException.class, ()-> socket = new SocketNB("127.0.0.1", 8080));
+        try {
+            socket = new SocketNB("127.0.0.1", 3306);
+            assertEquals(true, socket.getSocket().isConnected());
+        }catch (ConnectException e) {
+            assertThrows(ConnectException.class, () -> socket = new SocketNB("127.0.0.1", 3306));
+        }
     }
 }
