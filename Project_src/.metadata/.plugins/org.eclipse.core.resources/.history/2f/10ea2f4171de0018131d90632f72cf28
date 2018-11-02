@@ -1,12 +1,10 @@
 package edu.northeastern.ccs.im;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
@@ -15,8 +13,6 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.text.MessageFormat;
-import java.util.Queue;
-import java.util.Scanner;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -60,8 +56,6 @@ class ScanNetNBTest {
 		ScanNetNB scanNetNB = new ScanNetNB(socketNB);
 
 		assertFalse(scanNetNB.hasNextMessage());
-		socketNB.close();
-	      scanNetNB.close();
 	}
 
 	/*
@@ -73,7 +67,6 @@ class ScanNetNBTest {
 		Assertions.assertThrows(NullPointerException.class, () -> {
 			new ScanNetNB(sc);
 		});
-		
 	}
 
 	/*
@@ -85,13 +78,12 @@ class ScanNetNBTest {
 	public void IOExceptionTest() throws IOException {
 		SocketNB socketNB = new SocketNB(HOST, PORT);
 		ScanNetNB scanNetNB = new ScanNetNB(socketNB);
-		socketNB.close();
 		try {
 			scanNetNB.close();
 		} catch (Exception e) {
 			fail("There was no socket to close");
 		}
-		
+
 	}
 
 	/*
@@ -104,8 +96,7 @@ class ScanNetNBTest {
 		Assertions.assertThrows(NextDoesNotExistException.class, () -> {
 			scanNetNB.nextMessage();
 		});
-		socketNB.close();
-	      scanNetNB.close();
+
 	}
 
 	/*
@@ -140,25 +131,6 @@ class ScanNetNBTest {
 		// Read the first argument containing the sender's name
 		String sender = (String) readArguments.invoke(scanNetNB, charBuffer);
 		assertTrue(sender.equalsIgnoreCase("TestUser"));
-		socketNB.close();
-	      scanNetNB.close();
-	}
-
-	@Test()
-	public void hasNextMessageTest()
-			throws InterruptedException, IllegalAccessException, IOException, NoSuchFieldException, SecurityException {
-		SocketNB socketNB = new SocketNB(HOST, PORT);
-		ScanNetNB scanNetNB = new ScanNetNB(socketNB);
-		Message msg = Message.makeBroadcastMessage("TestUser", "Hey");
-		Class cls = scanNetNB.getClass();
-		Field messages = cls.getDeclaredField("messages");
-		messages.setAccessible(true);
-		Queue<Message> queue = (Queue<Message>) messages.get(scanNetNB);
-	      queue.add(msg);
-	      assertTrue(scanNetNB.hasNextMessage());
-	      assertEquals(msg, scanNetNB.nextMessage());
-	      socketNB.close();
-	      scanNetNB.close();
 	}
 
 }

@@ -60,8 +60,6 @@ class ScanNetNBTest {
 		ScanNetNB scanNetNB = new ScanNetNB(socketNB);
 
 		assertFalse(scanNetNB.hasNextMessage());
-		socketNB.close();
-	      scanNetNB.close();
 	}
 
 	/*
@@ -73,7 +71,6 @@ class ScanNetNBTest {
 		Assertions.assertThrows(NullPointerException.class, () -> {
 			new ScanNetNB(sc);
 		});
-		
 	}
 
 	/*
@@ -85,13 +82,13 @@ class ScanNetNBTest {
 	public void IOExceptionTest() throws IOException {
 		SocketNB socketNB = new SocketNB(HOST, PORT);
 		ScanNetNB scanNetNB = new ScanNetNB(socketNB);
-		socketNB.close();
 		try {
 			scanNetNB.close();
 		} catch (Exception e) {
 			fail("There was no socket to close");
 		}
-		
+		socketNB.close();
+	      scanNetNB.close();
 	}
 
 	/*

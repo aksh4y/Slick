@@ -60,8 +60,6 @@ class ScanNetNBTest {
 		ScanNetNB scanNetNB = new ScanNetNB(socketNB);
 
 		assertFalse(scanNetNB.hasNextMessage());
-		socketNB.close();
-	      scanNetNB.close();
 	}
 
 	/*
@@ -73,7 +71,6 @@ class ScanNetNBTest {
 		Assertions.assertThrows(NullPointerException.class, () -> {
 			new ScanNetNB(sc);
 		});
-		
 	}
 
 	/*
