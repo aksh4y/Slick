@@ -251,6 +251,13 @@ public class ClientRunnableTest {
 		queue.add(msg);
 		checkForInitialization.invoke(client);
 		client.run();
+		Field immediateResponse = cls.getDeclaredField("immediateResponse");
+		immediateResponse.setAccessible(true);
+		Queue<Message> imi = (Queue<Message>) immediateResponse.get(client);
+		queue.add(msg);
+		imi.add(msg);
+		checkForInitialization.invoke(client);
+		client.run();
 	}
 
 	// @Test
