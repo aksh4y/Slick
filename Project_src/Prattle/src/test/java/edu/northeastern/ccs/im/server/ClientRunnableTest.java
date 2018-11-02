@@ -1,83 +1,47 @@
 package edu.northeastern.ccs.im.server;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.nio.channels.spi.SelectorProvider;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import edu.northeastern.ccs.im.Message;
 import edu.northeastern.ccs.im.PrattleRunabale;
 import edu.northeastern.ccs.im.SocketNB;
-import edu.northeastern.ccs.im.server.ClientRunnable;
 
+/**
+ * Tests for ClientRunnable class
+ * @author Akshay
+ *
+ */
 public class ClientRunnableTest {
 
-    ClientRunnable client;
+    ClientRunnable client = null;
     ServerSocketChannel serverSocket;
+    Message msg = null;
 
     static PrattleRunabale server;
+
     @BeforeAll
-    public static void setUp(){
+    public static void setUp() throws IOException{
         server = new PrattleRunabale();
         server.start();
     }
 
-    @AfterAll
     public static void stopServer() {
         server.terminate();
     }
 
     @Test
-    public void testNameSetup() throws IOException {
-        SocketNB socket = new SocketNB("127.0.0.1", 4545);
-        ServerSocketChannel channel;
-        channel = ServerSocketChannel.open();
-        try {
-            SocketChannel sChannel = channel.accept();
-            client = new ClientRunnable(sChannel);            
-            client.setName("Test");
-            assertEquals("Test", client.getName());
-            assertEquals(true, client.isInitialized());
-        }
-        catch(Exception e) {
-            System.out.println(e.getMessage());
-        }
-    }
-
-   /* @Test
     public void checkInitialization() throws IOException {
-        System.out.println("init");
-        SocketChannel socket = null;
-        socket = SocketChannel.open();
-        socket.configureBlocking(false);
-        socket.socket().bind(new InetSocketAddress(ServerConstants.PORT));
+        SocketNB s = new SocketNB("127.0.0.1", 4545);
+        client = new ClientRunnable(s.getSocket());
         try {
-            serverSocket = ServerSocketChannel.open();
-            serverSocket.configureBlocking(false);
-            serverSocket.socket().bind(new InetSocketAddress(ServerConstants.PORT));
-            // Create the Selector with which our channel is registered.
-            Selector selector = SelectorProvider.provider().openSelector();
-            // Register to receive any incoming connection messages.
-            serverSocket.register(selector, SelectionKey.OP_ACCEPT);
-
-            // Create our pool of threads on which we will execute.
-            ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(20);
-
-            serverSocket = ServerSocketChannel.open();
             try {
-                SocketChannel sChannel = socket.accept();
-                client = new ClientRunnable(sChannel);
                 client.run();
                 assertEquals(true, client instanceof ClientRunnable);
                 client.terminateClient();
@@ -87,5 +51,37 @@ public class ClientRunnableTest {
             }
         }
         catch(Exception e) {}
-    }*/
+    }
+
+    @Test
+    public void testClientRunnable() throws IOException {
+        SocketNB socket = new SocketNB("127.0.0.1", 4545);
+        client = new ClientRunnable(socket.getSocket());
+
+        // client = client.getInstance();
+        msg= msg.makeAcknowledgeMessage("AKI");
+        assertEquals(false, client.broadcastMessageIsSpecial(msg));
+        client.checkForInitialization();
+
+        assertEquals(null, client.getName());
+        client.setFuture(null);
+
+        assertEquals(true, client.sendMessage(msg));
+
+        client.enqueueMessage(msg);
+
+        assertEquals(0, client.getUserId());
+
+        client.handleSpecial(msg);
+
+        assertEquals(false, client.isInitialized());
+
+        assertThrows(NullPointerException.class,
+                ()->{
+                    client.terminateClient();
+                });
+
+    }
+
+   
 }

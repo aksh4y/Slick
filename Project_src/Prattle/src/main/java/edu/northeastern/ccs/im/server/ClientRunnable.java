@@ -33,66 +33,66 @@ public class ClientRunnable implements Runnable {
 	/**
 	 * Number of milliseconds that special responses are delayed before being sent.
 	 */
-	private static final int SPECIAL_RESPONSE_DELAY_IN_MS = 5000;
+	public static final int SPECIAL_RESPONSE_DELAY_IN_MS = 5000;
 
 	/**
 	 * Number of milliseconds after which we terminate a client due to inactivity.
 	 * This is currently equal to 5 hours.
 	 */
-	private static final long TERMINATE_AFTER_INACTIVE_BUT_LOGGEDIN_IN_MS = 18000000;
+	public static final long TERMINATE_AFTER_INACTIVE_BUT_LOGGEDIN_IN_MS = 18000000;
 
 	/**
 	 * Number of milliseconds after which we terminate a client due to inactivity.
 	 * This is currently equal to 5 hours.
 	 */
-	private static final long TERMINATE_AFTER_INACTIVE_INITIAL_IN_MS = 600000;
+	public static final long TERMINATE_AFTER_INACTIVE_INITIAL_IN_MS = 600000;
 
 	/**
-	 * Time at which we should send a response to the (private) messages we were
+	 * Time at which we should send a response to the (public) messages we were
 	 * sent.
 	 */
-	private Date sendResponses;
+	public Date sendResponses;
 
 	/** Time at which the client should be terminated due to lack of activity. */
-	private GregorianCalendar terminateInactivity;
+	public GregorianCalendar terminateInactivity;
 
 	/** Queue of special Messages that we must send immediately. */
-	private Queue<Message> immediateResponse;
+	public Queue<Message> immediateResponse;
 
 	/** Queue of special Messages that we will need to send. */
-	private Queue<Message> specialResponse;
+	public Queue<Message> specialResponse;
 
 	/** Socket over which the conversation with the single client occurs. */
-	private final SocketChannel socket;
+	public final SocketChannel socket;
 
 	/**
 	 * Utility class which we will use to receive communication from this client.
 	 */
-	private ScanNetNB input;
+	public ScanNetNB input;
 
 	/** Utility class which we will use to send communication to this client. */
-	private PrintNetNB output;
+	public PrintNetNB output;
 
 	/** Id for the user for whom we use this ClientRunnable to communicate. */
-	private int userId;
+	public int userId;
 
 	/** Name that the client used when connecting to the server. */
-	private String name;
+	public String name;
 
 	/**
 	 * Whether this client has been initialized, set its user name, and is ready to
 	 * receive messages.
 	 */
-	private boolean initialized;
+	public boolean initialized;
 
 	/**
 	 * The future that is used to schedule the client for execution in the thread
 	 * pool.
 	 */
-	private ScheduledFuture<ClientRunnable> runnableMe;
+	public ScheduledFuture<ClientRunnable> runnableMe;
 
 	/** Collection of messages queued up to be sent to this client. */
-	private Queue<Message> waitingList;
+	public Queue<Message> waitingList;
 
 	/**
 	 * Create a new thread with which we will communicate with this single client.
@@ -133,7 +133,7 @@ public class ClientRunnable implements Runnable {
 	 * @param msg Message in which we are interested.
 	 * @return True if msg is "special"; false otherwise.
 	 */
-	private boolean broadcastMessageIsSpecial(Message msg) {
+	boolean broadcastMessageIsSpecial(Message msg) {
 		boolean result = false;
 		String text = msg.getText();
 		if (text != null) {
@@ -151,7 +151,7 @@ public class ClientRunnable implements Runnable {
 	/**
 	 * Check to see for an initialization attempt and process the message sent.
 	 */
-	private void checkForInitialization() {
+	public void checkForInitialization() {
 		// Check if there are any input messages to read
 		if (input.hasNextMessage()) {
 			// If a message exists, try to use it to initialize the connection
@@ -173,7 +173,7 @@ public class ClientRunnable implements Runnable {
 	 * 
 	 * @param msg Message to add to the list of special responses.
 	 */
-	private void handleSpecial(Message msg) {
+	public void handleSpecial(Message msg) {
 		if (specialResponse.isEmpty()) {
 			sendResponses = new Date();
 			sendResponses.setTime(sendResponses.getTime() + SPECIAL_RESPONSE_DELAY_IN_MS);
@@ -188,7 +188,7 @@ public class ClientRunnable implements Runnable {
 	 * @param msg Message to be checked
 	 * @return True if message is correct; false otherwise
 	 */
-	private boolean messageChecks(Message msg) {
+	public boolean messageChecks(Message msg) {
 		// Check that the message name matches.
 		return (msg.getName() != null) && (msg.getName().compareToIgnoreCase(getName()) == 0);
 	}
@@ -200,7 +200,7 @@ public class ClientRunnable implements Runnable {
 	 * @param message Message to be sent immediately.
 	 * @return True if we sent the message successfully; false otherwise.
 	 */
-	private boolean sendMessage(Message message) {
+	public boolean sendMessage(Message message) {
 		System.out.println("\t" + message);
 		return output.print(message);
 	}
@@ -211,7 +211,7 @@ public class ClientRunnable implements Runnable {
 	 * @param userName The new value to which we will try to set userName.
 	 * @return True if the username is deemed acceptable; false otherwise
 	 */
-	private boolean setUserName(String userName) {
+	public boolean setUserName(String userName) {
 		// Now make sure this name is legal.
 		if (userName != null) {
 			// Optimistically set this users ID number.
