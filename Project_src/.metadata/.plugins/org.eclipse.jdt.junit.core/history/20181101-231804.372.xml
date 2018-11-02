@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?><testrun name="PrattleTest" project="Prattle" tests="2" started="2" failures="0" errors="0" ignored="0">
+  <testsuite name="edu.northeastern.ccs.im.server.PrattleTest" time="0.043" displayname="PrattleTest" uniqueid="[engine:junit-jupiter]/[class:edu.northeastern.ccs.im.server.PrattleTest]">
+    <testcase name="PrattleMainTest" classname="edu.northeastern.ccs.im.server.PrattleTest" time="0.012" displayname="PrattleMainTest()" uniqueid="[engine:junit-jupiter]/[class:edu.northeastern.ccs.im.server.PrattleTest]/[method:PrattleMainTest()]"/>
+    <testcase name="PrattleBroadcastTest" classname="edu.northeastern.ccs.im.server.PrattleTest" time="0.031" displayname="PrattleBroadcastTest()" uniqueid="[engine:junit-jupiter]/[class:edu.northeastern.ccs.im.server.PrattleTest]/[method:PrattleBroadcastTest()]"/>
+  </testsuite>
+</testrun>

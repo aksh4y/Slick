@@ -1,0 +1,59 @@
+package edu.northeastern.ccs.im;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.IOException;
+import java.nio.channels.SocketChannel;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+/**
+ * Class to test ScanNetNB
+ * 
+ * @author Nipun
+ * @version 1.0
+ */
+class ScanNetNBTest {
+	private int PORT = 4545;
+	private String HOST = "127.0.0.1";
+	private static PrattleRunabale server;
+
+	@BeforeAll
+	public static void setUp() {
+		server = new PrattleRunabale();
+		server.start();
+	}
+
+	@AfterAll
+	public static void stopServer() {
+		server.terminate();
+	}
+
+	@Test
+	public void hasNextFail() throws IOException {
+		SocketNB socketNB = new SocketNB(HOST, PORT);
+		ScanNetNB scanNetNB = new ScanNetNB(socketNB);
+
+		assertFalse(scanNetNB.hasNextMessage());
+	}
+
+	@Test()
+	public void NullPointerTest() {
+		SocketChannel sc = null;
+		Assertions.assertThrows(NullPointerException.class, () -> {
+			new ScanNetNB(sc);
+		});
+	}
+	@Test()
+	public void IOExceptionTest() {
+		SocketNB socketNB = new SocketNB(HOST, PORT);
+		ScanNetNB scanNetNB = new ScanNetNB(socketNB);
+		Assertions.assertThrows(IOException.class, () -> {
+			scanNetNB.close();
+		});
+	}
+}

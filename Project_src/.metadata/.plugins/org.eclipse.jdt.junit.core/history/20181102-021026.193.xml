@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?><testrun name="ScanNetNBTest" project="Prattle" tests="4" started="4" failures="0" errors="0" ignored="0">
+  <testsuite name="edu.northeastern.ccs.im.ScanNetNBTest" time="0.157" displayname="ScanNetNBTest" uniqueid="[engine:junit-jupiter]/[class:edu.northeastern.ccs.im.ScanNetNBTest]">
+    <testcase name="IOExceptionTest" classname="edu.northeastern.ccs.im.ScanNetNBTest" time="0.125" displayname="IOExceptionTest()" uniqueid="[engine:junit-jupiter]/[class:edu.northeastern.ccs.im.ScanNetNBTest]/[method:IOExceptionTest()]"/>
+    <testcase name="hasNextFail" classname="edu.northeastern.ccs.im.ScanNetNBTest" time="0.016" displayname="hasNextFail()" uniqueid="[engine:junit-jupiter]/[class:edu.northeastern.ccs.im.ScanNetNBTest]/[method:hasNextFail()]"/>
+    <testcase name="NullPointerTest" classname="edu.northeastern.ccs.im.ScanNetNBTest" time="0.0" displayname="NullPointerTest()" uniqueid="[engine:junit-jupiter]/[class:edu.northeastern.ccs.im.ScanNetNBTest]/[method:NullPointerTest()]"/>
+    <testcase name="NextDoesNotExistExceptionTest" classname="edu.northeastern.ccs.im.ScanNetNBTest" time="0.016" displayname="NextDoesNotExistExceptionTest()" uniqueid="[engine:junit-jupiter]/[class:edu.northeastern.ccs.im.ScanNetNBTest]/[method:NextDoesNotExistExceptionTest()]"/>
+  </testsuite>
+</testrun>

@@ -1,0 +1,14 @@
+package edu.northeastern.ccs.im.server;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
+
+class PrattleTest {
+
+	@Test
+	void test() {
+		fail("Not yet implemented");
+	}
+
+}
