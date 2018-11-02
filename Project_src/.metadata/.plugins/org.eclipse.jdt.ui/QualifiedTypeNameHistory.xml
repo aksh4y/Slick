@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+    <fullyQualifiedTypeName name="org.mockito.Mock"/>
+    <fullyQualifiedTypeName name="org.mockito.runners.MockitoJUnitRunner"/>
+    <fullyQualifiedTypeName name="org.junit.runner.RunWith"/>
+    <fullyQualifiedTypeName name="edu.northeastern.ccs.im.server.ClientRunnable"/>
+    <fullyQualifiedTypeName name="java.lang.String"/>
+    <fullyQualifiedTypeName name="edu.northeastern.ccs.im.server.Prattle"/>
+    <fullyQualifiedTypeName name="java.net.Socket"/>
+    <fullyQualifiedTypeName name="javax.sound.sampled.Port"/>
+    <fullyQualifiedTypeName name="edu.northeastern.ccs.im.SocketNB"/>
+    <fullyQualifiedTypeName name="edu.northeastern.ccs.im.ScanNetNB"/>
+    <fullyQualifiedTypeName name="org.junit.Before"/>
+    <fullyQualifiedTypeName name="org.junit.After"/>
+    <fullyQualifiedTypeName name="org.junit.BeforeClass"/>
+    <fullyQualifiedTypeName name="org.junit.AfterClass"/>
+    <fullyQualifiedTypeName name="org.junit.jupiter.api.BeforeAll"/>
+    <fullyQualifiedTypeName name="org.junit.jupiter.api.AfterAll"/>
+    <fullyQualifiedTypeName name="java.nio.channels.SocketChannel"/>
+    <fullyQualifiedTypeName name="java.lang.System"/>
+    <fullyQualifiedTypeName name="edu.northeastern.ccs.im.Message"/>
+    <fullyQualifiedTypeName name="edu.northeastern.ccs.im.PrattleRunabale"/>
+</qualifiedTypeNameHistroy>

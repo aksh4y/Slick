@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?><testrun name="PrattleTest" project="Prattle" tests="1" started="1" failures="0" errors="0" ignored="0">
+  <testsuite name="edu.northeastern.ccs.im.server.PrattleTest" incomplete="true" displayname="PrattleTest" uniqueid="[engine:junit-jupiter]/[class:edu.northeastern.ccs.im.server.PrattleTest]">
+    <testcase name="PrattleMainTest" classname="edu.northeastern.ccs.im.server.PrattleTest" incomplete="true" displayname="PrattleMainTest()" uniqueid="[engine:junit-jupiter]/[class:edu.northeastern.ccs.im.server.PrattleTest]/[method:PrattleMainTest()]"/>
+  </testsuite>
+</testrun>

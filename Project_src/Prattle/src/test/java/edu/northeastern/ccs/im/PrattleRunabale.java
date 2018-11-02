@@ -20,8 +20,6 @@ public class PrattleRunabale extends Thread {
      */
     public void run() {
         String[] args = new String[2];
-        args[0]=HOST;
-        args[1]=PORT+"";
         try {
             prattle.main(args);
         } catch (IOException e) {

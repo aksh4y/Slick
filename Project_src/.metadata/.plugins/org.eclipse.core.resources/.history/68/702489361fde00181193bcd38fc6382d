@@ -1,0 +1,58 @@
+package edu.northeastern.ccs.im;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.IOException;
+
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+class ScanNetNBTest {
+	private int PORT = 4545;
+	private static PrattleRunabale server;
+
+	@BeforeAll
+	public static void setUp(){
+		System.out.println("HErrrrree");
+		server = new PrattleRunabale();
+	}
+	
+	@AfterAll
+	public static void stopServer() {
+		server.terminate();
+	}
+	@Test
+	void hasNextFalse() throws IOException {
+//		ServerSocketChannel serverSocket = ServerSocketChannel.open();
+//		serverSocket.configureBlocking(false);
+//		Selector selector = SelectorProvider.provider().openSelector();
+//		// Register to receive any incoming connection messages.
+//		serverSocket.register(selector, SelectionKey.OP_ACCEPT);
+//		SocketChannel socket = serverSocket.accept();
+//		ScanNetNB scanNetNB = new ScanNetNB(socket);
+//		assertTrue(true);
+		SocketNB socketNB = new SocketNB("127.0.0.1", 4545);
+		ScanNetNB scanNetNB = new ScanNetNB(socketNB);
+		
+		assertTrue(!scanNetNB.hasNextMessage());
+	}
+	@Test
+	void test1() throws IOException {
+//		ServerSocketChannel serverSocket = ServerSocketChannel.open();
+//		serverSocket.configureBlocking(false);
+//		Selector selector = SelectorProvider.provider().openSelector();
+//		// Register to receive any incoming connection messages.
+//		serverSocket.register(selector, SelectionKey.OP_ACCEPT);
+//		SocketChannel socket = serverSocket.accept();
+//		ScanNetNB scanNetNB = new ScanNetNB(socket);
+//		assertTrue(true);
+		SocketNB socketNB = new SocketNB("127.0.0.1", 4545);
+		ScanNetNB scanNetNB = new ScanNetNB(socketNB);
+		
+		assertTrue(socketNB.getSocket().isConnected());
+	}
+
+}

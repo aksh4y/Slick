@@ -1,0 +1,100 @@
+package edu.northeastern.ccs.im;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.SocketChannel;
+
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+/**
+ * Class to test ScanNetNB
+ * 
+ * @author Nipun
+ * @version 1.0
+ */
+class ScanNetNBTest {
+	private static PrattleRunabale server;
+	private String hostName = "127.0.0.1";
+	private int port = 4545;
+
+//	@BeforeAll
+//	public static void setUp() {
+//		server = new PrattleRunabale();
+//		server.start();
+//	}
+//
+//	@AfterAll
+//	public static void stopServer() {
+//		server.terminate();
+//	}
+
+	/*
+	 * Test to check failure message
+	 */
+	@Test
+	void hasNextMessageFailTest() throws IOException {
+
+		SocketNB socketNB = new SocketNB("127.0.0.1", 4545);
+		ScanNetNB scanNetNB = new ScanNetNB(socketNB);
+		assertTrue(!scanNetNB.hasNextMessage());
+	}
+
+	@Test
+	void hasNextPass() throws IOException {
+		SocketNB socketNB = new SocketNB(hostName, port);
+		ScanNetNB scanNetNB = new ScanNetNB(socketNB);
+		// Creating a Message
+		Message msg = Message.makeBroadcastMessage("TestUser", "Hey");
+		String str = msg.toString();
+		ByteBuffer wrapper = ByteBuffer.wrap(str.getBytes());
+		int bytesWritten = 0;
+		// Open a new channel
+		SocketChannel channel = SocketChannel.open();
+		// Make this channel a non-blocking channel
+		channel.configureBlocking(false);
+		// Connect the channel to the remote port
+		channel.connect(new InetSocketAddress(hostName, port));
+		// Open the selector to handle our non-blocking I/O
+		Selector regSelector = Selector.open();
+		// Register our channel to receive alerts to complete the connection
+		SelectionKey regKey = channel.register(regSelector, SelectionKey.OP_CONNECT);
+		// Do nothing but wait until we have a response.
+		regSelector.select(0);
+		assert regKey.isConnectable();
+		// Try and complete creating this connection
+		if (!channel.finishConnect()) {
+			throw new IOException("Error, something went wrong and I was unable to finish making this connection");
+		}
+		// We are done, close this selector.
+		regSelector.close();
+
+		try {
+			// Open the selector to handle our non-blocking I/O
+			Selector selector = Selector.open();
+			// Register our channel to receive alerts to complete the connection
+			SelectionKey key = channel.register(selector, SelectionKey.OP_READ);
+		} catch (IOException e) {
+			// For the moment we are going to simply cover up that there was a
+			// problem.
+			assert false;
+		}
+		while (bytesWritten != str.length()) {
+			bytesWritten += channel.write(wrapper);
+		}
+		Message m = scanNetNB.nextMessage();
+		System.out.println("Hey,,,,,,,,,,,,,,,,");
+		System.out.println(m.getText());
+		System.out.println(m.getName());
+		assertTrue(scanNetNB.hasNextMessage());
+	}
+
+}

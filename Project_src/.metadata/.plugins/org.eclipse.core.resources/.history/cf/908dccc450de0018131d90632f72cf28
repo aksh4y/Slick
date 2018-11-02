@@ -1,0 +1,40 @@
+package edu.northeastern.ccs.im.server;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.IOException;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import edu.northeastern.ccs.im.Message;
+import edu.northeastern.ccs.im.PrattleRunabale;
+
+class PrattleTest {
+	private static PrattleRunabale server;
+	private String hostName = "127.0.0.1";
+	private int port = 4545;
+	@BeforeAll
+	public static void setUp() {
+		server = new PrattleRunabale();
+		server.start();
+	}
+
+	@AfterAll
+	public static void stopServer() {
+		server.terminate();
+	}
+
+//	@Test
+//	void PrattleMainTest() throws IOException {
+//		assertTrue(!server.isDone());
+//	}
+	@Test
+	void PrattleBroadcastTest() throws IOException {
+		Message msg = Message.makeBroadcastMessage("TestUser", "Hey");		
+		Prattle prattle = server.getPrattle();
+		 Class cls = prattle.getClass(); 
+	}
+
+}

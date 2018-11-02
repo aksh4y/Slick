@@ -1,0 +1,44 @@
+package edu.northeastern.ccs.im;
+
+import java.io.IOException;
+
+import edu.northeastern.ccs.im.server.Prattle;
+
+/**
+ * Creates an instance of Prattle.main and runs it on a new thread
+ * @author Nipun
+ * @version 1.0
+ */
+public class PrattleRunabale extends Thread {
+
+	private Prattle prattle;   // the Prattle instance
+	
+	/**
+	 * Runs the thread
+	 */
+	public void run() {
+		String[] args = new String[2];
+		try {
+			prattle.main(args);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	/**
+	 * Terminates the thread
+	 */
+	public void terminate(){
+		prattle.setDone(true);
+	}
+	/**
+	 * Broadcast the message
+	 */
+	public void broadCast(Message message){
+		prattle.broadcastMessage(message);
+	}
+	public boolean isDone() {
+		return prattle.isDone();
+	}
+
+}

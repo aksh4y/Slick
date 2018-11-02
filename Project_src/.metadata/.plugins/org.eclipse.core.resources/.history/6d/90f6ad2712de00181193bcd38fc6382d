@@ -1,0 +1,21 @@
+package edu.northeastern.ccs.im.server;
+
+import java.io.IOException;
+
+public class PrattleRunabale  implements Runnable {
+	private  int PORT = 4545;
+	private  String HOST= "127.0.0.1";
+	
+	public void run() {
+		String[] args = new String[2];
+		args[0]=HOST;
+		args[1]=PORT+"";
+		try {
+			Prattle.main(args);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+
+}
