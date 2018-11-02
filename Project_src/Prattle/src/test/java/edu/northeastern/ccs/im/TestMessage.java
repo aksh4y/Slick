@@ -17,7 +17,7 @@ public class TestMessage {
     @Test
     public void makeQuitMessage(){
         message= message.makeQuitMessage("myName");
-        LOGGER.log(Level.INFO, message.toString());
+        message.toString();
         assertTrue(message.getName().equals("myName"));
     }
     @Test
@@ -92,6 +92,13 @@ public class TestMessage {
 
         message = Message.makeHelloMessage(MY_MESSAGE);
         assertTrue(message.getMessageType().toString().equals(Message.MessageType.HELLO.toString()));
+
+        message = Message.makeMessage(MY_MESSAGE,SENDER,MY_MESSAGE);
+        assertNull(message);
+
+        message = Message.makeMessage(Message.MessageType.HELLO.toString(),null,MY_MESSAGE);
+        message.toString();
+
 
     }
 
