@@ -258,6 +258,7 @@ public class ClientRunnableTest {
 		imi.add(msg);
 		checkForInitialization.invoke(client);
 		client.run();
+		assertTrue(client.isInitialized());
 	}
 
 	// @Test
