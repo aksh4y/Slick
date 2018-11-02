@@ -241,9 +241,11 @@ public class ClientRunnableTest {
 //		checkForInitialization.invoke(client);
 		client.run();
 		Field specialResponse = cls.getDeclaredField("specialResponse");
+		specialResponse.setAccessible(true);
 		Queue<Message> sResps = (Queue<Message>) specialResponse.get(client);
 		sResps.add(msg);
-		Field waitingList = cls.getDeclaredField("specialResponse");
+		Field waitingList = cls.getDeclaredField("waitingList");
+		waitingList.setAccessible(true);
 		Queue<Message> wait = (Queue<Message>) waitingList.get(client);
 		wait.add(msg);
 		queue.add(msg);
