@@ -20,7 +20,6 @@ class ScanNetNBTest {
 
 	@BeforeAll
 	public static void setUp(){
-	    System.out.println("Before");
 		server = new PrattleRunabale();
 		server.start();
 	}
@@ -29,6 +28,7 @@ class ScanNetNBTest {
 	public static void stopServer() {
 		server.terminate();
 	}
+	
 	@Test
 	void test() throws IOException {
 //		ServerSocketChannel serverSocket = ServerSocketChannel.open();
