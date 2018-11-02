@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
 import java.nio.channels.ServerSocketChannel;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -32,10 +33,15 @@ public class ClientRunnableTest {
         server.start();
     }
 
+    @AfterAll
     public static void stopServer() {
         server.terminate();
     }
 
+    /**
+     * Check client initialization
+     * @throws IOException
+     */
     @Test
     public void checkInitialization() throws IOException {
         SocketNB s = new SocketNB("127.0.0.1", 4545);
@@ -58,21 +64,32 @@ public class ClientRunnableTest {
         SocketNB socket = new SocketNB("127.0.0.1", 4545);
         client = new ClientRunnable(socket.getSocket());
 
-        // client = client.getInstance();
         msg= msg.makeAcknowledgeMessage("AKI");
+
+        Message message = Message.makeBroadcastMessage("THIS_GUY","text");
+        client.checkForInitialization();
         assertEquals(false, client.broadcastMessageIsSpecial(msg));
         client.checkForInitialization();
 
         assertEquals(null, client.getName());
         client.setFuture(null);
-
+        
         assertEquals(true, client.sendMessage(msg));
 
+        assertEquals(true, client.sendMessage(message));
+
         client.enqueueMessage(msg);
+
+        client.enqueueMessage(message);
+
+        assertEquals(false, client.broadcastMessageIsSpecial(msg));
+        assertEquals(false, client.broadcastMessageIsSpecial(message));
 
         assertEquals(0, client.getUserId());
 
         client.handleSpecial(msg);
+
+        client.handleSpecial(message);
 
         assertEquals(false, client.isInitialized());
 
@@ -83,5 +100,5 @@ public class ClientRunnableTest {
 
     }
 
-   
+
 }
