@@ -11,7 +11,6 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-
 /**
  *
  * @author Chetan Mahale
@@ -89,5 +88,4 @@ public class ServerConstantsTest {
         messages = ServerConstants.getBroadcastResponses(MY_MESSAGE);
         assertNull(messages);
     }
-
 }

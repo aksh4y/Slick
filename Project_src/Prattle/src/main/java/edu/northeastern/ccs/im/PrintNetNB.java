@@ -24,8 +24,7 @@ public class PrintNetNB {
 	/** Channel over which we will write out any messages. */
 	private final SocketChannel channel;
 	
-    private final static Logger LOGGER =
-            Logger.getLogger(Logger.class.getName());
+    private final static Logger LOGGER = Logger.getLogger(Logger.class.getName());
 
 	/**
 	 * Number of times to try sending a message before we give up in frustration.
@@ -83,10 +82,7 @@ public class PrintNetNB {
 		}
 		// Check to see if we were successful in our attempt to write the message
 		if (wrapper.hasRemaining()) {
-			/*System.err.println("WARNING: Sent only " + bytesWritten + " out of " + wrapper.limit()
-					+ " bytes -- dropping this user.");*/
-			LOGGER.log(Level.INFO, "WARNING: Sent only " + bytesWritten + " out of " + wrapper.limit()
-                    + " bytes -- dropping this user.");
+			LOGGER.log(Level.SEVERE, "Something went wrong: {0} out of {1} bytes -- dropping this user", new Object[]{bytesWritten, wrapper.limit()}); 
 			return false;
 		}
 		return true;
