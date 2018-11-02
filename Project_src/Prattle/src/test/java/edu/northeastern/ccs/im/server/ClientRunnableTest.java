@@ -196,6 +196,9 @@ public class ClientRunnableTest {
 		sChannel = socket.getSocket();
 		Message msg = Message.makeBroadcastMessage("Test", "How are you?");
 		Message nonSpeacialBroadMsg = Message.makeBroadcastMessage("Test", null);
+		Message nonNameMessage = Message.makeBroadcastMessage(null, null);
+		Message nonBroad = Message.makeAcknowledgeMessage("");
+		Message terminate = Message.makeQuitMessage("Test");
 		client = new ClientRunnable(sChannel);
 		client.setName("Test");
 		Class cls = client.getClass();
@@ -230,8 +233,24 @@ public class ClientRunnableTest {
 		checkForInitialization.invoke(client);
 		client.run();
 		queue.add(msg);
+		queue.add(nonNameMessage);
+		checkForInitialization.invoke(client);
+		client.run();
 		queue.add(msg);
-		queue.add(nonSpeacialBroadMsg);
+		queue.add(nonBroad);
+		checkForInitialization.invoke(client);
+		client.run();
+		queue.add(msg);
+		queue.add(terminate);
+		checkForInitialization.invoke(client);
+		client.run();
+		Field specialResponse = cls.getDeclaredField("specialResponse");
+		Queue<Message> sResps = (Queue<Message>) specialResponse.get(client);
+		sResps.add(msg);
+		Field waitingList = cls.getDeclaredField("specialResponse");
+		Queue<Message> wait = (Queue<Message>) waitingList.get(client);
+		wait.add(msg);
+		queue.add(msg);
 		checkForInitialization.invoke(client);
 		client.run();
 	}
