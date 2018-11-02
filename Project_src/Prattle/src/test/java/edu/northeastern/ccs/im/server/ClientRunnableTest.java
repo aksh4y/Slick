@@ -206,20 +206,103 @@ public class ClientRunnableTest {
 		Field messages = scanNet.getDeclaredField("messages");
 		messages.setAccessible(true);
 		Queue<Message> queue = (Queue<Message>) messages.get(scanNetNB);
-		queue.add(msg);
-		queue.add(msg);
-		queue.add(msg);
 		queue.add(nonSpeacialBroadMsg);
 		Method checkForInitialization = cls.getDeclaredMethod("checkForInitialization");
 		checkForInitialization.setAccessible(true);
 		checkForInitialization.invoke(client);
-//		//Make a broadcast
-//		Method broadcastMessageIsSpecial = cls.getDeclaredMethod("broadcastMessageIsSpecial", Message.class);
-//		broadcastMessageIsSpecial.setAccessible(true);
-		
+		// //Make a broadcast
+		// Method broadcastMessageIsSpecial =
+		// cls.getDeclaredMethod("broadcastMessageIsSpecial", Message.class);
+		// broadcastMessageIsSpecial.setAccessible(true);
 		client.run();
-		
+		queue.add(msg);
+		queue.add(nonSpeacialBroadMsg);
+		checkForInitialization.invoke(client);
+		client.run();
+		Message nonSpeacialBroadMsgNotNull = Message.makeBroadcastMessage("Test", "kk");
+		queue.add(msg);
+		queue.add(nonSpeacialBroadMsgNotNull);
+		checkForInitialization.invoke(client);
+		client.run();
+		Message bombOff = Message.makeBroadcastMessage("Test", "Prattle says everyone log off");
+		queue.add(msg);
+		queue.add(bombOff);
+		checkForInitialization.invoke(client);
+		client.run();
+		queue.add(msg);
+		queue.add(msg);
+		queue.add(nonSpeacialBroadMsg);
+		checkForInitialization.invoke(client);
+		client.run();
 	}
+
+	// @Test
+	// public void TestForRunIntialized2() throws IOException, NoSuchFieldException,
+	// SecurityException,
+	// IllegalArgumentException, IllegalAccessException, NoSuchMethodException,
+	// InvocationTargetException {
+	// SocketNB socket = new SocketNB("127.0.0.1", 4545);
+	// SocketChannel sChannel;
+	// sChannel = socket.getSocket();
+	// Message msg = Message.makeBroadcastMessage("Test", "How are you?");
+	// Message nonSpeacialBroadMsg = Message.makeBroadcastMessage("Test", null);
+	// client = new ClientRunnable(sChannel);
+	// client.setName("Test");
+	// Class cls = client.getClass();
+	// Field input = cls.getDeclaredField("input");
+	// input.setAccessible(true);
+	// ScanNetNB scanNetNB = (ScanNetNB) input.get(client);
+	// Class scanNet = scanNetNB.getClass();
+	// Field messages = scanNet.getDeclaredField("messages");
+	// messages.setAccessible(true);
+	// Queue<Message> queue = (Queue<Message>) messages.get(scanNetNB);
+	// queue.add(msg);
+	// queue.add(nonSpeacialBroadMsg);
+	// Method checkForInitialization =
+	// cls.getDeclaredMethod("checkForInitialization");
+	// checkForInitialization.setAccessible(true);
+	// checkForInitialization.invoke(client);
+	//// //Make a broadcast
+	//// Method broadcastMessageIsSpecial =
+	// cls.getDeclaredMethod("broadcastMessageIsSpecial", Message.class);
+	//// broadcastMessageIsSpecial.setAccessible(true);
+	// client.run();
+	//
+	// }
+
+	// @Test
+	// public void TestForRunIntialized3() throws IOException, NoSuchFieldException,
+	// SecurityException,
+	// IllegalArgumentException, IllegalAccessException, NoSuchMethodException,
+	// InvocationTargetException {
+	// SocketNB socket = new SocketNB("127.0.0.1", 4545);
+	// SocketChannel sChannel;
+	// sChannel = socket.getSocket();
+	// Message msg = Message.makeBroadcastMessage("Test", "How are you?");
+	// Message nonSpeacialBroadMsg = Message.makeBroadcastMessage("Test", "kk");
+	// client = new ClientRunnable(sChannel);
+	// client.setName("Test");
+	// Class cls = client.getClass();
+	// Field input = cls.getDeclaredField("input");
+	// input.setAccessible(true);
+	// ScanNetNB scanNetNB = (ScanNetNB) input.get(client);
+	// Class scanNet = scanNetNB.getClass();
+	// Field messages = scanNet.getDeclaredField("messages");
+	// messages.setAccessible(true);
+	// Queue<Message> queue = (Queue<Message>) messages.get(scanNetNB);
+	// queue.add(msg);
+	// queue.add(nonSpeacialBroadMsg);
+	// Method checkForInitialization =
+	// cls.getDeclaredMethod("checkForInitialization");
+	// checkForInitialization.setAccessible(true);
+	// checkForInitialization.invoke(client);
+	//// //Make a broadcast
+	//// Method broadcastMessageIsSpecial =
+	// cls.getDeclaredMethod("broadcastMessageIsSpecial", Message.class);
+	//// broadcastMessageIsSpecial.setAccessible(true);
+	// client.run();
+	//
+	// }
 	@Test
 	public void testPublicMethods() throws IOException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
@@ -236,23 +319,16 @@ public class ClientRunnableTest {
 		client.enqueueMessage(msg);
 		assertTrue(userName.equalsIgnoreCase(client.getName()));
 		assertFalse(client.isInitialized());
-		
 	}
-	
+
 	@Test
-	public void testGetUserId() throws IOException, NoSuchMethodException, SecurityException,
-			IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
+	public void testGetUserId() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
 		Message msg = Message.makeBroadcastMessage("Test", "How are you?");
 		SocketNB socket = new SocketNB("127.0.0.1", 4545);
 		SocketChannel sChannel;
 		sChannel = socket.getSocket();
 		client = new ClientRunnable(sChannel);
-//		Class cls = client.getClass();
-//		Field userId = cls.getDeclaredField("userId");
-//		userId.setAccessible(true);
-//		int user = (int) userId.get(client);
-//		user=25;
 		assertEquals(0, client.getUserId());
-		
 	}
 }
