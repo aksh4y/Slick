@@ -8,8 +8,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  *
@@ -40,6 +40,12 @@ public class ServerConstantsTest {
     /** Random string to test Random input */
     private static final String MY_MESSAGE = "my_message_goes_here"; // static message
 
+
+    @Test
+    public void initializationTest() {
+        ServerConstants serverConstants = new ServerConstants();
+        assertEquals(true, serverConstants instanceof ServerConstants);
+    }
 
     @Test
     public void helloMessageTest() {

@@ -24,7 +24,7 @@ import java.nio.channels.SocketChannel;
  * @version 1.0
  */
 public class SocketNbTest {
-    
+
     private static PrattleRunabale server; // Holds the server instance
 
 
