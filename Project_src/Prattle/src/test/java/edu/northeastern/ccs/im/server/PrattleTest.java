@@ -16,9 +16,14 @@ public class PrattleTest {
     @Test
     public void prattleTest() {
         PrattleRunabale p = new PrattleRunabale();
-        p.start();
+   //     p.start();
+        if(p.isDone()) {
+            assertEquals(true, p.isDone());
+            p.start();
+        }
+        else
+            assertEquals(false, p.isDone());
         p.sendMsg();
-        assertEquals(false, p.isDone());
         ClientRunnable client = null;
         p.removeClient(client);
         p.terminate();

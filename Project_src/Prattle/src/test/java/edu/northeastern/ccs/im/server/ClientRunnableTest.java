@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -23,6 +24,7 @@ import edu.northeastern.ccs.im.server.ClientRunnable;
 public class ClientRunnableTest {
 
     ClientRunnable client;
+    ServerSocketChannel serverSocket;
 
     static PrattleRunabale server;
     @BeforeAll
@@ -53,35 +55,37 @@ public class ClientRunnableTest {
         }
     }
 
-//    @Test
-//    public void checkInitialization() throws IOException {
-//        System.out.println("init");
-//        SocketChannel socket = null;
-//        socket = SocketChannel.open();
-//        socket.configureBlocking(false);
-//        socket.socket().bind(new InetSocketAddress(ServerConstants.PORT));
-////        try {
-////            serverSocket = ServerSocketChannel.open();
-////            serverSocket.configureBlocking(false);
-////            serverSocket.socket().bind(new InetSocketAddress(ServerConstants.PORT));
-//            // Create the Selector with which our channel is registered.
-////            Selector selector = SelectorProvider.provider().openSelector();
-//            // Register to receive any incoming connection messages.
-////            serverSocket.register(selector, SelectionKey.OP_ACCEPT);
-//
-//            // Create our pool of threads on which we will execute.
-////            ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(20);
-//
-//            //serverSocket = ServerSocketChannel.open();
-//            //try {
-//            SocketChannel sChannel = socket.accept();
-//            client = new ClientRunnable(sChannel);
-//            client.run();
-//            assertEquals(true, client instanceof ClientRunnable);
-//            client.terminateClient();
-//        }
-//        catch(Exception e) {
-//
-//        }
-    }
+   /* @Test
+    public void checkInitialization() throws IOException {
+        System.out.println("init");
+        SocketChannel socket = null;
+        socket = SocketChannel.open();
+        socket.configureBlocking(false);
+        socket.socket().bind(new InetSocketAddress(ServerConstants.PORT));
+        try {
+            serverSocket = ServerSocketChannel.open();
+            serverSocket.configureBlocking(false);
+            serverSocket.socket().bind(new InetSocketAddress(ServerConstants.PORT));
+            // Create the Selector with which our channel is registered.
+            Selector selector = SelectorProvider.provider().openSelector();
+            // Register to receive any incoming connection messages.
+            serverSocket.register(selector, SelectionKey.OP_ACCEPT);
 
+            // Create our pool of threads on which we will execute.
+            ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(20);
+
+            serverSocket = ServerSocketChannel.open();
+            try {
+                SocketChannel sChannel = socket.accept();
+                client = new ClientRunnable(sChannel);
+                client.run();
+                assertEquals(true, client instanceof ClientRunnable);
+                client.terminateClient();
+            }
+            catch(Exception e) {
+
+            }
+        }
+        catch(Exception e) {}
+    }*/
+}
