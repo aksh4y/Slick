@@ -213,10 +213,6 @@ public class ClientRunnableTest {
 		Method checkForInitialization = cls.getDeclaredMethod("checkForInitialization");
 		checkForInitialization.setAccessible(true);
 		checkForInitialization.invoke(client);
-		// //Make a broadcast
-		// Method broadcastMessageIsSpecial =
-		// cls.getDeclaredMethod("broadcastMessageIsSpecial", Message.class);
-		// broadcastMessageIsSpecial.setAccessible(true);
 		client.run();
 		queue.add(msg);
 		queue.add(nonSpeacialBroadMsg);
@@ -240,9 +236,9 @@ public class ClientRunnableTest {
 		queue.add(nonBroad);
 		checkForInitialization.invoke(client);
 		client.run();
-		queue.add(msg);
-		queue.add(terminate);
-		checkForInitialization.invoke(client);
+//		queue.add(msg);
+//		queue.add(terminate);
+//		checkForInitialization.invoke(client);
 		client.run();
 		Field specialResponse = cls.getDeclaredField("specialResponse");
 		Queue<Message> sResps = (Queue<Message>) specialResponse.get(client);
