@@ -14,9 +14,7 @@ import java.nio.CharBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
-import java.text.MessageFormat;
 import java.util.Queue;
-import java.util.Scanner;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -144,6 +142,15 @@ class ScanNetNBTest {
 	      scanNetNB.close();
 	}
 
+	/**
+	 * Has next message test.
+	 *
+	 * @throws InterruptedException   the interrupted exception
+	 * @throws IllegalAccessException the illegal access exception
+	 * @throws IOException            the io exception
+	 * @throws NoSuchFieldException   the no such field exception
+	 * @throws SecurityException      the security exception
+	 */
 	@Test()
 	public void hasNextMessageTest()
 			throws InterruptedException, IllegalAccessException, IOException, NoSuchFieldException, SecurityException {

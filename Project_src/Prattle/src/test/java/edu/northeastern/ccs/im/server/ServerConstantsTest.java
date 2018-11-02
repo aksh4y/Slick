@@ -1,17 +1,14 @@
 package edu.northeastern.ccs.im.server;
 
 import edu.northeastern.ccs.im.Message;
-import edu.northeastern.ccs.im.PrattleRunabale;
-import edu.northeastern.ccs.im.SocketNB;
-import edu.northeastern.ccs.im.server.ServerConstants;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
+ * The type Server constants test.
  *
  * @author Chetan Mahale
  * @version 1.0
@@ -41,18 +38,28 @@ public class ServerConstantsTest {
     private static final String MY_MESSAGE = "my_message_goes_here"; // static message
 
 
+    /**
+     * Initialization test.
+     */
     @Test
     public void initializationTest() {
         ServerConstants serverConstants = new ServerConstants();
         assertEquals(true, serverConstants instanceof ServerConstants);
     }
 
+    /**
+     * Hello message test.
+     */
     @Test
     public void helloMessageTest() {
         List<Message> messages;
         messages = ServerConstants.getBroadcastResponses(HELLO_COMMAND);
         assertEquals(2, messages.size());
     }
+
+    /**
+     * Query message test.
+     */
     @Test
     public void queryMessageTest() {
         List<Message> messages;
@@ -60,6 +67,9 @@ public class ServerConstantsTest {
         assertEquals(2, messages.size());
     }
 
+    /**
+     * Cool message test.
+     */
     @Test
     public void coolMessageTest() {
         List<Message> messages;
@@ -67,6 +77,9 @@ public class ServerConstantsTest {
         assertEquals(1, messages.size());
     }
 
+    /**
+     * Impatient message command test.
+     */
     @Test
     public void impatientMessageCommandTest() {
         List<Message> messages;
@@ -74,6 +87,9 @@ public class ServerConstantsTest {
         assertEquals(2, messages.size());
     }
 
+    /**
+     * Date message test.
+     */
     @Test
     public void dateMessageTest() {
         List<Message> messages;
@@ -81,6 +97,9 @@ public class ServerConstantsTest {
         assertEquals(1, messages.size());
     }
 
+    /**
+     * Time message test.
+     */
     @Test
     public void timeMessageTest(){
         List<Message> messages;
@@ -88,6 +107,9 @@ public class ServerConstantsTest {
         assertEquals(1, messages.size());
     }
 
+    /**
+     * Random message test.
+     */
     @Test
     public void randomMessageTest(){
         List<Message> messages;
