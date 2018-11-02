@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?><testrun name="ScanNetNBTest" project="Prattle" tests="2" started="2" failures="0" errors="0" ignored="0">
-  <testsuite name="edu.northeastern.ccs.im.ScanNetNBTest" incomplete="true" displayname="ScanNetNBTest" uniqueid="[engine:junit-jupiter]/[class:edu.northeastern.ccs.im.ScanNetNBTest]">
-    <testcase name="hasNextMessageFailTest" classname="edu.northeastern.ccs.im.ScanNetNBTest" time="0.122" displayname="hasNextMessageFailTest()" uniqueid="[engine:junit-jupiter]/[class:edu.northeastern.ccs.im.ScanNetNBTest]/[method:hasNextMessageFailTest()]"/>
-    <testcase name="hasNextPass" classname="edu.northeastern.ccs.im.ScanNetNBTest" incomplete="true" displayname="hasNextPass()" uniqueid="[engine:junit-jupiter]/[class:edu.northeastern.ccs.im.ScanNetNBTest]/[method:hasNextPass()]"/>
-  </testsuite>
-</testrun>
