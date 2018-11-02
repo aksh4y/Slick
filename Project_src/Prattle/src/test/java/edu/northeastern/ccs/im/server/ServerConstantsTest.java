@@ -1,4 +1,4 @@
-package edu.northeastern.ccs.im;
+package edu.northeastern.ccs.im.server;
 
 import edu.northeastern.ccs.im.Message;
 import edu.northeastern.ccs.im.PrattleRunabale;
