@@ -35,4 +35,17 @@ pipeline {
   }
 }
 }
+
+
+ post {
+     always {
+            archive 'target/**/*.jar'
+            }       
+    success {
+           slackSend (baseUrl: "https://cs5500.slack.com/services/hooks/jenkins-ci/", token: "84SFK4SF1EC4Pqdd2NzjXhCi", channel: "#cs5500-team-203-f18", color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME}")
+            }
+    failure {  
+           slackSend (baseUrl: "https://cs5500.slack.com/services/hooks/jenkins-ci/", token: "84SFK4SF1EC4Pqdd2NzjXhCi", channel: "#cs5500-team-203-f18", color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME}")
+            }
+       }
 }
