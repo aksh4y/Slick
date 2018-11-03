@@ -14,9 +14,7 @@ import java.nio.CharBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
-import java.text.MessageFormat;
 import java.util.Queue;
-import java.util.Scanner;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -61,7 +59,7 @@ class ScanNetNBTest {
 
 		assertFalse(scanNetNB.hasNextMessage());
 		socketNB.close();
-	      scanNetNB.close();
+		scanNetNB.close();
 	}
 
 	/*
@@ -73,7 +71,7 @@ class ScanNetNBTest {
 		Assertions.assertThrows(NullPointerException.class, () -> {
 			new ScanNetNB(sc);
 		});
-		
+
 	}
 
 	/*
@@ -91,7 +89,7 @@ class ScanNetNBTest {
 		} catch (Exception e) {
 			fail("There was no socket to close");
 		}
-		
+
 	}
 
 	/*
@@ -105,7 +103,7 @@ class ScanNetNBTest {
 			scanNetNB.nextMessage();
 		});
 		socketNB.close();
-	      scanNetNB.close();
+		scanNetNB.close();
 	}
 
 	/*
@@ -141,9 +139,18 @@ class ScanNetNBTest {
 		String sender = (String) readArguments.invoke(scanNetNB, charBuffer);
 		assertTrue(sender.equalsIgnoreCase("TestUser"));
 		socketNB.close();
-	      scanNetNB.close();
+		scanNetNB.close();
 	}
 
+	/**
+	 * Has next message test.
+	 *
+	 * @throws InterruptedException   the interrupted exception
+	 * @throws IllegalAccessException the illegal access exception
+	 * @throws IOException            the io exception
+	 * @throws NoSuchFieldException   the no such field exception
+	 * @throws SecurityException      the security exception
+	*/
 	@Test()
 	public void hasNextMessageTest()
 			throws InterruptedException, IllegalAccessException, IOException, NoSuchFieldException, SecurityException {
@@ -154,11 +161,11 @@ class ScanNetNBTest {
 		Field messages = cls.getDeclaredField("messages");
 		messages.setAccessible(true);
 		Queue<Message> queue = (Queue<Message>) messages.get(scanNetNB);
-	      queue.add(msg);
-	      assertTrue(scanNetNB.hasNextMessage());
-	      assertEquals(msg, scanNetNB.nextMessage());
-	      socketNB.close();
-	      scanNetNB.close();
+		queue.add(msg);
+		assertTrue(scanNetNB.hasNextMessage());
+		assertEquals(msg, scanNetNB.nextMessage());
+		socketNB.close();
+		scanNetNB.close();
 	}
 
 }

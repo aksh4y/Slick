@@ -14,6 +14,7 @@ import java.nio.channels.SocketChannel;
 import java.util.Queue;
 
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -46,22 +47,6 @@ public class ClientRunnableTest {
 		server.terminate();
 	}
 
-	// @Test
-	// public void testNameSetup() throws IOException {
-	// SocketNB socket = new SocketNB("127.0.0.1", 4545);
-	// SocketChannel sChannel;
-	// sChannel = socket.getSocket();
-	// try {
-	// client = new ClientRunnable(sChannel);
-	// client.setName("Test");
-	// assertEquals("Test", client.getName());
-	// assertEquals(true, client.isInitialized());
-	// }
-	// catch(Exception e) {
-	// System.out.println(e.getMessage());
-	// }
-	// }
-
 	/**
 	 * Check client initialization
 	 * 
@@ -83,6 +68,12 @@ public class ClientRunnableTest {
 		}
 	}
 
+	/*
+	 * Test to check when the broadcastMessageIsSpecial fails
+	 * 
+	 * @Throws IOException, NoSuchMethodException, SecurityException,
+	 * IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	 */
 	@Test
 	public void BroadCastMessageFalseTest() throws IOException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
@@ -102,6 +93,12 @@ public class ClientRunnableTest {
 
 	}
 
+	/*
+	 * Test to check the broadcastMessageIsSpecial
+	 * 
+	 * @Throws IOException, NoSuchMethodException, SecurityException,
+	 * IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	 */
 	@Test
 	public void BroadCastMessageTest() throws IOException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
@@ -118,6 +115,12 @@ public class ClientRunnableTest {
 		assertTrue((Boolean) broadcastMessageIsSpecial.invoke(client, msg));
 	}
 
+	/*
+	 * Test to check the checkMessage
+	 * 
+	 * @Throws IOException, NoSuchMethodException, SecurityException,
+	 * IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	 */
 	@Test
 	public void checkMessageTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
@@ -149,6 +152,12 @@ public class ClientRunnableTest {
 		assertTrue((Boolean) messageChecks.invoke(client, msg));
 	}
 
+	/*
+	 * Test to check when the checkMessage fails
+	 * 
+	 * @Throws IOException, NoSuchMethodException, SecurityException,
+	 * IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	 */
 	@Test
 	public void checkMessageTestFail() throws IOException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
@@ -170,6 +179,12 @@ public class ClientRunnableTest {
 		assertFalse((Boolean) messageChecks.invoke(client, msg1));
 	}
 
+	/*
+	 * Test to check the setUserName
+	 * 
+	 * @Throws IOException, NoSuchMethodException, SecurityException,
+	 * IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	 */
 	@Test
 	public void setUserNameTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException {
@@ -188,6 +203,12 @@ public class ClientRunnableTest {
 		assertTrue((Boolean) setUserName.invoke(client, userName));
 	}
 
+	/*
+	 * Test to check when the run
+	 * 
+	 * @Throws IOException, NoSuchMethodException, SecurityException,
+	 * IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	 */
 	@Test
 	public void TestForRunIntialized() throws IOException, NoSuchFieldException, SecurityException,
 			IllegalArgumentException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
@@ -200,7 +221,6 @@ public class ClientRunnableTest {
 		Message nonBroad = Message.makeAcknowledgeMessage("");
 		Message terminate = Message.makeQuitMessage("Test");
 		client = new ClientRunnable(sChannel);
-		client.setName("Test");
 		Class cls = client.getClass();
 		Field input = cls.getDeclaredField("input");
 		input.setAccessible(true);
@@ -214,32 +234,34 @@ public class ClientRunnableTest {
 		checkForInitialization.setAccessible(true);
 		checkForInitialization.invoke(client);
 		client.run();
+		
 		queue.add(msg);
 		queue.add(nonSpeacialBroadMsg);
 		checkForInitialization.invoke(client);
 		client.run();
+		
 		Message nonSpeacialBroadMsgNotNull = Message.makeBroadcastMessage("Test", "kk");
 		queue.add(msg);
 		queue.add(nonSpeacialBroadMsgNotNull);
 		checkForInitialization.invoke(client);
 		client.run();
+		
 		Message bombOff = Message.makeBroadcastMessage("Test", "Prattle says everyone log off");
 		queue.add(msg);
 		queue.add(bombOff);
 		checkForInitialization.invoke(client);
 		client.run();
+		
 		queue.add(msg);
 		queue.add(nonNameMessage);
 		checkForInitialization.invoke(client);
 		client.run();
+		
 		queue.add(msg);
 		queue.add(nonBroad);
 		checkForInitialization.invoke(client);
 		client.run();
-//		queue.add(msg);
-//		queue.add(terminate);
-//		checkForInitialization.invoke(client);
-		client.run();
+		
 		Field specialResponse = cls.getDeclaredField("specialResponse");
 		specialResponse.setAccessible(true);
 		Queue<Message> sResps = (Queue<Message>) specialResponse.get(client);
@@ -251,6 +273,7 @@ public class ClientRunnableTest {
 		queue.add(msg);
 		checkForInitialization.invoke(client);
 		client.run();
+		
 		Field immediateResponse = cls.getDeclaredField("immediateResponse");
 		immediateResponse.setAccessible(true);
 		Queue<Message> imi = (Queue<Message>) immediateResponse.get(client);
@@ -258,75 +281,20 @@ public class ClientRunnableTest {
 		imi.add(msg);
 		checkForInitialization.invoke(client);
 		client.run();
+		
+		assertTrue(client.isInitialized());
+		queue.add(terminate);
+		Assertions.assertThrows(NullPointerException.class, () -> {
+			client.run();
+		});
 	}
 
-	// @Test
-	// public void TestForRunIntialized2() throws IOException, NoSuchFieldException,
-	// SecurityException,
-	// IllegalArgumentException, IllegalAccessException, NoSuchMethodException,
-	// InvocationTargetException {
-	// SocketNB socket = new SocketNB("127.0.0.1", 4545);
-	// SocketChannel sChannel;
-	// sChannel = socket.getSocket();
-	// Message msg = Message.makeBroadcastMessage("Test", "How are you?");
-	// Message nonSpeacialBroadMsg = Message.makeBroadcastMessage("Test", null);
-	// client = new ClientRunnable(sChannel);
-	// client.setName("Test");
-	// Class cls = client.getClass();
-	// Field input = cls.getDeclaredField("input");
-	// input.setAccessible(true);
-	// ScanNetNB scanNetNB = (ScanNetNB) input.get(client);
-	// Class scanNet = scanNetNB.getClass();
-	// Field messages = scanNet.getDeclaredField("messages");
-	// messages.setAccessible(true);
-	// Queue<Message> queue = (Queue<Message>) messages.get(scanNetNB);
-	// queue.add(msg);
-	// queue.add(nonSpeacialBroadMsg);
-	// Method checkForInitialization =
-	// cls.getDeclaredMethod("checkForInitialization");
-	// checkForInitialization.setAccessible(true);
-	// checkForInitialization.invoke(client);
-	//// //Make a broadcast
-	//// Method broadcastMessageIsSpecial =
-	// cls.getDeclaredMethod("broadcastMessageIsSpecial", Message.class);
-	//// broadcastMessageIsSpecial.setAccessible(true);
-	// client.run();
-	//
-	// }
-
-	// @Test
-	// public void TestForRunIntialized3() throws IOException, NoSuchFieldException,
-	// SecurityException,
-	// IllegalArgumentException, IllegalAccessException, NoSuchMethodException,
-	// InvocationTargetException {
-	// SocketNB socket = new SocketNB("127.0.0.1", 4545);
-	// SocketChannel sChannel;
-	// sChannel = socket.getSocket();
-	// Message msg = Message.makeBroadcastMessage("Test", "How are you?");
-	// Message nonSpeacialBroadMsg = Message.makeBroadcastMessage("Test", "kk");
-	// client = new ClientRunnable(sChannel);
-	// client.setName("Test");
-	// Class cls = client.getClass();
-	// Field input = cls.getDeclaredField("input");
-	// input.setAccessible(true);
-	// ScanNetNB scanNetNB = (ScanNetNB) input.get(client);
-	// Class scanNet = scanNetNB.getClass();
-	// Field messages = scanNet.getDeclaredField("messages");
-	// messages.setAccessible(true);
-	// Queue<Message> queue = (Queue<Message>) messages.get(scanNetNB);
-	// queue.add(msg);
-	// queue.add(nonSpeacialBroadMsg);
-	// Method checkForInitialization =
-	// cls.getDeclaredMethod("checkForInitialization");
-	// checkForInitialization.setAccessible(true);
-	// checkForInitialization.invoke(client);
-	//// //Make a broadcast
-	//// Method broadcastMessageIsSpecial =
-	// cls.getDeclaredMethod("broadcastMessageIsSpecial", Message.class);
-	//// broadcastMessageIsSpecial.setAccessible(true);
-	// client.run();
-	//
-	// }
+	/*
+	 * Test to check multiple public methods
+	 * 
+	 * @Throws IOException, NoSuchMethodException, SecurityException,
+	 * IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	 */
 	@Test
 	public void testPublicMethods() throws IOException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
@@ -345,6 +313,12 @@ public class ClientRunnableTest {
 		assertFalse(client.isInitialized());
 	}
 
+	/*
+	 * Test to check when the GuestUserId method
+	 * 
+	 * @Throws IOException, NoSuchMethodException, SecurityException,
+	 * IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	 */
 	@Test
 	public void testGetUserId() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException, NoSuchFieldException {

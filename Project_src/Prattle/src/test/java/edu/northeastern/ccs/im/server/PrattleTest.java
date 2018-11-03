@@ -8,11 +8,14 @@ import edu.northeastern.ccs.im.PrattleRunabale;
 
 /**
  * Test the Prattle class
- * @author Akshay
  *
+ * @author Akshay
  */
 public class PrattleTest {
 
+    /**
+     * Prattle test.
+     */
     @Test
     public void prattleTest() {
         PrattleRunabale p = new PrattleRunabale();
