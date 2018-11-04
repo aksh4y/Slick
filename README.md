@@ -7,7 +7,7 @@ ec2-34-211-157-181.us-west-2.compute.amazonaws.com
 ### Port
 4545
 ### Usage
-From the Chatter root folder (where the pom.xml is located) run the following maven command:
+From the Chatter root folder (where the pom.xml is located), run the following maven command:
 
 `mvn exec:java -Dexec.mainClass=edu.northeastern.ccs.im.chatter.CommandLineMain -Dexec.args="ec2-34-211-157-181.us-west-2.compute.amazonaws.com 4545"`
 
