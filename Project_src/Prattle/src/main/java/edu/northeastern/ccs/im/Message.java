@@ -1,5 +1,7 @@
 package edu.northeastern.ccs.im;
 
+import edu.northeastern.ccs.im.Message.MessageType;
+
 /**
  * @startuml
  * car --|> wheel
@@ -35,6 +37,8 @@ public class Message {
 	 * server once the logout process completes.
 	 */
 	QUIT("BYE"),
+	
+	PRIVATE("PRI"),
 	/** Message whose contents is broadcast to all connected users. */
 	BROADCAST("BCT");
 		/** Store the short name of this message type. */
@@ -70,6 +74,8 @@ public class Message {
 	 * The first argument used in the message. This will be the sender's identifier.
 	 */
 	private String msgSender;
+	
+	private String msgRecipient;
 
 	/** The second argument used in the message. */
 	private String msgText;
@@ -91,6 +97,17 @@ public class Message {
 		// Save the text of the message.
 		msgText = text;
 	}
+	
+	private Message(MessageType handle, String srcName, String recipient, String text) {
+        msgType = handle;
+        // Save the properly formatted identifier for the user sending the
+        // message.
+        msgSender = srcName;
+        
+        msgRecipient = recipient;
+        // Save the text of the message.
+        msgText = text;
+    }
 
 	/**
 	 * Create simple command type message that does not include any data.
@@ -122,6 +139,17 @@ public class Message {
 	public static Message makeQuitMessage(String myName) {
 		return new Message(MessageType.QUIT, myName, null);
 	}
+	
+	/**
+     * Create a private message
+     * @param srcName
+     * @param recipient
+     * @param text
+     * @return
+     */
+    public static Message makePrivateMessage(String srcName, String recipient, String text) {
+        return new Message(MessageType.PRIVATE, srcName, recipient, text);
+    }
 
 	/**
 	 * Create a new message broadcasting an announcement to the world.
@@ -170,6 +198,24 @@ public class Message {
 		}
 		return result;
 	}
+	
+	/**
+     * Given a handle, name and text, return the appropriate message instance or an
+     * instance from a subclass of message.
+     * 
+     * @param handle  Handle of the message to be generated.
+     * @param srcName Name of the originator of the message (may be null)
+     * @param text    Text sent in this message (may be null)
+     * @param recipient Name of the message recipient
+     * @return Instance of Message (or its subclasses) representing the handle,
+     *         name, & text.
+     */
+    protected static Message makeMessage(String handle, String srcName, String recipient, String text) {
+       Message result = null;
+        if(handle.compareTo(MessageType.PRIVATE.toString()) == 0)
+            result = makePrivateMessage(srcName, recipient, text);
+        return result;
+    }
 
 	/**
 	 * Create a new message to reject the bad login attempt.
@@ -246,6 +292,16 @@ public class Message {
 	public boolean isBroadcastMessage() {
 		return (msgType == MessageType.BROADCAST);
 	}
+	
+	/**
+     * Determine if this message is private to recipient.
+     * 
+     * @return True if the message is a private message; false otherwise.
+     */
+	public boolean isPrivateMessage() {
+        return (msgType == MessageType.PRIVATE);
+    }
+
 
 	/**
 	 * Determine if this message contains text which the recipient should display.
@@ -274,8 +330,17 @@ public class Message {
 	public boolean terminate() {
 		return (msgType == MessageType.QUIT);
 	}
+	
 
-	/**
+	public String getMsgRecipient() {
+        return msgRecipient;
+    }
+
+    public void setMsgRecipient(String msgRecipient) {
+        this.msgRecipient = msgRecipient;
+    }
+
+    /**
 	 * Representation of this message as a String. This begins with the message
 	 * handle and then contains the length (as an integer) and the value of the next
 	 * two arguments.
@@ -290,11 +355,14 @@ public class Message {
 		} else {
 			result += " " + NULL_OUTPUT.length() + " " + NULL_OUTPUT;
 		}
-		if (msgText != null) {
-			result += " " + msgText.length() + " " + msgText;
-		} else {
-			result += " " + NULL_OUTPUT.length() + " " + NULL_OUTPUT;
-		}
+		if (msgRecipient != null) {
+            result += " " + msgRecipient.length() + " " + msgRecipient;
+        }
+        if (msgText != null) {
+            result += " " + msgText.length() + " " + msgText;
+        } else {
+            result += " " + NULL_OUTPUT.length() + " " + NULL_OUTPUT;
+        }
 		return result;
 	}
 }

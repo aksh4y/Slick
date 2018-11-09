@@ -69,6 +69,22 @@ public abstract class Prattle {
             }
         }
     }
+    
+    /**
+     * Broadcast a given private message to all the other given receiver handle
+     * system. 
+     * 
+     * @param message Message that the client sent.
+     */
+    public static void broadcastPrivateMessage(Message message, String receiver) {
+        // Loop through all of our active threads
+        for (ClientRunnable tt : active) {
+            // Do not send the message to any clients that are not ready to receive it.
+            if (tt.isInitialized() && tt.getName().equals(receiver)) {
+                tt.enqueueMessage(message);
+            }
+        }
+    }
 
     /**
      * Start up the threaded talk server. This class accepts incoming connections on

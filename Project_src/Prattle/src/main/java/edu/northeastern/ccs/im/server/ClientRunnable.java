@@ -293,6 +293,10 @@ public class ClientRunnable implements Runnable {
 					// inactivity.
 					terminateInactivity.setTimeInMillis(
 							new GregorianCalendar().getTimeInMillis() + TERMINATE_AFTER_INACTIVE_BUT_LOGGEDIN_IN_MS);
+					// Handle Private Message
+					if (msg.isPrivateMessage()) {
+					    Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
+					}
 					// If the message is a broadcast message, send it out
 					if (msg.isDisplayMessage()) {
 						// Check if the message is legal formatted

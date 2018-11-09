@@ -6,6 +6,7 @@ import edu.northeastern.ccs.im.IMConnection;
 import edu.northeastern.ccs.im.KeyboardScanner;
 import edu.northeastern.ccs.im.Message;
 import edu.northeastern.ccs.im.MessageScanner;
+import edu.northeastern.ccs.im.MongoDB.Model.User;
 
 /**
  * Class which can be used as a command-line IM client.
@@ -34,11 +35,12 @@ public class CommandLineMain {
 		do {
 			// Prompt the user to type in a username.
 			System.out.println("What username would you like?");
-
 			String username = in.nextLine();
+			User u1 = new User();
+            u1.setName(username);
 
 			// Create a Connection to the IM server.
-			connect = new IMConnection(args[0], Integer.parseInt(args[1]), username);
+			connect = new IMConnection(args[0], Integer.parseInt(args[1]), u1);
 		} while (!connect.connect());
 
 		// Create the objects needed to read & write IM messages.
@@ -67,6 +69,8 @@ public class CommandLineMain {
 			// Get any recent messages received from the IM server.
 			if (mess.hasNext()) {
 				Message message = mess.next();
+				if(message.isPrivateMessage())
+				    System.out.println(message.getSender() + ": " + message.getText());
 				if (!message.getSender().equals(connect.getUserName())) {
 					System.out.println(message.getSender() + ": " + message.getText());
 				}

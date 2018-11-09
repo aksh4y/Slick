@@ -175,9 +175,22 @@ public class ScanNetNB {
 				// Skip past the leading space
 				charBuffer.position(charBuffer.position() + 2);
 				// Read in the second argument containing the message
-				final String message = readArgument(charBuffer);
+				//final String message = readArgument(charBuffer);
 				// Add this message into our queue
-				Message newMsg = Message.makeMessage(handle, sender, message);
+				//charBuffer.position(charBuffer.position() + 2);
+				Message newMsg;
+				if(handle.equals("PRI")) {
+	                // Read in the second argument containing the message
+	                final String reciever = readArgument(charBuffer);
+	                charBuffer.position(charBuffer.position() + 2);
+	                // Read in the second argument containing the message
+	                final String message = readArgument(charBuffer);
+				    newMsg = Message.makeMessage(handle, sender, reciever, message);
+				}
+				else {
+				    final String message = readArgument(charBuffer);
+				    newMsg = Message.makeMessage(handle, sender, message);
+				}
 				messages.add(newMsg);
 				// And move the position to the start of the next character
 				start = charBuffer.position() + 1;
@@ -210,7 +223,7 @@ public class ScanNetNB {
 		}
 		Message msg = messages.remove();
 //		System.err.println(msg.toString());
-		LOGGER.log(Level.WARNING,msg.toString());
+		LOGGER.log(Level.INFO,"ScanNet:" + msg.toString());
 		return msg;
 	}
 

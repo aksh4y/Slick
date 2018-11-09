@@ -171,9 +171,23 @@ public final class SocketNB {
 				// Skip past the leading space
 				charBuffer.position(charBuffer.position() + 2);
 				// Read in the second argument containing the message
-				final String message = readArgument(charBuffer);
+				Message newMsg;
+				if(handle.equals("PRI")) {
+                    // Read in the second argument containing the message
+                    final String reciever = readArgument(charBuffer);
+                    charBuffer.position(charBuffer.position() + 2);
+                    // Read in the second argument containing the message
+                    final String message = readArgument(charBuffer);
+                    newMsg = Message.makeMessage(handle, sender, reciever, message);
+                }
+                else {
+                    final String message = readArgument(charBuffer);
+                    newMsg = Message.makeMessage(handle, sender, message);
+                }
+                messages.add(newMsg);
+				//final String message = readArgument(charBuffer);
 				// Add this message into our queue
-				Message newMsg = Message.makeMessage(handle, sender, message);
+				//Message newMsg = Message.makeMessage(handle, sender, message);
 				// And move the position to the start of the next character
 				start = charBuffer.position() + 1;
 				// Check if this message is closing our connection
