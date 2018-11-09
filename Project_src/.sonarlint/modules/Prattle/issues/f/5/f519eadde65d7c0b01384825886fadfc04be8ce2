@@ -1,12 +1,12 @@
 
-‡squid:ModifiersOrderCheck2"EReorder the modifiers to comply with the Java Language Specification.(œŒªÙ8ªÑ›Ší,HõRMINORZ
+„squid:CommentedOutCodeLineÝ"<This block of commented-out lines of code should be removed.(˜´¨òþÿÿÿÿ8ñæÚ—í,HRMAJORZ
 CODE_SMELL
-^squid:S2629Õ"$Invoke method(s) only conditionally.(ß‹­¸úÿÿÿÿ8ñæÚ—í,H´RMAJORZ
+Xsquid:S1148ß"#Use a logger to log this exception.(€ÉÔ…ýÿÿÿÿHRMINORZVULNERABILITY
+„squid:CommentedOutCodeLineÔ"<This block of commented-out lines of code should be removed.(ŒøØÿúÿÿÿÿ8ñæÚ—í,HRMAJORZ
 CODE_SMELL
-…squid:CommentedOutCodeLineÔ"<This block of commented-out lines of code should be removed.(ŒøØÿúÿÿÿÿ8ñæÚ—í,H¶RMAJORZ
+]squid:S2629Õ"$Invoke method(s) only conditionally.(ß‹­¸úÿÿÿÿ8ñæÚ—í,HRMAJORZ
 CODE_SMELL
-…squid:CommentedOutCodeLineÝ"<This block of commented-out lines of code should be removed.(˜´¨òþÿÿÿÿ8ñæÚ—í,H·RMAJORZ
+†squid:ModifiersOrderCheck2"EReorder the modifiers to comply with the Java Language Specification.(œŒªÙ8ªÑ›Ší,HRMINORZ
 CODE_SMELL
-Ysquid:S1148ß"#Use a logger to log this exception.(€ÉÔ…ýÿÿÿÿHöRMINORZVULNERABILITY
-„squid:CommentedOutCodeLineK"<This block of commented-out lines of code should be removed.(éÈ‘éúÿÿÿÿ8ñæÚ—í,HµRMAJORZ
+ƒsquid:CommentedOutCodeLineK"<This block of commented-out lines of code should be removed.(éÈ‘éúÿÿÿÿ8ñæÚ—í,HRMAJORZ
 CODE_SMELL

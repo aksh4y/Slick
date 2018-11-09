@@ -36,7 +36,9 @@ public class Message {
 	 */
 	QUIT("BYE"),
 	/** Message whose contents is broadcast to all connected users. */
-	BROADCAST("BCT");
+	BROADCAST("BCT"),
+	/** Message which logins a user */
+	LOGIN_USER("LUSER");	
 		/** Store the short name of this message type. */
 		private String tla;
 
@@ -166,6 +168,9 @@ public class Message {
 		} else if (handle.compareTo(MessageType.ACKNOWLEDGE.toString()) == 0) {
 			result = makeAcknowledgeMessage(srcName);
 		} else if (handle.compareTo(MessageType.NO_ACKNOWLEDGE.toString()) == 0) {
+			result = makeNoAcknowledgeMessage();
+		}
+		else if (handle.compareTo(MessageType.LOGIN_USER.toString()) == 0) {
 			result = makeNoAcknowledgeMessage();
 		}
 		return result;
