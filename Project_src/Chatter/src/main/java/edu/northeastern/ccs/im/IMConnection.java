@@ -139,7 +139,7 @@ public class IMConnection {
 	 * Precondition: connectionActive() == true
 	 */
 	public void disconnect() {
-		Message quitMessage = Message.makeQuitMessage(getUserName());
+		Message quitMessage = Message.makeQuitMessage(getUserName(),null);
 		socketConnection.print(quitMessage);
 		KeyboardScanner.close();
 	}
@@ -190,11 +190,18 @@ public class IMConnection {
 	 * @param message Text of the message which will be broadcast to all users.
 	 */
 	public void sendMessage(String message) {
+		Message msg;
 		if (!connectionActive()) {
 			throw new IllegalOperationException("Cannot send a message if you are not connected to a server!\n");
 		}
-		Message bctMessage = Message.makeBroadcastMessage(userName, message);
-		socketConnection.print(bctMessage);
+		if(message.contains("USER_LOGIN")) {
+			String[] msgArray = message.split(" ");
+			msg= Message.makeUserLoginMessage(msgArray[1], msgArray[2]);
+		}
+		else {
+			msg = Message.makeBroadcastMessage(userName, message);
+		}
+		socketConnection.print(msg);
 	}
 
 	/**

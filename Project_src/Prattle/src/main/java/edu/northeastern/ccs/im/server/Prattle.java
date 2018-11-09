@@ -15,7 +15,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import com.mongodb.client.MongoDatabase;
+
 import edu.northeastern.ccs.im.Message;
+import edu.northeastern.ccs.im.MongoConnection;
 
 /**
  * A network server that communicates with IM clients that connect to it. This
@@ -47,6 +50,8 @@ public abstract class Prattle {
     private static ConcurrentLinkedQueue<ClientRunnable> active;
     
     private static boolean  done;
+    
+    private static MongoDatabase db;
 
     /** All of the static initialization occurs in this "method" */
     static {
@@ -87,6 +92,7 @@ public abstract class Prattle {
     public static void main(String[] args) throws IOException {
         // Connect to the socket on the appropriate port to which this server connects.
         ServerSocketChannel serverSocket = null;
+        db= MongoConnection.createConnection();
         try {
             serverSocket = ServerSocketChannel.open();
             serverSocket.configureBlocking(false);
@@ -121,7 +127,7 @@ public abstract class Prattle {
                             SocketChannel socket = serverSocket.accept();
                             // Make sure we have a connection to work with.
                             if (socket != null) {
-                                ClientRunnable tt = new ClientRunnable(socket);
+                                ClientRunnable tt = new ClientRunnable(socket,db);
                                 // Add the thread to the queue of active threads
                                 active.add(tt);
                                 // Have the client executed by our pool of threads.

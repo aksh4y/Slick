@@ -5,10 +5,13 @@ import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoDatabase;
 
 public class MongoConnection {
+	final static String username = "team203";
+	final static String pass = "Oct2018";
+	private static MongoClientURI uri = new MongoClientURI(
+			"mongodb://" + username + ":" + pass + "@ds157843.mlab.com:57843/msd");
+	private static MongoClient client = new MongoClient(uri);
 
-	public MongoDatabase createConnection() {
-		MongoClientURI uri = new MongoClientURI("mongodb://test:test123@ds157493.mlab.com:57493/msd");
-		MongoClient mongo = new MongoClient(uri);
-		return mongo.getDatabase(uri.getDatabase());
+	public static MongoDatabase createConnection() {
+		return client.getDatabase(uri.getDatabase());
 	}
 }

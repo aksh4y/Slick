@@ -1,32 +1,40 @@
 package edu.northeastern.ccs.im.MongoDB.Model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Group {
-	private String _id;
-	private String groupName;
-	private List<User> userList;
-	
-	public String get_id() {
-		return _id;
-	}
-	public void set_id(String _id) {
-		this._id = _id;
-	}
-	public String getGroupName() {
-		return groupName;
-	}
-	public void setGroupName(String groupName) {
-		this.groupName = groupName;
-	}
-	public List<User> getUserList() {
-		return userList;
-	}
-	public void setUserList(List<User> userList) {
-		this.userList = userList;
-	}
-	public void addUser(User user) {
-		this.userList.add(user);
-	}
-	
+    private int id;
+    private String name;
+    private List<String> listOfUsers;
+
+    public Group(String name){
+        this.name = name;
+        this.listOfUsers = new ArrayList<>();
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public List<String > getListOfUsers() {
+        return listOfUsers;
+    }
+
+    public void addUserTOGroup(User user) {
+        listOfUsers.add(user.getName());
+    }
+
 }
