@@ -200,6 +200,11 @@ public class IMConnection {
             Message msg = Message.makePrivateMessage(user.getName(), params[1], message.substring(9 + params[1].length()));
             socketConnection.print(msg);
         }
+        if(message.contains("GROUP")) {
+            String[] params = message.split(" ");
+            Message msg = Message.makeGroupMessage(user.getName(), params[1], message.substring(9 + params[1].length()));
+            socketConnection.print(msg);
+        }
         else {
             Message bctMessage = Message.makeBroadcastMessage(user.getName(), message);
             socketConnection.print(bctMessage);

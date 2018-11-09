@@ -34,7 +34,10 @@ public class Message {
         BROADCAST("BCT"),
 
         /** Message whose content is sent privately to a user. */
-        PRIVATE("PRI");
+        PRIVATE("PRI"),
+
+        /** Message all members of a group. */
+        GROUP("GRP");
         /** Store the short name of this message type. */
         private String tla;
 
@@ -150,6 +153,17 @@ public class Message {
     }
 
     /**
+     * Create a group message
+     * @param srcName
+     * @param group name
+     * @param text
+     * @return
+     */
+    public static Message makeGroupMessage(String srcName, String groupName, String text) {
+        return new Message(MessageType.PRIVATE, srcName, groupName, text);
+    }
+
+    /**
      * Create a new message broadcasting an announcement to the world.
      * 
      * @param myName Name of the sender of this very important missive.
@@ -212,6 +226,8 @@ public class Message {
         Message result = null;
         if(handle.compareTo(MessageType.PRIVATE.toString()) == 0)
             result = makePrivateMessage(srcName, recipient, text);
+        else if(handle.compareTo(MessageType.GROUP.toString()) == 0)
+            result = makeGroupMessage(srcName, recipient, text);
         return result;
     }
 
@@ -292,6 +308,15 @@ public class Message {
     }
 
     /**
+     * Determine if this message is a group message.
+     * 
+     * @return True if the message is a group message; false otherwise.
+     */
+    public boolean isGroupMessage() {
+        return (msgType == MessageType.GROUP);
+    }
+
+    /**
      * Determine if this message is broadcasting text to everyone.
      * 
      * @return True if the message is a broadcast message; false otherwise.
@@ -327,8 +352,8 @@ public class Message {
     public boolean terminate() {
         return (msgType == MessageType.QUIT);
     }
-    
-    
+
+
     public String getMsgRecipient() {
         return msgRecipient;
     }
