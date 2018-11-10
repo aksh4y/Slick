@@ -34,7 +34,6 @@ public class Message {
         QUIT("BYE"),
         /** Message whose contents is broadcast to all connected users. */
         BROADCAST("BCT"),
-
         /** Message whose content is sent privately to a user. */
         PRIVATE("PRI"),
 		/** Message which is used to login a user. */
@@ -42,8 +41,7 @@ public class Message {
 		/** Message if login is successful */
 		LOGIN_SUCCESS("LSC"),
 		/** Message if login is fails */
-		LOGIN_FAIL("LFA");
-
+		LOGIN_FAIL("LFA"),
         /** Message all members of a group. */
         GROUP("GRP");
         /** Store the short name of this message type. */
