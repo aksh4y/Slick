@@ -10,9 +10,13 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledFuture;
 
+import com.mongodb.client.MongoDatabase;
+
 import edu.northeastern.ccs.im.Message;
 import edu.northeastern.ccs.im.PrintNetNB;
 import edu.northeastern.ccs.im.ScanNetNB;
+import edu.northeastern.ccs.im.MongoDB.Model.User;
+import edu.northeastern.ccs.im.service.UserServicePrattle;
 
 /**
  * Instances of this class handle all of the incoming communication from a
@@ -93,6 +97,11 @@ public class ClientRunnable implements Runnable {
 
 	/** Collection of messages queued up to be sent to this client. */
 	private Queue<Message> waitingList;
+	
+	
+	private UserServicePrattle userService;
+	
+	private User user;
 
 	/**
 	 * Create a new thread with which we will communicate with this single client.
@@ -102,7 +111,9 @@ public class ClientRunnable implements Runnable {
 	 * @throws IOException Exception thrown if we have trouble completing this
 	 *                     connection
 	 */
-	public ClientRunnable(SocketChannel client) throws IOException {
+	public ClientRunnable(SocketChannel client, MongoDatabase db) throws IOException {
+		
+		userService = new UserServicePrattle(db);
 		// Set up the SocketChannel over which we will communicate.
 		socket = client;
 		socket.configureBlocking(false);
@@ -296,9 +307,22 @@ public class ClientRunnable implements Runnable {
 					// Handle Private Message
 					if (msg.isPrivateMessage()) {
 					    Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
+					//If it is login message, the Login a user
+					else if(msg.isUserLogin()) {
+						Message ackMsg;
+						this.initialized = true;
+						user = userService.authenticateUser(msg.getName(), msg.getText());
+						if(user == null) {
+							System.out.println("Con Fail");
+							 ackMsg = Message.makeLoginFaill();
+						}
+						else {
+							ackMsg = Message.makeLoginSuccess();
+						}
+						this.enqueueMessage(ackMsg);
 					}
 					// If the message is a broadcast message, send it out
-					if (msg.isDisplayMessage()) {
+					else if (msg.isDisplayMessage()) {
 						// Check if the message is legal formatted
 						if (messageChecks(msg)) {
 							// Check for our "special messages"
@@ -307,7 +331,7 @@ public class ClientRunnable implements Runnable {
 								if ((msg.getText() != null)
 										&& (msg.getText().compareToIgnoreCase(ServerConstants.BOMB_TEXT) == 0)) {
 									initialized = false;
-									Prattle.broadcastMessage(Message.makeQuitMessage(name));
+									Prattle.broadcastMessage(Message.makeQuitMessage(name,null));
 								} else {
 									Prattle.broadcastMessage(msg);
 								}
@@ -322,7 +346,7 @@ public class ClientRunnable implements Runnable {
 						// Stop sending the poor client message.
 						terminate = true;
 						// Reply with a quit message.
-						enqueueMessage(Message.makeQuitMessage(name));
+						enqueueMessage(Message.makeQuitMessage(name,null));
 					}
 					// Otherwise, ignore it (for now).
 				}

@@ -69,8 +69,6 @@ public class CommandLineMain {
 			// Get any recent messages received from the IM server.
 			if (mess.hasNext()) {
 				Message message = mess.next();
-				/*if(message.isPrivateMessage())
-				    System.out.println(message.getSender() + ": " + message.getText());*/
 				if (!message.getSender().equals(connect.getUserName())) {
 					System.out.println(message.getSender() + ": " + message.getText());
 				}

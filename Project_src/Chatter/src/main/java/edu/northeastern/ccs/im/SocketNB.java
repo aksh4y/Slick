@@ -194,7 +194,12 @@ public final class SocketNB {
 				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.QUIT) {
 					quitter = true;
 				}
-
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.LOGIN_FAIL) {
+					System.out.println("Username/Password is wrong");
+				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.LOGIN_SUCCESS) {
+					System.out.println("Login Successfull");
+				}
 				// Now pass this message on to the system.
 				messages.add(newMsg);
 

@@ -1,12 +1,18 @@
 package edu.northeastern.ccs.im;
 
-import com.mongodb.*;
-import edu.northeastern.ccs.im.MongoDB.Model.User;
-
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import com.mongodb.BasicDBObjectBuilder;
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
+import com.mongodb.MongoClient;
+import com.mongodb.WriteResult;
+
+import edu.northeastern.ccs.im.MongoDB.Model.User;
 
 public class MongoDBClient {
     public static void main(String[] args) throws UnknownHostException {

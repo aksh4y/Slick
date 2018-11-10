@@ -1,5 +1,7 @@
 package edu.northeastern.ccs.im;
 
+import edu.northeastern.ccs.im.Message.MessageType;
+
 /**
  * Each instance of this class represents a single transmission by our IM
  * clients.
@@ -35,6 +37,12 @@ public class Message {
 
         /** Message whose content is sent privately to a user. */
         PRIVATE("PRI"),
+		/** Message which is used to login a user. */
+		LOGIN_USER("LUS"),
+		/** Message if login is successful */
+		LOGIN_SUCCESS("LSC"),
+		/** Message if login is fails */
+		LOGIN_FAIL("LFA");
 
         /** Message all members of a group. */
         GROUP("GRP");
@@ -173,6 +181,19 @@ public class Message {
     public static Message makeBroadcastMessage(String myName, String text) {
         return new Message(MessageType.BROADCAST, myName, text);
     }
+	
+	/**
+	 * Create a new user login message.
+	 * 
+	 * @param username
+	 *            .Text
+	 * @param password
+	 *            Text
+	 * @return Instance of User Login Message.
+	 */
+	public static Message makeUserLoginMessage(String username, String password) {
+		return new Message(MessageType.LOGIN_USER, username, password);
+	}
 
     /**
      * Create a new message stating the name with which the user would like to
@@ -207,9 +228,33 @@ public class Message {
             result = makeAcknowledgeMessage(srcName);
         } else if (handle.compareTo(MessageType.NO_ACKNOWLEDGE.toString()) == 0) {
             result = makeNoAcknowledgeMessage();
-        }
+        } else if (handle.compareTo(MessageType.LOGIN_USER.toString()) == 0) {
+			result = makeUserLoginMessage(srcName, text);
+		} else if (handle.compareTo(MessageType.LOGIN_SUCCESS.toString()) == 0) {
+			result = makeLoginSuccess();
+		} else if (handle.compareTo(MessageType.LOGIN_FAIL.toString()) == 0) {
+			result = makeLoginFaill();
+		}
         return result;
     }
+	
+	/**
+	 * Create a new message to if Login is successful
+	 * 
+	 * @return Instance of Message.
+	 */
+	public static Message makeLoginSuccess() {
+		return new Message(MessageType.LOGIN_SUCCESS);
+	}
+
+	/**
+	 * Create a new message to if Login fails
+	 * 
+	 * @return Instance of Message.
+	 */
+	public static Message makeLoginFaill() {
+		return new Message(MessageType.LOGIN_FAIL);
+	}
 
     /**
      * Given a handle, name and text, return the appropriate message instance or an

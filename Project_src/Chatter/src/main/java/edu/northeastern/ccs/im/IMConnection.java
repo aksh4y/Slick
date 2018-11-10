@@ -135,16 +135,16 @@ public class IMConnection {
         }
     }
 
-    /**
-     * Break this connection with the IM server. Once this method is called, this
-     * instance will need to be logged back in to the IM server to be usable.<br/>
-     * Precondition: connectionActive() == true
-     */
-    public void disconnect() {
-        Message quitMessage = Message.makeQuitMessage(getUserName());
-        socketConnection.print(quitMessage);
-        KeyboardScanner.close();
-    }
+	/**
+	 * Break this connection with the IM server. Once this method is called, this
+	 * instance will need to be logged back in to the IM server to be usable.<br/>
+	 * Precondition: connectionActive() == true
+	 */
+	public void disconnect() {
+		Message quitMessage = Message.makeQuitMessage(getUserName(),null);
+		socketConnection.print(quitMessage);
+		KeyboardScanner.close();
+	}
 
     /**
      * Gets an object which can be used to read what the user types in on the
@@ -195,20 +195,24 @@ public class IMConnection {
         if (!connectionActive()) {
             throw new IllegalOperationException("Cannot send a message if you are not connected to a server!\n");
         }
-        if(message.contains("PRIVATE")) {
+        else if(message.contains("PRIVATE")) {
             String[] params = message.split(" ");
             Message msg = Message.makePrivateMessage(user.getName(), params[1], message.substring(9 + params[1].length()));
             socketConnection.print(msg);
         }
-        if(message.contains("GROUP")) {
+        else if(message.contains("GROUP")) {
             String[] params = message.split(" ");
             Message msg = Message.makeGroupMessage(user.getName(), params[1], message.substring(9 + params[1].length()));
             socketConnection.print(msg);
         }
+		else if(message.contains("USER_LOGIN")) {
+			String[] msgArray = message.split(" ");
+			msg= Message.makeUserLoginMessage(msgArray[1], msgArray[2]);
+		}
         else {
-            Message bctMessage = Message.makeBroadcastMessage(user.getName(), message);
-            socketConnection.print(bctMessage);
+            Message msg = Message.makeBroadcastMessage(user.getName(), message);
         }
+		socketConnection.print(msg);
     }
 
     /**

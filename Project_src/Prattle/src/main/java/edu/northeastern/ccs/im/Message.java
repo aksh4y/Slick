@@ -3,21 +3,19 @@ package edu.northeastern.ccs.im;
 import edu.northeastern.ccs.im.Message.MessageType;
 
 /**
- * @startuml
- * car --|> wheel
- * Each instance of this class represents a single transmission by our IM
- * clients.
+ * @startuml car --|> wheel Each instance of this class represents a single
+ *           transmission by our IM clients.
  * 
- * This work is licensed under the Creative Commons Attribution-ShareAlike 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by-sa/4.0/. It is based on work
- * originally written by Matthew Hertz and has been adapted for use in a class
- * assignment at Northeastern University.
+ *           This work is licensed under the Creative Commons
+ *           Attribution-ShareAlike 4.0 International License. To view a copy of
+ *           this license, visit http://creativecommons.org/licenses/by-sa/4.0/.
+ *           It is based on work originally written by Matthew Hertz and has
+ *           been adapted for use in a class assignment at Northeastern
+ *           University.
  * 
  * @version 1.3
  * @enduml
  */
-
 
 public class Message {
 	/**
@@ -40,14 +38,24 @@ public class Message {
 	
 	PRIVATE("PRI"),
 	/** Message whose contents is broadcast to all connected users. */
-	BROADCAST("BCT");
+	BROADCAST("BCT"),
+		/**
+		 * Message sent by the user attempting to login using a specified username.
+		 */
+		/** Message which logins a user */
+		LOGIN_USER("LUS"),
+		/** Message if login is successful */
+		LOGIN_SUCCESS("LSC"),
+		/** Message if login is fails */
+		LOGIN_FAIL("LFA");
 		/** Store the short name of this message type. */
 		private String tla;
 
 		/**
 		 * Define the message type and specify its short name.
 		 * 
-		 * @param abbrev Short name of this message type, as a String.
+		 * @param abbrev
+		 *            Short name of this message type, as a String.
 		 */
 		private MessageType(String abbrev) {
 			tla = abbrev;
@@ -85,9 +93,12 @@ public class Message {
 	 * is defined by the handle and we must also set the name of the message sender,
 	 * message recipient, and the text to send.
 	 * 
-	 * @param handle  Handle for the type of message being created.
-	 * @param srcName Name of the individual sending this message
-	 * @param text    Text of the instant message
+	 * @param handle
+	 *            Handle for the type of message being created.
+	 * @param srcName
+	 *            Name of the individual sending this message
+	 * @param text
+	 *            Text of the instant message
 	 */
 	private Message(MessageType handle, String srcName, String text) {
 		msgType = handle;
@@ -112,7 +123,8 @@ public class Message {
 	/**
 	 * Create simple command type message that does not include any data.
 	 * 
-	 * @param handle Handle for the type of message being created.
+	 * @param handle
+	 *            Handle for the type of message being created.
 	 */
 	private Message(MessageType handle) {
 		this(handle, null, null);
@@ -123,9 +135,11 @@ public class Message {
 	 * single argument. This message contains the given handle and the single
 	 * argument.
 	 * 
-	 * @param handle  Handle for the type of message being created.
-	 * @param srcName Argument for the message; at present this is the name used to
-	 *                log-in to the IM server.
+	 * @param handle
+	 *            Handle for the type of message being created.
+	 * @param srcName
+	 *            Argument for the message; at present this is the name used to
+	 *            log-in to the IM server.
 	 */
 	private Message(MessageType handle, String srcName) {
 		this(handle, srcName, null);
@@ -136,8 +150,8 @@ public class Message {
 	 * 
 	 * @return Instance of Message that specifies the process is logging out.
 	 */
-	public static Message makeQuitMessage(String myName) {
-		return new Message(MessageType.QUIT, myName, null);
+	public static Message makeQuitMessage(String myName, String message) {
+		return new Message(MessageType.QUIT, myName, message);
 	}
 	
 	/**
@@ -154,8 +168,10 @@ public class Message {
 	/**
 	 * Create a new message broadcasting an announcement to the world.
 	 * 
-	 * @param myName Name of the sender of this very important missive.
-	 * @param text   Text of the message that will be sent to all users
+	 * @param myName
+	 *            Name of the sender of this very important missive.
+	 * @param text
+	 *            Text of the message that will be sent to all users
 	 * @return Instance of Message that transmits text to all logged in users.
 	 */
 	public static Message makeBroadcastMessage(String myName, String text) {
@@ -166,7 +182,8 @@ public class Message {
 	 * Create a new message stating the name with which the user would like to
 	 * login.
 	 * 
-	 * @param text Name the user wishes to use as their screen name.
+	 * @param text
+	 *            Name the user wishes to use as their screen name.
 	 * @return Instance of Message that can be sent to the server to try and login.
 	 */
 	protected static Message makeHelloMessage(String text) {
@@ -177,16 +194,19 @@ public class Message {
 	 * Given a handle, name and text, return the appropriate message instance or an
 	 * instance from a subclass of message.
 	 * 
-	 * @param handle  Handle of the message to be generated.
-	 * @param srcName Name of the originator of the message (may be null)
-	 * @param text    Text sent in this message (may be null)
+	 * @param handle
+	 *            Handle of the message to be generated.
+	 * @param srcName
+	 *            Name of the originator of the message (may be null)
+	 * @param text
+	 *            Text sent in this message (may be null)
 	 * @return Instance of Message (or its subclasses) representing the handle,
 	 *         name, & text.
 	 */
 	protected static Message makeMessage(String handle, String srcName, String text) {
 		Message result = null;
 		if (handle.compareTo(MessageType.QUIT.toString()) == 0) {
-			result = makeQuitMessage(srcName);
+			result = makeQuitMessage(srcName,text);
 		} else if (handle.compareTo(MessageType.HELLO.toString()) == 0) {
 			result = makeSimpleLoginMessage(srcName);
 		} else if (handle.compareTo(MessageType.BROADCAST.toString()) == 0) {
@@ -195,6 +215,12 @@ public class Message {
 			result = makeAcknowledgeMessage(srcName);
 		} else if (handle.compareTo(MessageType.NO_ACKNOWLEDGE.toString()) == 0) {
 			result = makeNoAcknowledgeMessage();
+		} else if (handle.compareTo(MessageType.LOGIN_USER.toString()) == 0) {
+			result = makeLoginMessage(srcName, text);
+		} else if (handle.compareTo(MessageType.LOGIN_SUCCESS.toString()) == 0) {
+			result = makeLoginSuccess();
+		} else if (handle.compareTo(MessageType.LOGIN_FAIL.toString()) == 0) {
+			result = makeLoginFaill();
 		}
 		return result;
 	}
@@ -218,6 +244,33 @@ public class Message {
     }
 
 	/**
+	 * Create a new message to Login a user.
+	 * 
+	 * @return Instance of Message.
+	 */
+	public static Message makeLoginMessage(String userName, String password) {
+		return new Message(MessageType.LOGIN_USER, userName, password);
+	}
+
+	/**
+	 * Create a new message to if Login is successful
+	 * 
+	 * @return Instance of Message.
+	 */
+	public static Message makeLoginSuccess() {
+		return new Message(MessageType.LOGIN_SUCCESS);
+	}
+
+	/**
+	 * Create a new message to if Login fails
+	 * 
+	 * @return Instance of Message.
+	 */
+	public static Message makeLoginFaill() {
+		return new Message(MessageType.LOGIN_FAIL);
+	}
+
+	/**
 	 * Create a new message to reject the bad login attempt.
 	 * 
 	 * @return Instance of Message that rejects the bad login attempt.
@@ -230,7 +283,8 @@ public class Message {
 	 * Create a new message to acknowledge that the user successfully logged as the
 	 * name <code>srcName</code>.
 	 * 
-	 * @param srcName Name the user was able to use to log in.
+	 * @param srcName
+	 *            Name the user was able to use to log in.
 	 * @return Instance of Message that acknowledges the successful login.
 	 */
 	public static Message makeAcknowledgeMessage(String srcName) {
@@ -241,7 +295,8 @@ public class Message {
 	 * Create a new message for the early stages when the user logs in without all
 	 * the special stuff.
 	 * 
-	 * @param myName Name of the user who has just logged in.
+	 * @param myName
+	 *            Name of the user who has just logged in.
 	 * @return Instance of Message specifying a new friend has just logged in.
 	 */
 	public static Message makeSimpleLoginMessage(String myName) {
@@ -282,6 +337,15 @@ public class Message {
 	 */
 	public boolean isAcknowledge() {
 		return (msgType == MessageType.ACKNOWLEDGE);
+	}
+
+	/**
+	 * Determine if this message is an User Login message.
+	 * 
+	 * @return True if the message is an UserLogin message; false otherwise.
+	 */
+	public boolean isUserLogin() {
+		return (msgType == MessageType.LOGIN_USER);
 	}
 
 	/**
