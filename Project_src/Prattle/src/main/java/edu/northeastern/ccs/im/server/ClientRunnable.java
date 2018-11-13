@@ -10,6 +10,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledFuture;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mongodb.client.MongoDatabase;
 
 import edu.northeastern.ccs.im.Message;
@@ -97,22 +98,21 @@ public class ClientRunnable implements Runnable {
 
 	/** Collection of messages queued up to be sent to this client. */
 	private Queue<Message> waitingList;
-	
-	
+
 	private UserServicePrattle userService;
-	
+
 	private User user;
 
 	/**
 	 * Create a new thread with which we will communicate with this single client.
 	 * 
-	 * @param client SocketChannel over which we will communicate with this new
-	 *               client
-	 * @throws IOException Exception thrown if we have trouble completing this
-	 *                     connection
+	 * @param client
+	 *            SocketChannel over which we will communicate with this new client
+	 * @throws IOException
+	 *             Exception thrown if we have trouble completing this connection
 	 */
 	public ClientRunnable(SocketChannel client, MongoDatabase db) throws IOException {
-		
+
 		userService = new UserServicePrattle(db);
 		// Set up the SocketChannel over which we will communicate.
 		socket = client;
@@ -141,7 +141,8 @@ public class ClientRunnable implements Runnable {
 	 * handle the messages and return true if msg is "special." Otherwise, it
 	 * returns false.
 	 * 
-	 * @param msg Message in which we are interested.
+	 * @param msg
+	 *            Message in which we are interested.
 	 * @return True if msg is "special"; false otherwise.
 	 */
 	private boolean broadcastMessageIsSpecial(Message msg) {
@@ -182,7 +183,8 @@ public class ClientRunnable implements Runnable {
 	/**
 	 * Process one of the special responses
 	 * 
-	 * @param msg Message to add to the list of special responses.
+	 * @param msg
+	 *            Message to add to the list of special responses.
 	 */
 	private void handleSpecial(Message msg) {
 		if (specialResponse.isEmpty()) {
@@ -196,7 +198,8 @@ public class ClientRunnable implements Runnable {
 	 * Check if the message is properly formed. At the moment, this means checking
 	 * that the identifier is set properly.
 	 * 
-	 * @param msg Message to be checked
+	 * @param msg
+	 *            Message to be checked
 	 * @return True if message is correct; false otherwise
 	 */
 	private boolean messageChecks(Message msg) {
@@ -208,7 +211,8 @@ public class ClientRunnable implements Runnable {
 	 * Immediately send this message to the client. This returns if we were
 	 * successful or not in our attempt to send the message.
 	 * 
-	 * @param message Message to be sent immediately.
+	 * @param message
+	 *            Message to be sent immediately.
 	 * @return True if we sent the message successfully; false otherwise.
 	 */
 	private boolean sendMessage(Message message) {
@@ -219,7 +223,8 @@ public class ClientRunnable implements Runnable {
 	/**
 	 * Try allowing this user to set his/her user name to the given username.
 	 * 
-	 * @param userName The new value to which we will try to set userName.
+	 * @param userName
+	 *            The new value to which we will try to set userName.
 	 * @return True if the username is deemed acceptable; false otherwise
 	 */
 	private boolean setUserName(String userName) {
@@ -239,7 +244,8 @@ public class ClientRunnable implements Runnable {
 	 * Add the given message to this client to the queue of message to be sent to
 	 * the client.
 	 * 
-	 * @param message Complete message to be sent.
+	 * @param message
+	 *            Complete message to be sent.
 	 */
 	public void enqueueMessage(Message message) {
 		waitingList.add(message);
@@ -257,7 +263,8 @@ public class ClientRunnable implements Runnable {
 	/**
 	 * Set the name of the user for which this ClientRunnable was created.
 	 * 
-	 * @param name The name for which this ClientRunnable.
+	 * @param name
+	 *            The name for which this ClientRunnable.
 	 */
 	public void setName(String name) {
 		this.name = name;
@@ -308,12 +315,29 @@ public class ClientRunnable implements Runnable {
 					if (msg.isPrivateMessage())
 					    Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
 					//If it is login message, the Login a user
-					else if(msg.isUserLogin()) {
+					else if(msg.isUserCreate()) {
+						Message ackMsg;
+						this.initialized = true;
+						 
+						if(!userService.isUsernameTaken(msg.getName())) {
+							user = userService.createUser(msg.getName(), msg.getText());
+							if(user == null)
+							{
+								ackMsg = Message.makeCreateUserFail();
+							}
+							else {
+								ackMsg = Message.makeCreateUserSuccess();
+							}
+						}
+						else {
+							ackMsg = Message.makeUserIdExist();
+						}
+						this.enqueueMessage(ackMsg);
+					}else if(msg.isUserLogin()) {
 						Message ackMsg;
 						this.initialized = true;
 						user = userService.authenticateUser(msg.getName(), msg.getText());
 						if(user == null) {
-							System.out.println("Con Fail");
 							 ackMsg = Message.makeLoginFaill();
 						}
 						else {
@@ -381,6 +405,9 @@ public class ClientRunnable implements Runnable {
 					} while (!waitingList.isEmpty());
 				}
 				terminate |= !keepAlive;
+			} catch (JsonProcessingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			} finally {
 				// When it is appropriate, terminate the current client.
 				if (terminate) {
@@ -401,8 +428,9 @@ public class ClientRunnable implements Runnable {
 	 * Store the object used by this client runnable to control when it is scheduled
 	 * for execution in the thread pool.
 	 * 
-	 * @param future Instance controlling when the runnable is executed from within
-	 *               the thread pool.
+	 * @param future
+	 *            Instance controlling when the runnable is executed from within the
+	 *            thread pool.
 	 */
 	public void setFuture(ScheduledFuture<ClientRunnable> future) {
 		runnableMe = future;

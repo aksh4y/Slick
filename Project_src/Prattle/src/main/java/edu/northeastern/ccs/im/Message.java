@@ -47,7 +47,15 @@ public class Message {
         /** Message if login is successful */
         LOGIN_SUCCESS("LSC"),
         /** Message if login is fails */
-        LOGIN_FAIL("LFA");
+        LOGIN_FAIL("LFA"),
+        /** Message to create user **/
+        CREATE_USER("CUS"),
+        /** Message if create user is successful */
+        CREATE_SUCCESS("USC"),
+        /** Message if create user is fails */
+        CREATE_FAIL("UFA"),
+        /** Message if create user is fails */
+        USER_EXIST("UEX");
         /** Store the short name of this message type. */
         private String tla;
 
@@ -221,6 +229,14 @@ public class Message {
             result = makeLoginSuccess();
         } else if (handle.compareTo(MessageType.LOGIN_FAIL.toString()) == 0) {
             result = makeLoginFaill();
+        } else if (handle.compareTo(MessageType.CREATE_USER.toString()) == 0) {
+            result = makeCreateUserMessage(srcName, text);
+        } else if (handle.compareTo(MessageType.CREATE_SUCCESS.toString()) == 0) {
+            result = makeCreateUserSuccess();
+        } else if (handle.compareTo(MessageType.CREATE_FAIL.toString()) == 0) {
+            result = makeCreateUserFail();
+        }else if (handle.compareTo(MessageType.USER_EXIST.toString()) == 0) {
+            result = makeUserIdExist();
         }
         return result;
     }
@@ -269,7 +285,40 @@ public class Message {
     public static Message makeLoginFaill() {
         return new Message(MessageType.LOGIN_FAIL);
     }
+    /**
+     * Create a new message to Create a user.
+     * 
+     * @return Instance of Message.
+     */
+    public static Message makeCreateUserMessage(String userName, String password) {
+        return new Message(MessageType.CREATE_USER, userName, password);
+    }
 
+    /**
+     * Create a new message to if Create User is successful
+     * 
+     * @return Instance of Message.
+     */
+    public static Message makeCreateUserSuccess() {
+        return new Message(MessageType.CREATE_SUCCESS);
+    }
+
+    /**
+     * Create a new message to if Create User fails
+     * 
+     * @return Instance of Message.
+     */
+    public static Message makeCreateUserFail() {
+        return new Message(MessageType.CREATE_FAIL);
+    }
+    /**
+     * Create a new message to if UserId exist
+     * 
+     * @return Instance of Message.
+     */
+    public static Message makeUserIdExist() {
+        return new Message(MessageType.USER_EXIST);
+    }
     /**
      * Create a new message to reject the bad login attempt.
      * 
@@ -346,6 +395,14 @@ public class Message {
      */
     public boolean isUserLogin() {
         return (msgType == MessageType.LOGIN_USER);
+    }
+    /**
+     * Determine if this message is an User Create message.
+     * 
+     * @return True if the message is an CreateUser message; false otherwise.
+     */
+    public boolean isUserCreate() {
+        return (msgType == MessageType.CREATE_USER);
     }
 
     /**
