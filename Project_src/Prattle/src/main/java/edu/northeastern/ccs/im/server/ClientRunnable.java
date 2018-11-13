@@ -14,6 +14,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mongodb.client.MongoDatabase;
 
 import edu.northeastern.ccs.im.Message;
+import edu.northeastern.ccs.im.MongoConnection;
 import edu.northeastern.ccs.im.PrintNetNB;
 import edu.northeastern.ccs.im.ScanNetNB;
 import edu.northeastern.ccs.im.MongoDB.Model.User;
@@ -102,6 +103,8 @@ public class ClientRunnable implements Runnable {
 	private UserServicePrattle userService;
 
 	private User user;
+	
+	private MongoDatabase db;
 
 	/**
 	 * Create a new thread with which we will communicate with this single client.
@@ -111,7 +114,10 @@ public class ClientRunnable implements Runnable {
 	 * @throws IOException
 	 *             Exception thrown if we have trouble completing this connection
 	 */
-	public ClientRunnable(SocketChannel client, MongoDatabase db) throws IOException {
+	public ClientRunnable(SocketChannel client) throws IOException {
+	    
+	    //initialize db
+	    db= MongoConnection.createConnection();
 
 		userService = new UserServicePrattle(db);
 		// Set up the SocketChannel over which we will communicate.
@@ -355,7 +361,7 @@ public class ClientRunnable implements Runnable {
 								if ((msg.getText() != null)
 										&& (msg.getText().compareToIgnoreCase(ServerConstants.BOMB_TEXT) == 0)) {
 									initialized = false;
-									Prattle.broadcastMessage(Message.makeQuitMessage(name,null));
+									Prattle.broadcastMessage(Message.makeQuitMessage(name));
 								} else {
 									Prattle.broadcastMessage(msg);
 								}
@@ -370,7 +376,7 @@ public class ClientRunnable implements Runnable {
 						// Stop sending the poor client message.
 						terminate = true;
 						// Reply with a quit message.
-						enqueueMessage(Message.makeQuitMessage(name,null));
+						enqueueMessage(Message.makeQuitMessage(name));
 					}
 					// Otherwise, ignore it (for now).
 				}

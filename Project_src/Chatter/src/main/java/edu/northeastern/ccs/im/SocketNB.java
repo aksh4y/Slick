@@ -181,7 +181,7 @@ public final class SocketNB {
 					final String message = readArgument(charBuffer);
 					newMsg = Message.makeMessage(handle, sender, message);
 				}
-				messages.add(newMsg);
+				//messages.add(newMsg);
 				// final String message = readArgument(charBuffer);
 				// Add this message into our queue
 				// Message newMsg = Message.makeMessage(handle, sender, message);

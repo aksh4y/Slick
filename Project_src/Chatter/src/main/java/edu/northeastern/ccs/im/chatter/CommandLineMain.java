@@ -34,8 +34,12 @@ public class CommandLineMain {
 
 		do {
 			// Prompt the user to type in a username.
-			System.out.println("What username would you like?");
+			//System.out.println("What username would you like?");
+			
+			System.out.println("\t\t\t::Welcome to Slick::");
+			System.out.println("Please enter your username. Note this is not an alias:");
 			String username = in.nextLine();
+			System.out.println("Welcome " + username + "! Begin by logging in using USER_LOGIN " + username +  " <password>");
 			User user = new User();
             user.setName(username);
 
@@ -70,7 +74,12 @@ public class CommandLineMain {
 			if (mess.hasNext()) {
 				Message message = mess.next();
 				if (!message.getSender().equals(connect.getUserName())) {
-					System.out.println(message.getSender() + ": " + message.getText());
+				    if(message.isBroadcastMessage())
+				        System.out.println("[Broadcast Msg] " + message.getSender() + ": " + message.getText());
+				    else if(message.isPrivateMessage())
+				        System.out.println("[Private Msg] " + message.getSender() + ": " + message.getText());
+				    else
+				        System.out.println(message.getSender() + ": " + message.getText());
 				}
 			}
 		}

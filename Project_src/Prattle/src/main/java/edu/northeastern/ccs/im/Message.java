@@ -158,8 +158,8 @@ public class Message {
      * 
      * @return Instance of Message that specifies the process is logging out.
      */
-    public static Message makeQuitMessage(String myName, String message) {
-        return new Message(MessageType.QUIT, myName, message);
+    public static Message makeQuitMessage(String myName) {
+        return new Message(MessageType.QUIT, myName, null);
     }
 
     /**
@@ -214,7 +214,7 @@ public class Message {
     protected static Message makeMessage(String handle, String srcName, String text) {
         Message result = null;
         if (handle.compareTo(MessageType.QUIT.toString()) == 0) {
-            result = makeQuitMessage(srcName,text);
+            result = makeQuitMessage(srcName);
         } else if (handle.compareTo(MessageType.HELLO.toString()) == 0) {
             result = makeSimpleLoginMessage(srcName);
         } else if (handle.compareTo(MessageType.BROADCAST.toString()) == 0) {
