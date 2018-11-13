@@ -141,7 +141,7 @@ public class IMConnection {
 	 * Precondition: connectionActive() == true
 	 */
 	public void disconnect() {
-		Message quitMessage = Message.makeQuitMessage(getUserName(),null);
+		Message quitMessage = Message.makeQuitMessage(getUserName());
 		socketConnection.print(quitMessage);
 		KeyboardScanner.close();
 	}
@@ -192,25 +192,24 @@ public class IMConnection {
      * @param message Text of the message which will be broadcast to all users.
      */
     public void sendMessage(String message) {
+        Message msg;
         if (!connectionActive()) {
             throw new IllegalOperationException("Cannot send a message if you are not connected to a server!\n");
         }
         else if(message.contains("PRIVATE")) {
             String[] params = message.split(" ");
-            Message msg = Message.makePrivateMessage(user.getName(), params[1], message.substring(9 + params[1].length()));
-            socketConnection.print(msg);
+            msg = Message.makePrivateMessage(user.getName(), params[1], message.substring(9 + params[1].length()));
         }
         else if(message.contains("GROUP")) {
             String[] params = message.split(" ");
-            Message msg = Message.makeGroupMessage(user.getName(), params[1], message.substring(9 + params[1].length()));
-            socketConnection.print(msg);
+            msg = Message.makeGroupMessage(user.getName(), params[1], message.substring(9 + params[1].length()));
         }
 		else if(message.contains("USER_LOGIN")) {
 			String[] msgArray = message.split(" ");
 			msg= Message.makeUserLoginMessage(msgArray[1], msgArray[2]);
 		}
         else {
-            Message msg = Message.makeBroadcastMessage(user.getName(), message);
+            msg = Message.makeBroadcastMessage(user.getName(), message);
         }
 		socketConnection.print(msg);
     }
