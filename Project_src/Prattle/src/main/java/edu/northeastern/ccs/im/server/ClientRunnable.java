@@ -305,7 +305,7 @@ public class ClientRunnable implements Runnable {
 					terminateInactivity.setTimeInMillis(
 							new GregorianCalendar().getTimeInMillis() + TERMINATE_AFTER_INACTIVE_BUT_LOGGEDIN_IN_MS);
 					// Handle Private Message
-					if (msg.isPrivateMessage()) {
+					if (msg.isPrivateMessage())
 					    Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
 					//If it is login message, the Login a user
 					else if(msg.isUserLogin()) {
