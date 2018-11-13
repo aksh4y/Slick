@@ -84,7 +84,7 @@ public class GroupServicePrattle {
 	 * @param name name to Check for group
 	 * @return
 	 */
-	private Boolean isGroupnameTaken(String name) {
+	public Boolean isGroupnameTaken(String name) {
 		FindIterable<Document> iterable = gcol.find(Filters.eq("name", name));
 		return iterable.first() != null;
 	}
