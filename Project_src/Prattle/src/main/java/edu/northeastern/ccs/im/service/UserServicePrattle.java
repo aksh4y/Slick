@@ -37,14 +37,10 @@ public class UserServicePrattle {
 			User u = new User();
 			u.setName(username);
 			u.setPassword(password);
-			// u.setListOfGroups(new ArrayList<>());
-
 			insertUser(u);
 			return u;
-		} else {
-			System.out.println("Username already exists");
-			return null;
 		}
+		return null;
 	}
 
 	private void insertUser(User user) throws JsonProcessingException  {
@@ -61,7 +57,7 @@ public class UserServicePrattle {
 		return user;
 	}
 
-	private Boolean isUsernameTaken(String name) {
+	public Boolean isUsernameTaken(String name) {
 		FindIterable<Document> iterable = col.find(Filters.eq("name", name));
 		return iterable.first() != null;
 	}

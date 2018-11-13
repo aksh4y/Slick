@@ -1,19 +1,0 @@
-
-k
-squid:S106ˆ"9Replace this use of System.out or System.err by a logger.(¡Á˜ûùÿÿÿÿHüRMAJORZ
-CODE_SMELL
-m
-squid:S106"9Replace this use of System.out or System.err by a logger.(ã½ìç8‹Íô‡í,HûRMAJORZ
-CODE_SMELL
-nsquid:S1141w"5Extract this nested try block into a separate method.(¡»¢üùÿÿÿÿ8‹Íô‡í,HıRMAJORZ
-CODE_SMELL
-k
-squid:S106±"9Replace this use of System.out or System.err by a logger.(ó‚ï¡øÿÿÿÿHúRMAJORZ
-CODE_SMELL
-‚squid:S3776W"RRefactor this method to reduce its Cognitive Complexity from 20 to the 15 allowed.(œû¿ØHùRCRITICALZ
-CODE_SMELL
-‹squid:S22936"YReplace the type specification in this constructor call with the diamond operator ("<>").(ĞÉØûûÿÿÿÿHÿRMINORZ
-CODE_SMELL
-f
-squid:S106†"9Replace this use of System.out or System.err by a logger.(ÃÖ·HşRMAJORZ
-CODE_SMELL

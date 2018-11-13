@@ -33,6 +33,8 @@ hs_err_pid*
 .recommenders
 Servers
 
+.sonarlint
+
 # IntelliJ files
 *.iml
 *.iws
