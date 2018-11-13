@@ -38,3 +38,6 @@ Servers
 *.iws
 *.ipr
 .idea/
+
+# Maven ignored files
+target/
