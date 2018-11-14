@@ -260,13 +260,13 @@ public class Message {
 		} else if (handle.compareTo(MessageType.LOGIN_USER.toString()) == 0) {
 			result = makeUserLoginMessage(srcName, text);
 		} else if (handle.compareTo(MessageType.LOGIN_SUCCESS.toString()) == 0) {
-			result = makeLoginSuccess();
+			result = makeLoginSuccess(srcName);
 		} else if (handle.compareTo(MessageType.LOGIN_FAIL.toString()) == 0) {
 			result = makeLoginFaill();
 		} else if (handle.compareTo(MessageType.CREATE_USER.toString()) == 0) {
 			result = makeCreateUserMessage(srcName, text);
 		} else if (handle.compareTo(MessageType.CREATE_SUCCESS.toString()) == 0) {
-			result = makeCreateUserSuccess();
+			result = makeCreateUserSuccess(srcName);
 		} else if (handle.compareTo(MessageType.CREATE_FAIL.toString()) == 0) {
 			result = makeCreateUserFail();
 		} else if (handle.compareTo(MessageType.USER_EXIST.toString()) == 0) {
@@ -324,8 +324,8 @@ public class Message {
 	 * 
 	 * @return Instance of Message.
 	 */
-	public static Message makeLoginSuccess() {
-		return new Message(MessageType.LOGIN_SUCCESS);
+	public static Message makeLoginSuccess(String name) {
+		return new Message(MessageType.LOGIN_SUCCESS, name);
 	}
 
 	/**
@@ -351,8 +351,8 @@ public class Message {
 	 * 
 	 * @return Instance of Message.
 	 */
-	public static Message makeCreateUserSuccess() {
-		return new Message(MessageType.CREATE_SUCCESS);
+	public static Message makeCreateUserSuccess(String name) {
+		return new Message(MessageType.CREATE_SUCCESS, name);
 	}
 
 	/**
@@ -502,6 +502,16 @@ public class Message {
 	public boolean isDisplayMessage() {
 		return (msgType == MessageType.BROADCAST);
 	}
+	
+	/**
+     * Determine if this message is of type login success.
+     * 
+     * @return True if the message is of type login_success; false otherwise
+     */
+    public boolean isLoginSuccess() {
+        return (msgType == MessageType.LOGIN_SUCCESS);
+    }
+
 
 	/**
 	 * Determine if this message is sent by a new client to log-in to the server.

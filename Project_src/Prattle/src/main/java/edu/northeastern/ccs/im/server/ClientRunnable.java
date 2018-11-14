@@ -371,6 +371,7 @@ public class ClientRunnable implements Runnable {
 							ackMsg = Message.makeLoginFaill();
 						} else {
 							name= user.getUsername();
+							System.out.println("CR: " + name);
 							ackMsg = Message.makeLoginSuccess(name);
 						}
 						this.enqueueMessage(ackMsg);

@@ -56,13 +56,6 @@ public class Message {
 		CREATE_FAIL("UFA"),
 		/** Message if create user is fails */
 		USER_EXIST("UEX"),
-		// Group Messages
-		/** Message which logins a user */
-		// LOGIN_USER("LUS"),
-		// /** Message if login is successful */
-		// LOGIN_SUCCESS("LSC"),
-		// /** Message if login is fails */
-		// LOGIN_FAIL("LFA"),
 		/** Message to create group **/
 		CREATE_GROUP("CUG"),
 		/** Message if create Group is successful */

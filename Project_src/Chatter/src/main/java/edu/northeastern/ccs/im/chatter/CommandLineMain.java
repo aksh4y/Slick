@@ -6,7 +6,6 @@ import edu.northeastern.ccs.im.IMConnection;
 import edu.northeastern.ccs.im.KeyboardScanner;
 import edu.northeastern.ccs.im.Message;
 import edu.northeastern.ccs.im.MessageScanner;
-import edu.northeastern.ccs.im.MongoDB.Model.User;
 
 /**
  * Class which can be used as a command-line IM client.
@@ -36,13 +35,11 @@ public class CommandLineMain {
 			// Prompt the user to type in a username.
 			//System.out.println("What username would you like?");
 			
-			System.out.println("\t\t\t::Welcome to Slick::");
-			System.out.println("Please enter your username. Note this is not an alias:");
-			String username = in.nextLine();
-			System.out.println("Welcome " + username + "! Begin by logging in using USER_LOGIN " + username +  " <password>");
-			User user = new User();
-            user.setName(username);
-
+		    System.out.println("\t\t\t::Welcome to Slick::");
+            //System.out.println("Please enter your username. Note this is not an alias:");
+            //String username = in.nextLine();
+            System.out.println("Welcome! Begin by logging in using USER_LOGIN <username> <password>");
+            String user = "DUMMYUSER";
 			// Create a Connection to the IM server.
 			connect = new IMConnection(args[0], Integer.parseInt(args[1]), user);
 		} while (!connect.connect());
@@ -73,14 +70,18 @@ public class CommandLineMain {
 			// Get any recent messages received from the IM server.
 			if (mess.hasNext()) {
 				Message message = mess.next();
+				if(message.isLoginSuccess())
+				    connect.setUsername(message.getSender());
 				if (!message.getSender().equals(connect.getUserName())) {
-				    if(message.isBroadcastMessage())
-				        System.out.println("[Broadcast Msg] " + message.getSender() + ": " + message.getText());
-				    else if(message.isPrivateMessage())
-				        System.out.println("[Private Msg] " + message.getSender() + ": " + message.getText());
-				    else
-				        System.out.println(message.getSender() + ": " + message.getText());
-				}
+                    if(message.isBroadcastMessage())
+                        System.out.println("[Broadcast Msg] " + message.getSender() + ": " + message.getText());
+                    else if(message.isPrivateMessage())
+                        System.out.println("[Private Msg] " + message.getSender() + ": " + message.getText());
+                    else if(message.isGroupMessage())
+                        System.out.println("[Group Msg @" + message.getMsgRecipient() + "] " + message.getSender() + ": " + message.getText());
+                    else
+                        System.out.println(message.getSender() + ": " + message.getText());
+                }
 			}
 		}
 		System.out.println("Program complete.");

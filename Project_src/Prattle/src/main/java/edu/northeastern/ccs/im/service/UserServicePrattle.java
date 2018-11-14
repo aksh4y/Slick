@@ -42,7 +42,7 @@ public class UserServicePrattle {
 	 * @return authenticated user if found; else null
 	 */
 	public User authenticateUser(String username, String password) {
-		Document doc = col.find(Filters.and(Filters.eq("name", username), Filters.eq("password", password))).first();
+		Document doc = col.find(Filters.and(Filters.eq("username", username), Filters.eq("password", password))).first();
 
 		return gson.fromJson(gson.toJson(doc), User.class);
 	}

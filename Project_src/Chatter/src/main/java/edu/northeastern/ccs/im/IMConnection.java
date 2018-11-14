@@ -7,8 +7,6 @@ import java.util.Vector;
 
 import javax.swing.SwingWorker;
 
-import edu.northeastern.ccs.im.MongoDB.Model.User;
-
 /**
  * This class manages the connection between an the IM client and the IM server.
  * Instances of this class can be relied upon to manage all the details of this
@@ -44,12 +42,12 @@ public class IMConnection {
 
 	/** Server to which this connection will be made. */
 	private String hostName;
+	
+	/** The username of the client */
+	private String username;
 
 	/** Port to which this connection will be made. */
 	private int portNum;
-
-	/** Name of the user for which this connection was formed. */
-	private User user;
 
 	/**
 	 * Holds the SwingWorker which is used to read and process all incoming data.
@@ -70,13 +68,14 @@ public class IMConnection {
 	 * @param username
 	 *            Name of the user for which this connection is being made.
 	 */
-	public IMConnection(String host, int port, User user) {
-		if ((user == null) || user.getName().trim().equals("")) {
-			user.setName("TooDumbToEnterRealUsername");
-		}
+	public IMConnection(String host, int port, String username) {
+	    if ((username == null) || username.trim().equals("")) {
+            //user.setName("TooDumbToEnterRealUsername");
+            username = "DUMMYUSER";
+        }
 		linkListeners = new Vector<LinkListener>();
 		messageListeners = new Vector<MessageListener>();
-		this.user = user;
+		this.username = username;
 		hostName = host;
 		portNum = port;
 	}
@@ -186,7 +185,7 @@ public class IMConnection {
 	 *         logged in to this IM server.
 	 */
 	public String getUserName() {
-		return user.getName();
+		return username;
 	}
 
 	/**
@@ -203,13 +202,13 @@ public class IMConnection {
 			throw new IllegalOperationException("Cannot send a message if you are not connected to a server!\n");
 		} else if (message.contains("PRIVATE")) {
 			String[] params = message.split(" ");
-			msg = Message.makePrivateMessage(user.getName(), params[1], message.substring(9 + params[1].length()));
+			msg = Message.makePrivateMessage(username, params[1], message.substring(9 + params[1].length()));
 		} else if (message.contains("GROUP_CREATE")) {
 			String[] msgArray = message.split(" ");
 			msg = Message.makeCreateGroupMessage(msgArray[1]);
 		} else if (message.equalsIgnoreCase("GROUP")) {
 			String[] params = message.split(" ");
-			msg = Message.makeGroupMessage(user.getName(), params[1], message.substring(9 + params[1].length()));
+			msg = Message.makeGroupMessage(username, params[1], message.substring(9 + params[1].length()));
 		} else if (message.contains("USER_LOGIN")) {
 			String[] msgArray = message.split(" ");
 			msg = Message.makeUserLoginMessage(msgArray[1], msgArray[2]);
@@ -217,7 +216,7 @@ public class IMConnection {
 			String[] msgArray = message.split(" ");
 			msg = Message.makeCreateUserMessage(msgArray[1], msgArray[2]);
 		} else {
-			msg = Message.makeBroadcastMessage(user.getName(), message);
+			msg = Message.makeBroadcastMessage(username, message);
 		}
 		socketConnection.print(msg);
 	}
@@ -232,7 +231,7 @@ public class IMConnection {
 	 */
 	private boolean login() {
 		// Now log in using this name.
-		Message loginMessage = Message.makeLoginMessage(user.getName());
+		Message loginMessage = Message.makeLoginMessage(username);
 		try {
 			socketConnection = new SocketNB(hostName, portNum);
 			socketConnection.startIMConnection();
@@ -281,4 +280,12 @@ public class IMConnection {
 	protected void loggedOut() {
 		socketConnection = null;
 	}
+
+	/**
+	 * 
+	 * @param name the username
+	 */
+    public void setUsername(String name) {
+        this.username = name;        
+    }
 }
