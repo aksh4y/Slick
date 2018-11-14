@@ -206,6 +206,15 @@ public final class SocketNB {
 				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.USER_EXIST) {
 					System.out.println("Userid Exist");
 				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.CREATE_FAIL) {
+					System.out.println("Group can not be created at this time, try again later");
+				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.GROUP_CREATE_SUCCESS) {
+					System.out.println("Group Created");
+				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.GROUP_EXIST) {
+					System.out.println("Group name Exist");
+				}
 				// Now pass this message on to the system.
 				messages.add(newMsg);
 

@@ -17,7 +17,9 @@ import edu.northeastern.ccs.im.Message;
 import edu.northeastern.ccs.im.MongoConnection;
 import edu.northeastern.ccs.im.PrintNetNB;
 import edu.northeastern.ccs.im.ScanNetNB;
+import edu.northeastern.ccs.im.MongoDB.Model.Group;
 import edu.northeastern.ccs.im.MongoDB.Model.User;
+import edu.northeastern.ccs.im.service.GroupServicePrattle;
 import edu.northeastern.ccs.im.service.UserServicePrattle;
 
 /**
@@ -102,7 +104,10 @@ public class ClientRunnable implements Runnable {
 
 	private UserServicePrattle userService;
 
+	private GroupServicePrattle groupService;
+
 	private User user;
+	
 	
 	private MongoDatabase db;
 
@@ -115,11 +120,13 @@ public class ClientRunnable implements Runnable {
 	 *             Exception thrown if we have trouble completing this connection
 	 */
 	public ClientRunnable(SocketChannel client) throws IOException {
-	    
-	    //initialize db
-	    db= MongoConnection.createConnection();
+
+		// initialize db
+		db = MongoConnection.createConnection();
 
 		userService = new UserServicePrattle(db);
+
+		groupService = new GroupServicePrattle(db);
 		// Set up the SocketChannel over which we will communicate.
 		socket = client;
 		socket.configureBlocking(false);
@@ -319,35 +326,52 @@ public class ClientRunnable implements Runnable {
 							new GregorianCalendar().getTimeInMillis() + TERMINATE_AFTER_INACTIVE_BUT_LOGGEDIN_IN_MS);
 					// Handle Private Message
 					if (msg.isPrivateMessage())
-					    Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
-					//If it is login message, the Login a user
-					else if(msg.isUserCreate()) {
+						Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
+					// If it is create user message
+					else if (msg.isUserCreate()) {
 						Message ackMsg;
 						this.initialized = true;
-						 
-						if(!userService.isUsernameTaken(msg.getName())) {
+
+						if (!userService.isUsernameTaken(msg.getName())) {
 							user = userService.createUser(msg.getName(), msg.getText());
-							if(user == null)
-							{
+							if (user == null) {
 								ackMsg = Message.makeCreateUserFail();
+							} else {
+								name= user.getUsername();
+								ackMsg = Message.makeCreateUserSuccess(name);
 							}
-							else {
-								ackMsg = Message.makeCreateUserSuccess();
-							}
-						}
-						else {
+						} else {
 							ackMsg = Message.makeUserIdExist();
 						}
 						this.enqueueMessage(ackMsg);
-					}else if(msg.isUserLogin()) {
+					}
+					// If it is create group message
+					else if (msg.isCreateGroup()) {
+						Message ackMsg;
+						this.initialized = true;
+
+						if (!groupService.isGroupnameTaken(msg.getName())) {
+							Group group = groupService.createGroup(msg.getName());
+							if (group == null) {
+								ackMsg = Message.makeCreateGroupFail();
+							} else {
+								ackMsg = Message.makeCreateGroupSuccess();
+							}
+						} else {
+							ackMsg = Message.makeGroupExist();
+						}
+						this.enqueueMessage(ackMsg);
+					}
+					// If it is login user message
+					else if (msg.isUserLogin()) {
 						Message ackMsg;
 						this.initialized = true;
 						user = userService.authenticateUser(msg.getName(), msg.getText());
-						if(user == null) {
-							 ackMsg = Message.makeLoginFaill();
-						}
-						else {
-							ackMsg = Message.makeLoginSuccess();
+						if (user == null) {
+							ackMsg = Message.makeLoginFaill();
+						} else {
+							name= user.getUsername();
+							ackMsg = Message.makeLoginSuccess(name);
 						}
 						this.enqueueMessage(ackMsg);
 					}
