@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledFuture;
@@ -383,8 +384,9 @@ public class ClientRunnable implements Runnable {
 						if (group == null) {
 							ackMsg = Message.makeGroupNotExist();
 						} else {
-							if (groupService.addUserToGroup(group, user) && !userService.addGroupToUser(user, group)
-									&& group.getListOfUsers().contains(user.getUsername())) {
+							List<String> users = group.getListOfUsers();
+							if (groupService.addUserToGroup(group, user) && userService.addGroupToUser(user, group)
+									&& !group.getListOfUsers().contains(user.getUsername())) {
 								ackMsg = Message.makeGroupAddSuc();
 							} else {
 								ackMsg = Message.makeGroupAddFail();
