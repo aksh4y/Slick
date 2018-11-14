@@ -115,6 +115,7 @@ public class Message {
         msgSender = srcName;
         // Save the text of the message.
         msgText = text;
+
     }
 
     private Message(MessageType handle, String srcName, String recipient, String text) {

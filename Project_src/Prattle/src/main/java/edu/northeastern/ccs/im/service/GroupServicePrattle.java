@@ -45,10 +45,9 @@ public class GroupServicePrattle {
 	}
 
 	public Group findGroupByName(String name) {
-		Document doc = gcol.find(Filters.and(Filters.eq("name", name))).first();
+		Document doc = gcol.find(Filters.eq("name", name)).first();
 
-		Group group = gson.fromJson(gson.toJson(doc), Group.class);
-		return group;
+		return gson.fromJson(gson.toJson(doc), Group.class);
 	}
 
 	private Boolean isGroupnameTaken(String name) {
