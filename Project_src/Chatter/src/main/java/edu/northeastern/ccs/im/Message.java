@@ -1,5 +1,7 @@
 package edu.northeastern.ccs.im;
 
+import edu.northeastern.ccs.im.Message.MessageType;
+
 /**
  * Each instance of this class represents a single transmission by our IM
  * clients.
@@ -49,7 +51,15 @@ public class Message {
 		/** Message if create user is fails */
 		CREATE_FAIL("UFA"),
 		/** Message if create user is fails */
-		USER_EXIST("UEX");
+		USER_EXIST("UEX"),
+		/** Message to create group **/
+		CREATE_GROUP("CUG"),
+		/** Message if create Group is successful */
+		GROUP_CREATE_SUCCESS("GSC"),
+		/** Message if create user is fails */
+		GROUP_CREATE_FAIL("GFA"),
+		/** Message if create user is fails */
+		GROUP_EXIST("GEX");
 		/** Store the short name of this message type. */
 		private String tla;
 
@@ -181,7 +191,7 @@ public class Message {
 	 * @return
 	 */
 	public static Message makeGroupMessage(String srcName, String groupName, String text) {
-		return new Message(MessageType.PRIVATE, srcName, groupName, text);
+		return new Message(MessageType.GROUP, srcName, groupName, text);
 	}
 
 	/**
@@ -261,8 +271,52 @@ public class Message {
 			result = makeCreateUserFail();
 		} else if (handle.compareTo(MessageType.USER_EXIST.toString()) == 0) {
 			result = makeUserIdExist();
+		} else if (handle.compareTo(MessageType.CREATE_GROUP.toString()) == 0) {
+			result = makeCreateGroupMessage(srcName);
+		} else if (handle.compareTo(MessageType.GROUP_CREATE_SUCCESS.toString()) == 0) {
+			result = makeCreateGroupSuccess();
+		} else if (handle.compareTo(MessageType.GROUP_CREATE_FAIL.toString()) == 0) {
+			result = makeCreateGroupFail();
+		} else if (handle.compareTo(MessageType.GROUP_EXIST.toString()) == 0) {
+			result = makeGroupExist();
 		}
 		return result;
+	}
+
+	/**
+	 * Create a new message to Create a Group.
+	 * 
+	 * @return Instance of Message.
+	 */
+	public static Message makeCreateGroupMessage(String groupName) {
+		return new Message(MessageType.CREATE_GROUP, groupName);
+	}
+
+	/**
+	 * Create a new message to if Create Group is successful
+	 * 
+	 * @return Instance of Message.
+	 */
+	public static Message makeCreateGroupSuccess() {
+		return new Message(MessageType.GROUP_CREATE_SUCCESS);
+	}
+
+	/**
+	 * Create a new message to if Create Group fails
+	 * 
+	 * @return Instance of Message.
+	 */
+	public static Message makeCreateGroupFail() {
+		return new Message(MessageType.GROUP_CREATE_FAIL);
+	}
+
+	/**
+	 * Create a new message to if Group exist
+	 * 
+	 * @return Instance of Message.
+	 */
+	public static Message makeGroupExist() {
+		return new Message(MessageType.GROUP_EXIST);
 	}
 
 	/**

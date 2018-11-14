@@ -204,7 +204,10 @@ public class IMConnection {
 		} else if (message.contains("PRIVATE")) {
 			String[] params = message.split(" ");
 			msg = Message.makePrivateMessage(user.getName(), params[1], message.substring(9 + params[1].length()));
-		} else if (message.contains("GROUP")) {
+		} else if (message.contains("GROUP_CREATE")) {
+			String[] msgArray = message.split(" ");
+			msg = Message.makeCreateGroupMessage(msgArray[1]);
+		} else if (message.equalsIgnoreCase("GROUP")) {
 			String[] params = message.split(" ");
 			msg = Message.makeGroupMessage(user.getName(), params[1], message.substring(9 + params[1].length()));
 		} else if (message.contains("USER_LOGIN")) {
