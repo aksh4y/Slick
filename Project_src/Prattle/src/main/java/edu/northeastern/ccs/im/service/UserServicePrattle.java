@@ -3,7 +3,7 @@ package edu.northeastern.ccs.im.service;
 import org.bson.Document;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
@@ -11,6 +11,7 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 
+import edu.northeastern.ccs.im.Message;
 import edu.northeastern.ccs.im.MongoDB.Model.Group;
 import edu.northeastern.ccs.im.MongoDB.Model.User;
 
@@ -81,10 +82,9 @@ public class UserServicePrattle {
 	 * @return
 	 */
 	public User findUserByUsername(String username) {
-		Document doc = col.find(Filters.and(Filters.eq("name", username))).first();
+		Document doc = col.find(Filters.eq("name", username)).first();
 
-		User user = gson.fromJson(gson.toJson(doc), User.class);
-		return user;
+		return gson.fromJson(gson.toJson(doc), User.class);
 	}
 
 	/**
@@ -120,11 +120,25 @@ public class UserServicePrattle {
 	public Boolean addGroupToUser(User user, Group group) throws JsonProcessingException {
 		// col.updateOne(Filters.eq("name", user.getName()), new Document("$push",
 		// {"listOfGroups", group}));
-		ObjectMapper mapper = new ObjectMapper();
-		String json = mapper.writeValueAsString(group);
-
+//		ObjectMapper mapper = new ObjectMapper();
+//		String json = mapper.writeValueAsString(group);
+		String json =gson.toJson(group);
 		col.updateOne(Filters.eq("name", user.getUsername()), Updates.addToSet("listOfGroups", Document.parse(json)));
-
 		return true;
 	}
+
+
+	public void clearNewMessages(User user){
+		col.updateOne(Filters.eq("name", user.getUsername()), Updates.set("myNewMessages", ""));
+
+	}
+
+	public void addToMyMessages(User user, Message message) throws JsonProcessingException{
+//		ObjectMapper mapper = new ObjectMapper();
+//		String json = mapper.writeValueAsString(message);
+//		JSONObject jsonObj = new JSONObject(message);
+		String json =gson.toJson(message);
+		col.updateOne(Filters.eq("name", user.getUsername()), Updates.addToSet("myMessages", Document.parse(json)));
+	}
+
 }

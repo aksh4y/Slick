@@ -1,7 +1,5 @@
 package edu.northeastern.ccs.im;
 
-import edu.northeastern.ccs.im.Message.MessageType;
-
 /**
  * @startuml car --|> wheel Each instance of this class represents a single
  *           transmission by our IM clients.
