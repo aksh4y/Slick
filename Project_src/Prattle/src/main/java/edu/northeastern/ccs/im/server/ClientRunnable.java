@@ -107,8 +107,7 @@ public class ClientRunnable implements Runnable {
 	private GroupServicePrattle groupService;
 
 	private User user;
-	
-	
+
 	private MongoDatabase db;
 
 	/**
@@ -337,7 +336,7 @@ public class ClientRunnable implements Runnable {
 							if (user == null) {
 								ackMsg = Message.makeCreateUserFail();
 							} else {
-								name= user.getUsername();
+								name = user.getUsername();
 								ackMsg = Message.makeCreateUserSuccess(name);
 							}
 						} else {
@@ -370,9 +369,26 @@ public class ClientRunnable implements Runnable {
 						if (user == null) {
 							ackMsg = Message.makeLoginFaill();
 						} else {
-							name= user.getUsername();
+							name = user.getUsername();
 							System.out.println("CR: " + name);
 							ackMsg = Message.makeLoginSuccess(name);
+						}
+						this.enqueueMessage(ackMsg);
+					}
+					// If it is Adding user to group message
+					else if (msg.isAddToGroup()) {
+						Message ackMsg;
+						this.initialized = true;
+						Group group = groupService.findGroupByName(msg.getName());
+						if (group == null) {
+							ackMsg = Message.makeGroupNotExist();
+						} else {
+							if (groupService.addUserToGroup(group, user) && !userService.addGroupToUser(user, group)
+									&& group.getListOfUsers().contains(user.getUsername())) {
+								ackMsg = Message.makeGroupAddSuc();
+							} else {
+								ackMsg = Message.makeGroupAddFail();
+							}
 						}
 						this.enqueueMessage(ackMsg);
 					}

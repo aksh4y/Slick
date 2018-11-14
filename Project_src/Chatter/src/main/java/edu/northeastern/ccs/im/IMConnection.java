@@ -42,7 +42,7 @@ public class IMConnection {
 
 	/** Server to which this connection will be made. */
 	private String hostName;
-	
+
 	/** The username of the client */
 	private String username;
 
@@ -69,10 +69,10 @@ public class IMConnection {
 	 *            Name of the user for which this connection is being made.
 	 */
 	public IMConnection(String host, int port, String username) {
-	    if ((username == null) || username.trim().equals("")) {
-            //user.setName("TooDumbToEnterRealUsername");
-            username = "DUMMYUSER";
-        }
+		if ((username == null) || username.trim().equals("")) {
+			// user.setName("TooDumbToEnterRealUsername");
+			username = "DUMMYUSER";
+		}
 		linkListeners = new Vector<LinkListener>();
 		messageListeners = new Vector<MessageListener>();
 		this.username = username;
@@ -206,6 +206,9 @@ public class IMConnection {
 		} else if (message.contains("GROUP_CREATE")) {
 			String[] msgArray = message.split(" ");
 			msg = Message.makeCreateGroupMessage(msgArray[1]);
+		} else if (message.contains("ADD_GROUP")) {
+			String[] msgArray = message.split(" ");
+			msg = Message.makeAddUserToGroup(msgArray[1]);
 		} else if (message.equalsIgnoreCase("GROUP")) {
 			String[] params = message.split(" ");
 			msg = Message.makeGroupMessage(username, params[1], message.substring(9 + params[1].length()));
@@ -283,9 +286,10 @@ public class IMConnection {
 
 	/**
 	 * 
-	 * @param name the username
+	 * @param name
+	 *            the username
 	 */
-    public void setUsername(String name) {
-        this.username = name;        
-    }
+	public void setUsername(String name) {
+		this.username = name;
+	}
 }

@@ -215,6 +215,15 @@ public final class SocketNB {
 				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.GROUP_EXIST) {
 					System.out.println("Group name Exist");
 				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.GROUP_ADD_FAIL) {
+					System.out.println("User can not be added to this group");
+				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.GROUP_ADD_SUCCESS) {
+					System.out.println("Added to Group");
+				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.GROUP_NOT_EXIST) {
+					System.out.println("This group does not exist");
+				}
 				// Now pass this message on to the system.
 				messages.add(newMsg);
 

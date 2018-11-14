@@ -61,7 +61,15 @@ public class Message {
 		/** Message if create user is fails */
 		GROUP_CREATE_FAIL("GFA"),
 		/** Message if create user is fails */
-		GROUP_EXIST("GEX");
+		GROUP_EXIST("GEX"),
+		/** Message to add user to group */
+		ADD_TO_GROUP("GAD"),
+		/** Message if group does not exist */
+		GROUP_NOT_EXIST("GNE"),
+		/** Message if user added to group */
+		GROUP_ADD_SUCCESS("GAS"),
+		/** Message if user added to group */
+		GROUP_ADD_FAIL("GAF");
 		/** Store the short name of this message type. */
 		private String tla;
 
@@ -252,6 +260,14 @@ public class Message {
 			result = makeCreateGroupFail();
 		} else if (handle.compareTo(MessageType.GROUP_EXIST.toString()) == 0) {
 			result = makeGroupExist();
+		} else if (handle.compareTo(MessageType.ADD_TO_GROUP.toString()) == 0) {
+			result = makeAddUserToGroup(srcName);
+		} else if (handle.compareTo(MessageType.GROUP_NOT_EXIST.toString()) == 0) {
+			result = makeGroupNotExist();
+		} else if (handle.compareTo(MessageType.GROUP_ADD_FAIL.toString()) == 0) {
+			result = makeGroupAddFail();
+		} else if (handle.compareTo(MessageType.GROUP_ADD_SUCCESS.toString()) == 0) {
+			result = makeGroupAddSuc();
 		}
 		return result;
 	}
@@ -320,7 +336,7 @@ public class Message {
 	 * @return Instance of Message.
 	 */
 	public static Message makeCreateUserSuccess(String name) {
-		return new Message(MessageType.CREATE_SUCCESS,name);
+		return new Message(MessageType.CREATE_SUCCESS, name);
 	}
 
 	/**
@@ -375,6 +391,42 @@ public class Message {
 	 */
 	public static Message makeGroupExist() {
 		return new Message(MessageType.GROUP_EXIST);
+	}
+
+	/**
+	 * Create a new message to add user to group
+	 * 
+	 * @return Instance of Message.
+	 */
+	public static Message makeAddUserToGroup(String groupName) {
+		return new Message(MessageType.ADD_TO_GROUP, groupName);
+	}
+
+	/**
+	 * Create a new message to send if group does not exist
+	 * 
+	 * @return Instance of Message.
+	 */
+	public static Message makeGroupNotExist() {
+		return new Message(MessageType.GROUP_NOT_EXIST);
+	}
+
+	/**
+	 * Create a new message to send if group add fails
+	 * 
+	 * @return Instance of Message.
+	 */
+	public static Message makeGroupAddFail() {
+		return new Message(MessageType.GROUP_ADD_FAIL);
+	}
+
+	/**
+	 * Create a new message to send if group add Success
+	 * 
+	 * @return Instance of Message.
+	 */
+	public static Message makeGroupAddSuc() {
+		return new Message(MessageType.GROUP_ADD_SUCCESS);
 	}
 
 	/**
@@ -445,7 +497,7 @@ public class Message {
 	public boolean isAcknowledge() {
 		return (msgType == MessageType.ACKNOWLEDGE);
 	}
-	
+
 	/**
 	 * Determine if this message is an Group Create message.
 	 * 
@@ -471,6 +523,15 @@ public class Message {
 	 */
 	public boolean isUserCreate() {
 		return (msgType == MessageType.CREATE_USER);
+	}
+
+	/**
+	 * Determine if this message is an Add user To Group message.
+	 * 
+	 * @return True if the message is an CreateUser message; false otherwise.
+	 */
+	public boolean isAddToGroup() {
+		return (msgType == MessageType.ADD_TO_GROUP);
 	}
 
 	/**
