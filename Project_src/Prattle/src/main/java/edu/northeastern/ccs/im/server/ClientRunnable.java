@@ -383,8 +383,8 @@ public class ClientRunnable implements Runnable {
 						if (group == null) {
 							ackMsg = Message.makeGroupNotExist();
 						} else {
-							if (groupService.addUserToGroup(group, user) && !userService.addGroupToUser(user, group)
-									&& group.getListOfUsers().contains(user.getUsername())) {
+							if (groupService.addUserToGroup(group, user) && userService.addGroupToUser(user, group)
+									&& !group.getListOfUsers().contains(user.getUsername())) {
 								ackMsg = Message.makeGroupAddSuc();
 							} else {
 								ackMsg = Message.makeGroupAddFail();
