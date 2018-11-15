@@ -1,6 +1,8 @@
 package edu.northeastern.ccs.im.MongoDB.Model;
 
 import edu.northeastern.ccs.im.Message;
+import edu.northeastern.ccs.im.service.UserServicePrattle;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +21,7 @@ public class User {
     private String username;
     private String password;
     private List<String> listOfGroups;
-    private List<Message> myMessages;
+    private List<String> myMessages;
 
     /**
      *
@@ -28,7 +30,7 @@ public class User {
      */
     public User(String username, String password){
         this.username = username;
-        this.password = password;
+        this.password = UserServicePrattle.hashPassword(password);
         this.listOfGroups = new ArrayList<String>();
     }
 

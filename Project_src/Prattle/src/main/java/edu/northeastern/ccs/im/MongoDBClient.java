@@ -17,13 +17,20 @@ public class MongoDBClient {
         UserServicePrattle userService = new UserServicePrattle(db);
         GroupServicePrattle grpService = new GroupServicePrattle(db);
 
-        grpService.deleteGroup("MytestGroup");
-//        userService.createUser("John","JohnPass");
+//        grpService.deleteGroup("MytestGroup");
+//        userService.createUser("pwdHash","test!@#");
+
+        User usr = userService.findUserByUsername("Peter");
+
+//        userService.createUser("testChetan","testchetan");
+//        User usr = userService.findUserByUsername("pwdHash");
+//        usr = userService.authenticateUser("pwdHash","test!#");
 
 
 //        grpService.createGroup("MyTestGroup");
 //        Group grp = grpService.findGroupByName("MyTestGroup");
-//        User usr = userService.findUserByUsername("John");
+//        User usr = userService.findUserByUsername("Peter");
+
 //
 //        grpService.addUserToGroup(grp, usr);
 //        usr=userService.findUserByUsername("Peter");
