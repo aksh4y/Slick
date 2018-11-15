@@ -221,9 +221,9 @@ public class IMConnection {
 		} else if (message.contains("EXIT_GROUP")) {
 			String[] msgArray = message.split(" ");
 			msg = Message.makeUserExitGroup(msgArray[1]);
-		} else if (message.equalsIgnoreCase("GROUP")) {
+		} else if (message.contains("GROUP")) {
 			String[] params = message.split(" ");
-			msg = Message.makeGroupMessage(username, params[1], message.substring(9 + params[1].length()));
+			msg = Message.makeGroupMessage(username, params[1], message.substring(7 + params[1].length()));
 		} else if (message.contains("USER_LOGIN")) {
 			String[] msgArray = message.split(" ");
 			msg = Message.makeUserLoginMessage(msgArray[1], msgArray[2]);

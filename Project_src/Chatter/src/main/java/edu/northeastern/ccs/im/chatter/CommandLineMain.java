@@ -1,7 +1,5 @@
 package edu.northeastern.ccs.im.chatter;
 
-import java.util.Scanner;
-
 import edu.northeastern.ccs.im.IMConnection;
 import edu.northeastern.ccs.im.KeyboardScanner;
 import edu.northeastern.ccs.im.Message;
@@ -28,15 +26,11 @@ public class CommandLineMain {
 	 */
 	public static void main(String[] args) {
 		IMConnection connect;
-		@SuppressWarnings("resource")
-		Scanner in = new Scanner(System.in);
-
 		do {
 			// Prompt the user to type in a username.
 			//System.out.println("What username would you like?");
 			
 		    System.out.println("\t\t\t::Welcome to Slick::");
-            //System.out.println("Please enter your username. Note this is not an alias:");
             //String username = in.nextLine();
             System.out.println("Welcome! Begin by logging in using USER_LOGIN <username> <password>");
             String user = "DUMMYUSER";

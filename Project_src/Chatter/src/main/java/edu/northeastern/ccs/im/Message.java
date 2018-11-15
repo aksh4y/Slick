@@ -548,7 +548,7 @@ public class Message {
 	 * @param text
 	 *            Text sent in this message (may be null)
 	 * @param recipient
-	 *            Name of the message recipient
+	 *            Name of the message recipient or group name
 	 * @return Instance of Message (or its subclasses) representing the handle,
 	 *         name, & text.
 	 */

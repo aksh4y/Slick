@@ -1,5 +1,9 @@
 package edu.northeastern.ccs.im.service;
 
+import java.util.List;
+
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.result.DeleteResult;
 import org.bson.Document;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -13,8 +17,6 @@ import com.mongodb.client.model.Updates;
 
 import edu.northeastern.ccs.im.MongoDB.Model.Group;
 import edu.northeastern.ccs.im.MongoDB.Model.User;
-
-import java.util.List;
 
 /**
  *
@@ -49,9 +51,7 @@ public class GroupServicePrattle {
 	 */
 	public Group createGroup(String name) throws JsonProcessingException {
 		if (!isGroupnameTaken(name)) {
-			Group g = new Group(name);
-			g.setName(name);
-
+			Group g = new Group(name.toLowerCase());
 			insertGroup(g);
 			return g;
 		} else {
@@ -70,13 +70,25 @@ public class GroupServicePrattle {
 		gcol.insertOne(Document.parse(json));
 	}
 
+	public boolean deleteGroup(String groupname) throws JsonProcessingException {
+		UserServicePrattle userService= new UserServicePrattle(db);
+		List<String> listOfUsers = findGroupByName(groupname).getListOfUsers();
+		DeleteResult dr =gcol.deleteOne(Filters.eq("name", groupname.toLowerCase()));
+		boolean removedGroup=false;
+		for(String username: listOfUsers){
+			removedGroup=userService.removeGroupFromUser(username,groupname.toLowerCase());
+		}
+
+		return (dr.wasAcknowledged() && removedGroup);
+	}
+
 	/**
 	 *
 	 * @param name Name of the group to be found
 	 * @return
 	 */
 	public Group findGroupByName(String name) {
-		Document doc = gcol.find(Filters.eq("name", name)).first();
+		Document doc = gcol.find(Filters.eq("name", name.toLowerCase())).first();
 
 		return gson.fromJson(gson.toJson(doc), Group.class);
 	}
@@ -87,7 +99,7 @@ public class GroupServicePrattle {
 	 * @return
 	 */
 	public Boolean isGroupnameTaken(String name) {
-		FindIterable<Document> iterable = gcol.find(Filters.eq("name", name));
+		FindIterable<Document> iterable = gcol.find(Filters.eq("name", name.toLowerCase()));
 		return iterable.first() != null;
 	}
 
@@ -102,15 +114,27 @@ public class GroupServicePrattle {
 
 		gcol.updateOne(Filters.eq("name", group.getName()), Updates.addToSet("listOfUsers", user.getUsername()));
 
-		UserServicePrattle user_service= new UserServicePrattle(db);
-		user_service.addGroupToUser(user,group);
+		UserServicePrattle userService= new UserServicePrattle(db);
+		userService.addGroupToUser(user,group);
 		return true;
 	}
 
-	public void removeUserFromGroups(List<Group> listOfGroups, String username) throws JsonProcessingException {
-		for( Group group : listOfGroups) {
-			gcol.updateOne(Filters.eq("name", group.getName()), Updates.pull("listOfUsers", username));
+	public boolean removeUserFromGroups(List<String> listOfGroups, String username) throws JsonProcessingException {
+		boolean result=false;
+		for( String group : listOfGroups) {
+			 result = gcol.updateOne(Filters.eq("name", group), Updates.pull("listOfUsers", username)).wasAcknowledged();
 		}
+		return result;
+	}
+
+	public boolean exitGroup(String username, String groupname){
+		//remove user from group
+		boolean update=gcol.updateOne(Filters.eq("name", groupname), Updates.pull("listOfUsers", username)).wasAcknowledged();
+
+		//remove group from user
+		UserServicePrattle userService= new UserServicePrattle(db);
+		boolean removeGroup = userService.removeGroupFromUser(username,groupname);
+		return (update && removeGroup);
 	}
 
 }

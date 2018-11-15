@@ -18,7 +18,7 @@ public class User {
     private int id;
     private String username;
     private String password;
-    private List<Group> listOfGroups;
+    private List<String> listOfGroups;
     private List<Message> myMessages;
 
     /**
@@ -29,7 +29,7 @@ public class User {
     public User(String username, String password){
         this.username = username;
         this.password = password;
-        this.listOfGroups = new ArrayList<Group>();
+        this.listOfGroups = new ArrayList<String>();
     }
 
     /**
@@ -84,7 +84,7 @@ public class User {
      *
      * @return list of groups the user belongs to
      */
-    public List<Group> getListOfGroups() {
+    public List<String> getListOfGroups() {
         return listOfGroups;
     }
 
@@ -93,7 +93,7 @@ public class User {
      *
      * @param newGroup Group to add to list of groups for the User
      */
-    public void addGroupToUser(Group newGroup) {
+    public void addGroupToUser(String newGroup) {
         listOfGroups.add(newGroup);
     }
 

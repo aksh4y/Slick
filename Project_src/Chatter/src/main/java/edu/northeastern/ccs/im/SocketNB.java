@@ -170,7 +170,7 @@ public final class SocketNB {
 				charBuffer.position(charBuffer.position() + 2);
 				// Read in the second argument containing the message
 				Message newMsg;
-				if (handle.equals("PRI")) {
+				if (handle.equals("PRI") || handle.equals("GRP")) {
 					// Read in the second argument containing the message
 					final String reciever = readArgument(charBuffer);
 					charBuffer.position(charBuffer.position() + 2);
