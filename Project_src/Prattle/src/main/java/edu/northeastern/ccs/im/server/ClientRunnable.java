@@ -328,18 +328,19 @@ public class ClientRunnable implements Runnable {
 					if (msg.isPrivateMessage())
 						Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
 					// Handle Group Message
-					else if(msg.isGroupMessage()) {
-					    String groupName = msg.getMsgRecipient();
-					    Group group = groupService.findGroupByName(groupName);
-					    if(group == null || !group.getListOfUsers().contains(msg.getName())) {    // group does not exist or user not part of group
-					        Message failMsg = Message.makeGroupNotExist();
-					        this.enqueueMessage(failMsg);
-					    }
-					    else {
-					        for(String recipient : group.getListOfUsers())
-					            Prattle.broadcastPrivateMessage(msg, recipient);
-					    }
-					}				
+					else if (msg.isGroupMessage()) {
+						String groupName = msg.getMsgRecipient();
+						Group group = groupService.findGroupByName(groupName);
+						if (group == null || !group.getListOfUsers().contains(msg.getName())) { // group does not exist
+																								// or user not part of
+																								// group
+							Message failMsg = Message.makeGroupNotExist();
+							this.enqueueMessage(failMsg);
+						} else {
+							for (String recipient : group.getListOfUsers())
+								Prattle.broadcastPrivateMessage(msg, recipient);
+						}
+					}
 					// If it is create user message
 					else if (msg.isUserCreate()) {
 						Message ackMsg;
@@ -399,6 +400,7 @@ public class ClientRunnable implements Runnable {
 						} else {
 							if (groupService.addUserToGroup(group, user) && userService.addGroupToUser(user, group)
 									&& !group.getListOfUsers().contains(user.getUsername())) {
+								user = userService.findUserByUsername(user.getUsername());
 								ackMsg = Message.makeGroupAddSuc();
 							} else {
 								ackMsg = Message.makeGroupAddFail();
@@ -414,16 +416,15 @@ public class ClientRunnable implements Runnable {
 						if (group == null) {
 							ackMsg = Message.makeGroupNotExist();
 						} else {
-							try {
-								List<Group> groups = new ArrayList<Group>();
-								groups.add(group);
-							//TODO	groupService.removeUserFromGroups(groups, user.getUsername());
+							if (groupService.exitGroup(user.getUsername(), group.getName())
+									&& user.getListOfGroups().contains(group.getName())) {
+								user = userService.findUserByUsername(user.getUsername());
 								ackMsg = Message.makeSuccessMsg();
-							} catch (Exception e) {
+							} else {
 								ackMsg = Message.makeFailMsg();
 							}
-							this.enqueueMessage(ackMsg);
 						}
+						this.enqueueMessage(ackMsg);
 					}
 					// If group is being deleted
 					else if (msg.isGroupDelete()) {
@@ -449,10 +450,9 @@ public class ClientRunnable implements Runnable {
 						if (!msg.getName().equals(user.getPassword())) {
 							ackMsg = Message.makeUserWrongPasswordMsg();
 						} else {
-							try {
-								userService.deleteUser(user.getUsername());
+							if (userService.deleteUser(user.getUsername())) {
 								ackMsg = Message.makeDeleteUserSuccessMsg();
-							} catch (Exception e) {
+							} else {
 								ackMsg = Message.makeFailMsg();
 							}
 						}
@@ -468,7 +468,7 @@ public class ClientRunnable implements Runnable {
 							ackMsg = Message.makeUserWrongPasswordMsg();
 						} else {
 							if (userService.updateUser(user, msg.getText())) {
-								user.setPassword(msg.getText());
+								user = userService.findUserByUsername(user.getUsername());
 								ackMsg = Message.makeSuccessMsg();
 							} else {
 								ackMsg = Message.makeFailMsg();
