@@ -12,15 +12,16 @@ import edu.northeastern.ccs.im.MongoDB.Model.User;
 
 public class MongoDBClient {
 	public static void main(String[] args) throws JsonProcessingException {
-        MongoDatabase db= MongoConnection.createConnection();
+        MongoDatabase db = MongoConnection.createConnection();
 
         UserServicePrattle userService = new UserServicePrattle(db);
         GroupServicePrattle grpService = new GroupServicePrattle(db);
-        User my_user= userService.findUserByUsername("Peter");
-//      userService.authenticateUser("","");
-//        userService.addToMyMessages(my_user,Message.makeHelloMessage("New Message"));
-        Group group = grpService.findGroupByName("204");
-        userService.addGroupToUser(my_user,group);
-	}
+//        userService.createUser("John","JohnPass");
+        Group grp = grpService.findGroupByName("msd");
+        User usr = userService.findUserByUsername("John");
+//        grpService.addUserToGroup(grp, usr);
+
+        userService.deleteUser("John");
+    }
 
 }

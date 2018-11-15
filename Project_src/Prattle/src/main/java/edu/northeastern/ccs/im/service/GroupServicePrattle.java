@@ -14,6 +14,8 @@ import com.mongodb.client.model.Updates;
 import edu.northeastern.ccs.im.MongoDB.Model.Group;
 import edu.northeastern.ccs.im.MongoDB.Model.User;
 
+import java.util.List;
+
 /**
  *
  * @author Chetan Mahale
@@ -27,6 +29,7 @@ public class GroupServicePrattle {
 	private MongoCollection<Document> gcol;
 	private MongoDatabase db;
 	private Gson gson;
+
 
 	/**
 	 *
@@ -99,7 +102,15 @@ public class GroupServicePrattle {
 
 		gcol.updateOne(Filters.eq("name", group.getName()), Updates.addToSet("listOfUsers", user.getUsername()));
 
+		UserServicePrattle user_service= new UserServicePrattle(db);
+		user_service.addGroupToUser(user,group);
 		return true;
+	}
+
+	public void removeUserFromGroups(List<Group> listOfGroups, String username) throws JsonProcessingException {
+		for( Group group : listOfGroups) {
+			gcol.updateOne(Filters.eq("name", group.getName()), Updates.pull("listOfUsers", username));
+		}
 	}
 
 }

@@ -15,6 +15,9 @@ import edu.northeastern.ccs.im.Message;
 import edu.northeastern.ccs.im.MongoDB.Model.Group;
 import edu.northeastern.ccs.im.MongoDB.Model.User;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  *
  * @author Peter
@@ -25,6 +28,7 @@ public class UserServicePrattle {
 	private MongoCollection<Document> col;
 	private MongoDatabase db;
 	private Gson gson;
+	private GroupServicePrattle group_service;
 
 	/**
 	 *
@@ -34,6 +38,7 @@ public class UserServicePrattle {
 		this.db = db;
 		col = db.getCollection("Users");
 		gson = new Gson();
+		group_service= new GroupServicePrattle(db);
 	}
 
 	/**
@@ -82,7 +87,7 @@ public class UserServicePrattle {
 	 * @return
 	 */
 	public User findUserByUsername(String username) {
-		Document doc = col.find(Filters.eq("name", username)).first();
+		Document doc = col.find(Filters.eq("username", username)).first();
 
 		return gson.fromJson(gson.toJson(doc), User.class);
 	}
@@ -93,7 +98,7 @@ public class UserServicePrattle {
 	 * @return true is username exists; else false
 	 */
 	public Boolean isUsernameTaken(String name) {
-		FindIterable<Document> iterable = col.find(Filters.eq("name", name));
+		FindIterable<Document> iterable = col.find(Filters.eq("username", name));
 		return iterable.first() != null;
 	}
 
@@ -105,10 +110,19 @@ public class UserServicePrattle {
 	 */
 	public Boolean updateUser(User user, String updatedPassword) {
 
-		col.updateOne(Filters.eq("name", user.getUsername()),
+		col.updateOne(Filters.eq("username", user.getUsername()),
 				new Document("$set", new Document("password", updatedPassword)));
 		return true;
 	}
+
+	public void deleteUser(String username) throws JsonProcessingException{
+		List<Group> listOfGroups = new ArrayList<>();
+		User user=findUserByUsername(username);
+		listOfGroups = user.getListOfGroups();
+		col.deleteOne(Filters.eq("username", username));
+		group_service.removeUserFromGroups(listOfGroups,username);
+	}
+
 
 	/**
 	 *
@@ -123,7 +137,7 @@ public class UserServicePrattle {
 //		ObjectMapper mapper = new ObjectMapper();
 //		String json = mapper.writeValueAsString(group);
 		String json =gson.toJson(group);
-		col.updateOne(Filters.eq("name", user.getUsername()), Updates.addToSet("listOfGroups", Document.parse(json)));
+		col.updateOne(Filters.eq("username", user.getUsername()), Updates.addToSet("listOfGroups", Document.parse(json)));
 		return true;
 	}
 
@@ -138,7 +152,7 @@ public class UserServicePrattle {
 //		String json = mapper.writeValueAsString(message);
 //		JSONObject jsonObj = new JSONObject(message);
 		String json =gson.toJson(message);
-		col.updateOne(Filters.eq("name", user.getUsername()), Updates.addToSet("myMessages", Document.parse(json)));
+		col.updateOne(Filters.eq("username", user.getUsername()), Updates.addToSet("myMessages", Document.parse(json)));
 	}
 
 }
