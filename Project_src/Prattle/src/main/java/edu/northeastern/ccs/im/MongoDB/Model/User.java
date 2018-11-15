@@ -1,8 +1,6 @@
 package edu.northeastern.ccs.im.MongoDB.Model;
-
-import edu.northeastern.ccs.im.Message;
 import edu.northeastern.ccs.im.service.UserServicePrattle;
-import org.mindrot.jbcrypt.BCrypt;
+
 
 import java.util.ArrayList;
 import java.util.List;
