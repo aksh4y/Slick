@@ -446,7 +446,7 @@ public class ClientRunnable implements Runnable {
 						this.enqueueMessage(ackMsg);
 					}
 
-					// If user is being updates
+					// If user is being updated
 					else if (msg.isUserUpdate()) {
 						Message ackMsg;
 						this.initialized = true;
@@ -454,7 +454,8 @@ public class ClientRunnable implements Runnable {
 						if (!msg.getName().equals(user.getPassword())) {
 							ackMsg = Message.makeUserWrongPasswordMsg();
 						} else {
-							if (true) {
+							if (userService.updateUser(user, msg.getText())) {
+								user.setPassword(msg.getText());
 								ackMsg = Message.makeSuccessMsg();
 							} else {
 								ackMsg = Message.makeFailMsg();
