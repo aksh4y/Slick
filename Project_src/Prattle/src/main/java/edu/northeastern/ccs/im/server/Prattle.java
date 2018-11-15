@@ -15,7 +15,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import com.mongodb.client.MongoDatabase;
+
 import edu.northeastern.ccs.im.Message;
+import edu.northeastern.ccs.im.service.GroupServicePrattle;
 
 /**
  * A network server that communicates with IM clients that connect to it. This
@@ -48,7 +51,7 @@ public abstract class Prattle {
     
     private static boolean  done;
     
-    //private static MongoDatabase db;
+    private static MongoDatabase db;
 
     /** All of the static initialization occurs in this "method" */
     static {
@@ -77,6 +80,7 @@ public abstract class Prattle {
      * system. 
      * 
      * @param message Message that the client sent.
+     * @param receiver the receiver
      */
     public static void broadcastPrivateMessage(Message message, String receiver) {
         // Loop through all of our active threads

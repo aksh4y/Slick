@@ -1,6 +1,7 @@
 package edu.northeastern.ccs.im.service;
 
-import com.mongodb.WriteResult;
+import java.util.List;
+
 import org.bson.Document;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -14,8 +15,6 @@ import com.mongodb.client.model.Updates;
 
 import edu.northeastern.ccs.im.MongoDB.Model.Group;
 import edu.northeastern.ccs.im.MongoDB.Model.User;
-
-import java.util.List;
 
 /**
  *

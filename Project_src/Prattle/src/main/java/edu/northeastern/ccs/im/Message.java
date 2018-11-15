@@ -33,8 +33,10 @@ public class Message {
 		 * server once the logout process completes.
 		 */
 		QUIT("BYE"),
-
+		/** Private message sent from logged in user to a single receiver */
 		PRIVATE("PRI"),
+		/** Group message sent from logged in client to an entire group */
+		GROUP("GRP"),
 		/** Message whose contents is broadcast to all connected users. */
 		BROADCAST("BCT"),
 		/**
@@ -199,14 +201,26 @@ public class Message {
 	/**
 	 * Create a private message
 	 * 
-	 * @param srcName
-	 * @param recipient
-	 * @param text
+	 * @param srcName name of sender
+     * @param recipient the name of the recipient
+     * @param text the text to be sent
 	 * @return
 	 */
 	public static Message makePrivateMessage(String srcName, String recipient, String text) {
 		return new Message(MessageType.PRIVATE, srcName, recipient, text);
 	}
+	
+	/**
+     * Create a group message
+     * 
+     * @param srcName name of sender
+     * @param group the group name
+     * @param text the text to be sent
+     * @return Instance of Message that transmits text to all members of this group
+     */
+    public static Message makeGroupMessage(String srcName, String group, String text) {
+        return new Message(MessageType.GROUP, srcName, group, text);
+    }
 
 	/**
 	 * Create a new message broadcasting an announcement to the world.
@@ -333,6 +347,8 @@ public class Message {
 		Message result = null;
 		if (handle.compareTo(MessageType.PRIVATE.toString()) == 0)
 			result = makePrivateMessage(srcName, recipient, text);
+		if(handle.compareTo(MessageType.GROUP.toString()) == 0)
+		    result = makeGroupMessage(srcName, recipient, text);
 		return result;
 	}
 
@@ -719,6 +735,16 @@ public class Message {
 	public boolean isPrivateMessage() {
 		return (msgType == MessageType.PRIVATE);
 	}
+	
+	
+	   /**
+     * Determine if this message is restricted to a group.
+     * 
+     * @return True if the message is a group message; false otherwise.
+     */
+    public boolean isGroupMessage() {
+        return (msgType == MessageType.GROUP);
+    }
 
 	/**
 	 * Determine if this message contains text which the recipient should display.

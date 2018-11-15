@@ -82,6 +82,7 @@ public final class ScanForMessagesWorker extends SwingWorker<Void, Message> {
 				flagForClosure = true;
 				break;
             case PRIVATE:
+            case GROUP:
 			case BROADCAST:
 				publishList.add(m);
 				break;

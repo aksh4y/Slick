@@ -327,6 +327,19 @@ public class ClientRunnable implements Runnable {
 					// Handle Private Message
 					if (msg.isPrivateMessage())
 						Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
+					// Handle Group Message
+					else if(msg.isGroupMessage()) {
+					    String groupName = msg.getMsgRecipient();
+					    Group group = groupService.findGroupByName(groupName);
+					    if(group == null || !group.getListOfUsers().contains(msg.getName())) {    // group does not exist or user not part of group
+					        Message failMsg = Message.makeGroupNotExist();
+					        this.enqueueMessage(failMsg);
+					    }
+					    else {
+					        for(String recipient : group.getListOfUsers())
+					            Prattle.broadcastPrivateMessage(msg, recipient);
+					    }
+					}				
 					// If it is create user message
 					else if (msg.isUserCreate()) {
 						Message ackMsg;
@@ -404,7 +417,7 @@ public class ClientRunnable implements Runnable {
 							try {
 								List<Group> groups = new ArrayList<Group>();
 								groups.add(group);
-								groupService.removeUserFromGroups(groups, user.getUsername());
+							//TODO	groupService.removeUserFromGroups(groups, user.getUsername());
 								ackMsg = Message.makeSuccessMsg();
 							} catch (Exception e) {
 								ackMsg = Message.makeFailMsg();
