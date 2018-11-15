@@ -326,9 +326,11 @@ public class ClientRunnable implements Runnable {
                             new GregorianCalendar().getTimeInMillis() + TERMINATE_AFTER_INACTIVE_BUT_LOGGEDIN_IN_MS);
                     // Handle Private Message
                     if (msg.isPrivateMessage()) {
-                        userService.addToMyMessages(user, msg);    // sender's copy
+                        String m = "PRIVATE " + msg.getMsgRecipient() + " " + msg.getText();
+                        userService.addToMyMessages(user, m);    // sender's copy
                         User recipient = userService.findUserByUsername(msg.getMsgRecipient());
-                        userService.addToMyMessages(recipient, msg);   // receiver's copy
+                        m = "[Private Msg] " + user.getUsername() + ": " + msg.getText();
+                        userService.addToMyMessages(recipient, m);   // receiver's copy
                         Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
                     }
                     // Handle Group Message
@@ -340,10 +342,12 @@ public class ClientRunnable implements Runnable {
                             this.enqueueMessage(failMsg);
                         }
                         else {
-                            userService.addToMyMessages(user, msg);    // sender's copy
+                            String m = "GROUP " + msg.getMsgRecipient() + " " + msg.getText();
+                            userService.addToMyMessages(user, m);    // sender's copy
+                            m = "["+ user.getUsername() +"@" + msg.getMsgRecipient() + "] "  + msg.getText();
                             for(String recipient : group.getListOfUsers()) {
                                 User r = userService.findUserByUsername(recipient);
-                                userService.addToMyMessages(r, msg);   // receiver's copy
+                                userService.addToMyMessages(r, m);   // receiver's copy
                                 Prattle.broadcastPrivateMessage(msg, recipient);
                             }
                         }

@@ -68,11 +68,11 @@ public class CommandLineMain {
 				    connect.setUsername(message.getSender());
 				if (!message.getSender().equals(connect.getUserName())) {
                     if(message.isBroadcastMessage())
-                        System.out.println("[Broadcast Msg] " + message.getSender() + ": " + message.getText());
+                        System.out.println("[Broadcast] " + message.getSender() + ": " + message.getText());
                     else if(message.isPrivateMessage())
                         System.out.println("[Private Msg] " + message.getSender() + ": " + message.getText());
                     else if(message.isGroupMessage())
-                        System.out.println("[Group Msg @" + message.getMsgRecipient() + "] " + message.getSender() + ": " + message.getText());
+                        System.out.println("[" + message.getSender() + "@" + message.getMsgRecipient() + "] " + message.getText());
                     else
                         System.out.println(message.getSender() + ": " + message.getText());
                 }

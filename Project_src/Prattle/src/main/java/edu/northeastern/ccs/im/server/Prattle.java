@@ -79,7 +79,8 @@ public abstract class Prattle {
             if (tt.isInitialized()) {
                 User u = userService.findUserByUsername(tt.getName());
                 try {
-                    userService.addToMyMessages(u, message);
+                    String msg = "[BROADCAST] " + message.getName() + ": " + message.getText();
+                    userService.addToMyMessages(u, msg);
                 } catch (JsonProcessingException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -100,7 +101,7 @@ public abstract class Prattle {
         // Loop through all of our active threads
         for (ClientRunnable tt : active) {
             // Do not send the message to any clients that are not ready to receive it.
-            if (tt.isInitialized() && tt.getName().equals(receiver)) {
+            if (tt.isInitialized() && tt.getName().equalsIgnoreCase(receiver)) {
                 tt.enqueueMessage(message);
             }
         }

@@ -1,7 +1,5 @@
 package edu.northeastern.ccs.im.MongoDB.Model;
 
-import edu.northeastern.ccs.im.Message;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +17,7 @@ public class User {
     private String username;
     private String password;
     private List<String> listOfGroups;
-    private List<Message> myMessages;
+    private List<String> myMessages;
 
     /**
      *
@@ -88,6 +86,19 @@ public class User {
         return listOfGroups;
     }
 
+    
+
+    public List<String> getMyMessages() {
+        return myMessages;
+    }
+
+    public void setMyMessages(List<String> myMessages) {
+        this.myMessages = myMessages;
+    }
+
+    public void setListOfGroups(List<String> listOfGroups) {
+        this.listOfGroups = listOfGroups;
+    }
 
     /**
      *
