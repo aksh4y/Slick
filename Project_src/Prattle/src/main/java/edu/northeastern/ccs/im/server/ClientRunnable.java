@@ -373,20 +373,20 @@ public class ClientRunnable implements Runnable {
 					}
 					// If it is create group message
 					else if (msg.isCreateGroup()) {
-						Message ackMsg;
 						this.initialized = true;
 
 						if (!groupService.isGroupnameTaken(msg.getName())) {
 							Group group = groupService.createGroup(msg.getName());
 							if (group == null) {
-								ackMsg = Message.makeCreateGroupFail();
+								this.enqueueMessage(Message.makeCreateGroupFail());
 							} else {
-								ackMsg = Message.makeCreateGroupSuccess();
+								this.enqueueMessage( Message.makeCreateGroupSuccess());
+								this.enqueueMessage(this.addUserToGroup(msg.getName()));
 							}
 						} else {
-							ackMsg = Message.makeGroupExist();
+							this.enqueueMessage(Message.makeGroupExist());
 						}
-						this.enqueueMessage(ackMsg);
+						
 					}
 					// If it is login user message
 					else if (msg.isUserLogin()) {
@@ -403,21 +403,7 @@ public class ClientRunnable implements Runnable {
 					}
 					// If it is Adding user to group message
 					else if (msg.isAddToGroup()) {
-						Message ackMsg;
-						this.initialized = true;
-						Group group = groupService.findGroupByName(msg.getName());
-						if (group == null) {
-							ackMsg = Message.makeGroupNotExist();
-						} else {
-							if (groupService.addUserToGroup(group, user) && userService.addGroupToUser(user, group)
-									&& !group.getListOfUsers().contains(user.getUsername())) {
-								user = userService.findUserByUsername(user.getUsername());
-								ackMsg = Message.makeGroupAddSuc();
-							} else {
-								ackMsg = Message.makeGroupAddFail();
-							}
-						}
-						this.enqueueMessage(ackMsg);
+						this.enqueueMessage(this.addUserToGroup(msg.getName()));
 					}
 					// If user is exiting a group
 					else if (msg.isGroupExit()) {
@@ -580,6 +566,24 @@ public class ClientRunnable implements Runnable {
 		runnableMe = future;
 	}
 
+	private Message addUserToGroup(String groupName) throws JsonProcessingException {
+		Message ackMsg;
+		this.initialized = true;
+		Group group = groupService.findGroupByName(groupName);
+		if (group == null) {
+			ackMsg = Message.makeGroupNotExist();
+		} else {
+			if (groupService.addUserToGroup(group, user) && userService.addGroupToUser(user, group)
+					&& !group.getListOfUsers().contains(user.getUsername())) {
+				user = userService.findUserByUsername(user.getUsername());
+				ackMsg = Message.makeGroupAddSuc();
+			} else {
+				ackMsg = Message.makeGroupAddFail();
+			}
+		}
+		return ackMsg;
+	}
+	
 	/**
 	 * Terminate a client that we wish to remove. This termination could happen at
 	 * the client's request or due to system need.
