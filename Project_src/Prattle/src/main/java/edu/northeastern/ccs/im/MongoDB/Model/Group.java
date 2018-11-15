@@ -13,7 +13,6 @@ public class Group {
     /**
      * Private variables id, name and list of users for Group
      */
-    private int id;
     private String name;
     private List<String> listOfUsers;
 
@@ -26,21 +25,6 @@ public class Group {
         this.listOfUsers = new ArrayList<>();
     }
 
-    /**
-     *
-     * @return id of the Group
-     */
-    public int getId() {
-        return id;
-    }
-
-    /**
-     *
-     * @param id int id to set for the group
-     */
-    public void setId(int id) {
-        this.id = id;
-    }
 
     /**
      *

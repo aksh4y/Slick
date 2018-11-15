@@ -1,5 +1,8 @@
 package edu.northeastern.ccs.im.service;
 
+import com.mongodb.WriteResult;
+import com.mongodb.client.result.DeleteResult;
+import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -48,7 +51,8 @@ public class UserServicePrattle {
 	 * @return authenticated user if found; else null
 	 */
 	public User authenticateUser(String username, String password) {
-		Document doc = col.find(Filters.and(Filters.eq("username", username), Filters.eq("password", password))).first();
+		Document doc = col.find(Filters.and(Filters.eq("username", username.toLowerCase()),
+				Filters.eq("password", password))).first();
 
 		return gson.fromJson(gson.toJson(doc), User.class);
 	}
@@ -62,7 +66,7 @@ public class UserServicePrattle {
 	 */
 	public User createUser(String username, String password) throws JsonProcessingException {
 		if (!isUsernameTaken(username)) {
-			User u = new User(username, password);
+			User u = new User(username.toLowerCase(), password);
 			insertUser(u);
 			return u;
 		}
@@ -87,18 +91,18 @@ public class UserServicePrattle {
 	 * @return
 	 */
 	public User findUserByUsername(String username) {
-		Document doc = col.find(Filters.eq("username", username)).first();
+		Document doc = col.find(Filters.eq("username", username.toLowerCase())).first();
 
 		return gson.fromJson(gson.toJson(doc), User.class);
 	}
 
 	/**
 	 *
-	 * @param name String name to be checked
+	 * @param username String name to be checked
 	 * @return true is username exists; else false
 	 */
-	public Boolean isUsernameTaken(String name) {
-		FindIterable<Document> iterable = col.find(Filters.eq("username", name));
+	public Boolean isUsernameTaken(String username) {
+		FindIterable<Document> iterable = col.find(Filters.eq("username", username.toLowerCase()));
 		return iterable.first() != null;
 	}
 
@@ -109,18 +113,24 @@ public class UserServicePrattle {
 	 * @return True after updating
 	 */
 	public Boolean updateUser(User user, String updatedPassword) {
-
-		col.updateOne(Filters.eq("username", user.getUsername()),
+		col.updateOne(Filters.eq("username", user.getUsername().toLowerCase()),
 				new Document("$set", new Document("password", updatedPassword)));
 		return true;
 	}
 
-	public void deleteUser(String username) throws JsonProcessingException{
-		List<Group> listOfGroups = new ArrayList<>();
+	public boolean deleteUser(String username) throws JsonProcessingException{
 		User user=findUserByUsername(username);
-		listOfGroups = user.getListOfGroups();
-		col.deleteOne(Filters.eq("username", username));
-		group_service.removeUserFromGroups(listOfGroups,username);
+		List<String> listOfGroups = user.getListOfGroups();
+		DeleteResult dr = col.deleteOne(Filters.eq("username", username.toLowerCase()));
+		boolean removed=group_service.removeUserFromGroups(listOfGroups,username.toLowerCase());
+		return (dr.wasAcknowledged() && removed);
+	}
+
+	public boolean removeGroupFromUser(String username, String groupName){
+		UpdateResult updateResult= col.updateOne(Filters.eq("username", username),
+				Updates.pull("listOfGroups", groupName));
+
+		return updateResult.wasAcknowledged();
 	}
 
 
@@ -136,8 +146,8 @@ public class UserServicePrattle {
 		// {"listOfGroups", group}));
 //		ObjectMapper mapper = new ObjectMapper();
 //		String json = mapper.writeValueAsString(group);
-		String json =gson.toJson(group);
-		col.updateOne(Filters.eq("username", user.getUsername()), Updates.addToSet("listOfGroups", Document.parse(json)));
+//		String json =gson.toJson(group);
+		col.updateOne(Filters.eq("username", user.getUsername()), Updates.addToSet("listOfGroups", group.getName()));
 		return true;
 	}
 

@@ -1,5 +1,6 @@
 package edu.northeastern.ccs.im.service;
 
+import com.mongodb.WriteResult;
 import org.bson.Document;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -49,9 +50,7 @@ public class GroupServicePrattle {
 	 */
 	public Group createGroup(String name) throws JsonProcessingException {
 		if (!isGroupnameTaken(name)) {
-			Group g = new Group(name);
-			g.setName(name);
-
+			Group g = new Group(name.toLowerCase());
 			insertGroup(g);
 			return g;
 		} else {
@@ -76,7 +75,7 @@ public class GroupServicePrattle {
 	 * @return
 	 */
 	public Group findGroupByName(String name) {
-		Document doc = gcol.find(Filters.eq("name", name)).first();
+		Document doc = gcol.find(Filters.eq("name", name.toLowerCase())).first();
 
 		return gson.fromJson(gson.toJson(doc), Group.class);
 	}
@@ -87,7 +86,7 @@ public class GroupServicePrattle {
 	 * @return
 	 */
 	public Boolean isGroupnameTaken(String name) {
-		FindIterable<Document> iterable = gcol.find(Filters.eq("name", name));
+		FindIterable<Document> iterable = gcol.find(Filters.eq("name", name.toLowerCase()));
 		return iterable.first() != null;
 	}
 
@@ -102,15 +101,27 @@ public class GroupServicePrattle {
 
 		gcol.updateOne(Filters.eq("name", group.getName()), Updates.addToSet("listOfUsers", user.getUsername()));
 
-		UserServicePrattle user_service= new UserServicePrattle(db);
-		user_service.addGroupToUser(user,group);
+		UserServicePrattle userService= new UserServicePrattle(db);
+		userService.addGroupToUser(user,group);
 		return true;
 	}
 
-	public void removeUserFromGroups(List<Group> listOfGroups, String username) throws JsonProcessingException {
-		for( Group group : listOfGroups) {
-			gcol.updateOne(Filters.eq("name", group.getName()), Updates.pull("listOfUsers", username));
+	public boolean removeUserFromGroups(List<String> listOfGroups, String username) throws JsonProcessingException {
+		boolean result=false;
+		for( String group : listOfGroups) {
+			 result = gcol.updateOne(Filters.eq("name", group), Updates.pull("listOfUsers", username)).wasAcknowledged();
 		}
+		return result;
+	}
+
+	public boolean exitGroup(String username, String groupname){
+		//remove user from group
+		boolean update=gcol.updateOne(Filters.eq("name", groupname), Updates.pull("listOfUsers", username.toLowerCase())).wasAcknowledged();
+
+		//remove group from user
+		UserServicePrattle userService= new UserServicePrattle(db);
+		boolean removeGroup = userService.removeGroupFromUser(username,groupname);
+		return (update && removeGroup);
 	}
 
 }
