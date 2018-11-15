@@ -32,9 +32,9 @@ public class UserTest {
         User user = new User("John", "john");
         Group group1 = new Group("A");
         Group group2 = new Group("B");
-        user.addGroupToUser(group1);
+        user.addGroupToUser(group1.getName());
         assertEquals(1, user.getListOfGroups().size());
-        user.addGroupToUser(group2);
+        user.addGroupToUser(group2.getName());
         assertEquals(2, user.getListOfGroups().size());
     }
 }

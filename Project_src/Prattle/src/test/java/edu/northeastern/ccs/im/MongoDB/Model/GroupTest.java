@@ -20,8 +20,6 @@ public class GroupTest {
         Group group1 = new Group("A");
         group1.setName("B");
         assertEquals("B", group1.getName());
-        group1.setId(1);
-        assertEquals(1, group1.getId());
     }
 
     @Test
