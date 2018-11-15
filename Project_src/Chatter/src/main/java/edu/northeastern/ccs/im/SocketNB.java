@@ -232,7 +232,7 @@ public final class SocketNB {
 					quitter = true;
 				}
 				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.FAIL_MESSAGE) {
-					System.out.println("Please Try again");
+					System.out.println("Failed");
 				}
 				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.SUCCESS_MESSAGE) {
 					System.out.println("Success");
