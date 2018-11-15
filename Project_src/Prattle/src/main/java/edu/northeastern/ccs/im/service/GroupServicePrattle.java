@@ -2,6 +2,8 @@ package edu.northeastern.ccs.im.service;
 
 import java.util.List;
 
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.result.DeleteResult;
 import org.bson.Document;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -66,6 +68,18 @@ public class GroupServicePrattle {
 		ObjectMapper mapper = new ObjectMapper();
 		String json = mapper.writeValueAsString(group);
 		gcol.insertOne(Document.parse(json));
+	}
+
+	public boolean deleteGroup(String groupname) throws JsonProcessingException {
+		UserServicePrattle userService= new UserServicePrattle(db);
+		List<String> listOfUsers = findGroupByName(groupname).getListOfUsers();
+		DeleteResult dr =gcol.deleteOne(Filters.eq("name", groupname.toLowerCase()));
+		boolean removedGroup=false;
+		for(String username: listOfUsers){
+			removedGroup=userService.removeGroupFromUser(username,groupname.toLowerCase());
+		}
+
+		return (dr.wasAcknowledged() && removedGroup);
 	}
 
 	/**
