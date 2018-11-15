@@ -69,7 +69,27 @@ public class Message {
 		/** Message if user added to group */
 		GROUP_ADD_SUCCESS("GAS"),
 		/** Message if user added to group */
-		GROUP_ADD_FAIL("GAF");
+		GROUP_ADD_FAIL("GAF"),
+		/** Message to update user */
+		UPDATE_USER("UUS"),
+		/** Message to update user */
+		DELTE_USER("DUS"),
+		/** Message to send Success Message */
+		DELTE_USER_SUCCESS("SUD"),
+		/** Message if password is wrong */
+		USER_WRONG_PASSWORD("WPD"),
+		/** Message to update user */
+		DELTE_GROUP("DGR"),
+		/** Message to send Success Message */
+		SUCCESS_MESSAGE("SUC"),
+		/** Message to send Fail Message */
+		FAIL_MESSAGE("FAL"),
+		/** Message to Exit from group */
+		EXIT_FROM_GROUP("EXG"),
+		/** Message if user added to group */
+		GROUP_EXIT_SUCCESS("GXS"),
+		/** Message if user added to group */
+		GROUP_EXIT_FAIL("GXF");
 		/** Store the short name of this message type. */
 		private String tla;
 
@@ -243,7 +263,7 @@ public class Message {
 		} else if (handle.compareTo(MessageType.LOGIN_SUCCESS.toString()) == 0) {
 			result = makeLoginSuccess(srcName);
 		} else if (handle.compareTo(MessageType.LOGIN_FAIL.toString()) == 0) {
-			result = makeLoginFaill();
+			result = makeLoginFail();
 		} else if (handle.compareTo(MessageType.CREATE_USER.toString()) == 0) {
 			result = makeCreateUserMessage(srcName, text);
 		} else if (handle.compareTo(MessageType.CREATE_SUCCESS.toString()) == 0) {
@@ -264,12 +284,34 @@ public class Message {
 			result = makeAddUserToGroup(srcName);
 		} else if (handle.compareTo(MessageType.GROUP_NOT_EXIST.toString()) == 0) {
 			result = makeGroupNotExist();
-		} else if (handle.compareTo(MessageType.GROUP_ADD_FAIL.toString()) == 0) {
-			result = makeGroupAddFail();
 		} else if (handle.compareTo(MessageType.GROUP_ADD_SUCCESS.toString()) == 0) {
 			result = makeGroupAddSuc();
+		} else if (handle.compareTo(MessageType.GROUP_ADD_FAIL.toString()) == 0) {
+			result = makeGroupAddFail();
+		} else if (handle.compareTo(MessageType.EXIT_FROM_GROUP.toString()) == 0) {
+			result = makeUserExitGroup(srcName);
+		} else if (handle.compareTo(MessageType.DELTE_GROUP.toString()) == 0) {
+			result = makeDeleteGroupMessage(srcName);
+		} else if (handle.compareTo(MessageType.DELTE_USER.toString()) == 0) {
+			result = makeDeleteUserMessage(srcName);
+		} else if (handle.compareTo(MessageType.SUCCESS_MESSAGE.toString()) == 0) {
+			result = makeSuccessMsg();
+		} else if (handle.compareTo(MessageType.DELTE_USER_SUCCESS.toString()) == 0) {
+			result = makeDeleteUserSuccessMsg();
+		} else if (handle.compareTo(MessageType.USER_WRONG_PASSWORD.toString()) == 0) {
+			result = makeUserWrongPasswordMsg();
+		} else if (handle.compareTo(MessageType.FAIL_MESSAGE.toString()) == 0) {
+			result = makeFailMsg();
+		} else if (handle.compareTo(MessageType.UPDATE_USER.toString()) == 0) {
+			result = makeUpdateUserMessage(srcName, text);
 		}
+		// else if (handle.compareTo(MessageType.GROUP_EXIT_FAIL.toString()) == 0) {
+		// result = makeGroupExitFail();
+		// }else if (handle.compareTo(MessageType.GROUP_EXIT_SUCCESS.toString()) == 0) {
+		// result = makeGroupExitSuc();
+		// }
 		return result;
+
 	}
 
 	/**
@@ -295,6 +337,79 @@ public class Message {
 	}
 
 	/**
+	 * Create a new message to delete a group.
+	 * 
+	 * @return Instance of Message.
+	 */
+
+	public static Message makeDeleteGroupMessage(String groupName) {
+		return new Message(MessageType.DELTE_GROUP, groupName);
+	}
+
+	/**
+	 * Create a new message to delete a user.
+	 * 
+	 * @return Instance of Message.
+	 */
+	public static Message makeDeleteUserMessage(String password) {
+		return new Message(MessageType.DELTE_USER, password);
+	}
+
+	/**
+	 * Create a new message to delete a user.
+	 * 
+	 * @return Instance of Message.
+	 */
+	public static Message makeUpdateUserMessage(String password, String newPassword) {
+		return new Message(MessageType.UPDATE_USER, password,newPassword);
+	}
+
+	/**
+	 * Create a new message to send success message
+	 * 
+	 * @return Instance of Message.
+	 */
+	public static Message makeDeleteUserSuccessMsg() {
+		return new Message(MessageType.DELTE_USER_SUCCESS);
+	}
+
+	/**
+	 * Create a new message to delete user wrong password message
+	 * 
+	 * @return Instance of Message.
+	 */
+	public static Message makeUserWrongPasswordMsg() {
+		return new Message(MessageType.USER_WRONG_PASSWORD);
+	}
+
+	/**
+	 * Create a new message to send success message
+	 * 
+	 * @return Instance of Message.
+	 */
+	public static Message makeSuccessMsg() {
+		return new Message(MessageType.SUCCESS_MESSAGE);
+	}
+
+	/**
+	 * Create a new message to send fail message
+	 * 
+	 * @return Instance of Message.
+	 */
+	public static Message makeFailMsg() {
+		return new Message(MessageType.FAIL_MESSAGE);
+	}
+
+	/**
+	 * Create a new message to exit user from group
+	 * 
+	 * @return Instance of Message.
+	 */
+	public static Message makeUserExitGroup(String groupName) {
+		return new Message(MessageType.EXIT_FROM_GROUP, groupName);
+	}
+
+	/**
 	 * Create a new message to Login a user.
 	 * 
 	 * @return Instance of Message.
@@ -317,7 +432,7 @@ public class Message {
 	 * 
 	 * @return Instance of Message.
 	 */
-	public static Message makeLoginFaill() {
+	public static Message makeLoginFail() {
 		return new Message(MessageType.LOGIN_FAIL);
 	}
 
@@ -411,9 +526,26 @@ public class Message {
 		return new Message(MessageType.GROUP_NOT_EXIST);
 	}
 
+	// /**
+	// * Create a new message to send if group exit fails
+	// *
+	// * @return Instance of Message.
+	// */
+	// public static Message makeGroupExitFail() {
+	// return new Message(MessageType.GROUP_EXIT_FAIL);
+	// }
+	/// **
+	// * Create a new message to send if group exit Success
+	// *
+	// * @return Instance of Message.
+	// */
+	// public static Message makeGroupExitSuc() {
+	// return new Message(MessageType.GROUP_EXIT_SUCCESS);
+	// }
+
 	/**
 	 * Create a new message to send if group add fails
-	 * 
+	 *
 	 * @return Instance of Message.
 	 */
 	public static Message makeGroupAddFail() {
@@ -505,6 +637,42 @@ public class Message {
 	 */
 	public boolean isCreateGroup() {
 		return (msgType == MessageType.CREATE_GROUP);
+	}
+
+	/**
+	 * Determine if this message is an Group Exit message.
+	 * 
+	 * @return True if the message is an Group exit message; false otherwise.
+	 */
+	public boolean isGroupExit() {
+		return (msgType == MessageType.EXIT_FROM_GROUP);
+	}
+
+	/**
+	 * Determine if this message is an user update message.
+	 * 
+	 * @return True if the message is an user update message; false otherwise.
+	 */
+	public boolean isUserUpdate() {
+		return (msgType == MessageType.UPDATE_USER);
+	}
+
+	/**
+	 * Determine if this message is an Group Delete message.
+	 * 
+	 * @return True if the message is an Group Delete message; false otherwise.
+	 */
+	public boolean isGroupDelete() {
+		return (msgType == MessageType.DELTE_GROUP);
+	}
+
+	/**
+	 * Determine if this message is an user delete message.
+	 * 
+	 * @return True if the message is an user delete message; false otherwise.
+	 */
+	public boolean isUserDelete() {
+		return (msgType == MessageType.DELTE_USER);
 	}
 
 	/**

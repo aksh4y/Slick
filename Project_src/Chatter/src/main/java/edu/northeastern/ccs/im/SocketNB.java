@@ -181,7 +181,7 @@ public final class SocketNB {
 					final String message = readArgument(charBuffer);
 					newMsg = Message.makeMessage(handle, sender, message);
 				}
-				//messages.add(newMsg);
+				// messages.add(newMsg);
 				// final String message = readArgument(charBuffer);
 				// Add this message into our queue
 				// Message newMsg = Message.makeMessage(handle, sender, message);
@@ -224,6 +224,20 @@ public final class SocketNB {
 				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.GROUP_NOT_EXIST) {
 					System.out.println("This group does not exist");
 				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.USER_WRONG_PASSWORD) {
+					System.out.println("Entred password is wrong");
+				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.DELTE_USER_SUCCESS) {
+					System.out.println("User has been deleted");
+					quitter = true;
+				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.FAIL_MESSAGE) {
+					System.out.println("Please Try again");
+				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.SUCCESS_MESSAGE) {
+					System.out.println("Success");
+				}
+
 				// Now pass this message on to the system.
 				messages.add(newMsg);
 

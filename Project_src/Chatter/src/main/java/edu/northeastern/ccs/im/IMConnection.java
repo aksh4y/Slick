@@ -200,6 +200,15 @@ public class IMConnection {
 		Message msg;
 		if (!connectionActive()) {
 			throw new IllegalOperationException("Cannot send a message if you are not connected to a server!\n");
+		} else if (message.contains("UPDATE_PASSWORD")) {
+			String[] msgArray = message.split(" ");
+			msg = Message.makeUpdateUserMessage(msgArray[1], msgArray[2]);
+		} else if (message.contains("DELETE_USER")) {
+			String[] msgArray = message.split(" ");
+			msg = Message.makeDeleteUserMessage(msgArray[1]);
+		} else if (message.contains("DELETE_GROUP")) {
+			String[] msgArray = message.split(" ");
+			msg = Message.makeDeleteGroupMessage(msgArray[1]);
 		} else if (message.contains("PRIVATE")) {
 			String[] params = message.split(" ");
 			msg = Message.makePrivateMessage(username, params[1], message.substring(9 + params[1].length()));
@@ -209,6 +218,9 @@ public class IMConnection {
 		} else if (message.contains("ADD_GROUP")) {
 			String[] msgArray = message.split(" ");
 			msg = Message.makeAddUserToGroup(msgArray[1]);
+		} else if (message.contains("EXIT_GROUP")) {
+			String[] msgArray = message.split(" ");
+			msg = Message.makeUserExitGroup(msgArray[1]);
 		} else if (message.equalsIgnoreCase("GROUP")) {
 			String[] params = message.split(" ");
 			msg = Message.makeGroupMessage(username, params[1], message.substring(9 + params[1].length()));

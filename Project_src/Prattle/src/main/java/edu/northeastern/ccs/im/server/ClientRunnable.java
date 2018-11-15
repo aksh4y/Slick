@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledFuture;
@@ -367,7 +368,7 @@ public class ClientRunnable implements Runnable {
 						this.initialized = true;
 						user = userService.authenticateUser(msg.getName(), msg.getText());
 						if (user == null) {
-							ackMsg = Message.makeLoginFaill();
+							ackMsg = Message.makeLoginFail();
 						} else {
 							name = user.getUsername();
 							System.out.println("CR: " + name);
@@ -392,6 +393,76 @@ public class ClientRunnable implements Runnable {
 						}
 						this.enqueueMessage(ackMsg);
 					}
+					// If user is exiting a group
+					else if (msg.isGroupExit()) {
+						Message ackMsg;
+						this.initialized = true;
+						Group group = groupService.findGroupByName(msg.getName());
+						if (group == null) {
+							ackMsg = Message.makeGroupNotExist();
+						} else {
+							try {
+								List<Group> groups = new ArrayList<Group>();
+								groups.add(group);
+								groupService.removeUserFromGroups(groups, user.getUsername());
+								ackMsg = Message.makeSuccessMsg();
+							} catch (Exception e) {
+								ackMsg = Message.makeFailMsg();
+							}
+							this.enqueueMessage(ackMsg);
+						}
+					}
+					// If group is being deleted
+					else if (msg.isGroupDelete()) {
+						Message ackMsg;
+						this.initialized = true;
+						Group group = groupService.findGroupByName(msg.getName());
+						if (group == null) {
+							ackMsg = Message.makeGroupNotExist();
+						} else {
+							if (true) {
+								ackMsg = Message.makeSuccessMsg();
+							} else {
+								ackMsg = Message.makeFailMsg();
+							}
+						}
+						this.enqueueMessage(ackMsg);
+					}
+					// If user is being deleted
+					else if (msg.isUserDelete()) {
+						Message ackMsg;
+						this.initialized = true;
+
+						if (!msg.getName().equals(user.getPassword())) {
+							ackMsg = Message.makeUserWrongPasswordMsg();
+						} else {
+							try {
+								userService.deleteUser(user.getUsername());
+								ackMsg = Message.makeDeleteUserSuccessMsg();
+							} catch (Exception e) {
+								ackMsg = Message.makeFailMsg();
+							}
+						}
+						this.enqueueMessage(ackMsg);
+					}
+
+					// If user is being updates
+					else if (msg.isUserUpdate()) {
+						Message ackMsg;
+						this.initialized = true;
+
+						if (!msg.getName().equals(user.getPassword())) {
+							ackMsg = Message.makeUserWrongPasswordMsg();
+						} else {
+							if (true) {
+								ackMsg = Message.makeSuccessMsg();
+							} else {
+								ackMsg = Message.makeFailMsg();
+							}
+						}
+						this.enqueueMessage(ackMsg);
+					}
+
 					// If the message is a broadcast message, send it out
 					else if (msg.isDisplayMessage()) {
 						// Check if the message is legal formatted
