@@ -115,7 +115,7 @@ public class GroupServicePrattle {
 
 	public boolean exitGroup(String username, String groupname){
 		//remove user from group
-		boolean update=gcol.updateOne(Filters.eq("name", groupname), Updates.pull("listOfUsers", username.toLowerCase())).wasAcknowledged();
+		boolean update=gcol.updateOne(Filters.eq("name", groupname), Updates.pull("listOfUsers", username)).wasAcknowledged();
 
 		//remove group from user
 		UserServicePrattle userService= new UserServicePrattle(db);

@@ -24,7 +24,9 @@ public class MongoDBClient {
         User usr = userService.findUserByUsername("John");
         grpService.addUserToGroup(grp, usr);
 
-        userService.deleteUser("John");
+        grpService.exitGroup(usr.getUsername(),grp.getName());
+
+//        userService.deleteUser("John");
     }
 
 }
