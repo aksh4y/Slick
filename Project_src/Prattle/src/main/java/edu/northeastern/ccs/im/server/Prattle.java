@@ -15,10 +15,13 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mongodb.client.MongoDatabase;
 
 import edu.northeastern.ccs.im.Message;
-import edu.northeastern.ccs.im.service.GroupServicePrattle;
+import edu.northeastern.ccs.im.MongoConnection;
+import edu.northeastern.ccs.im.MongoDB.Model.User;
+import edu.northeastern.ccs.im.service.UserServicePrattle;
 
 /**
  * A network server that communicates with IM clients that connect to it. This
@@ -52,11 +55,15 @@ public abstract class Prattle {
     private static boolean  done;
     
     private static MongoDatabase db;
+    
+    private static UserServicePrattle userService;
 
     /** All of the static initialization occurs in this "method" */
     static {
         // Create the new queue of active threads.
         active = new ConcurrentLinkedQueue<ClientRunnable>();
+        db = MongoConnection.createConnection();
+        userService = new UserServicePrattle(db);
     }
 
     /**
@@ -70,6 +77,13 @@ public abstract class Prattle {
         for (ClientRunnable tt : active) {
             // Do not send the message to any clients that are not ready to receive it.
             if (tt.isInitialized()) {
+                User u = userService.findUserByUsername(tt.getName());
+                try {
+                    userService.addToMyMessages(u, message);
+                } catch (JsonProcessingException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }    // sender's copy
                 tt.enqueueMessage(message);
             }
         }
