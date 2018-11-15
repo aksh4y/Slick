@@ -325,21 +325,34 @@ public class ClientRunnable implements Runnable {
 					terminateInactivity.setTimeInMillis(
 							new GregorianCalendar().getTimeInMillis() + TERMINATE_AFTER_INACTIVE_BUT_LOGGEDIN_IN_MS);
 					// Handle Private Message
-					if (msg.isPrivateMessage())
+					if (msg.isPrivateMessage()) {
+						String m = "PRIVATE " + msg.getMsgRecipient() + " " + msg.getText();
+						userService.addToMyMessages(user, m); // sender's copy
+						User recipient = userService.findUserByUsername(msg.getMsgRecipient());
+						m = "[Private Msg] " + user.getUsername() + ": " + msg.getText();
+						userService.addToMyMessages(recipient, m); // receiver's copy
 						Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
+					}
 					// Handle Group Message
-					else if(msg.isGroupMessage()) {
-					    String groupName = msg.getMsgRecipient();
-					    Group group = groupService.findGroupByName(groupName);
-					    if(group == null || !group.getListOfUsers().contains(msg.getName())) {    // group does not exist or user not part of group
-					        Message failMsg = Message.makeGroupNotExist();
-					        this.enqueueMessage(failMsg);
-					    }
-					    else {
-					        for(String recipient : group.getListOfUsers())
-					            Prattle.broadcastPrivateMessage(msg, recipient);
-					    }
-					}				
+					else if (msg.isGroupMessage()) {
+						String groupName = msg.getMsgRecipient();
+						Group group = groupService.findGroupByName(groupName);
+						if (group == null || !group.getListOfUsers().contains(msg.getName())) { // group does not exist
+																								// or user not part of
+																								// group
+							Message failMsg = Message.makeGroupNotExist();
+							this.enqueueMessage(failMsg);
+						} else {
+							String m = "GROUP " + msg.getMsgRecipient() + " " + msg.getText();
+							userService.addToMyMessages(user, m); // sender's copy
+							m = "[" + user.getUsername() + "@" + msg.getMsgRecipient() + "] " + msg.getText();
+							for (String recipient : group.getListOfUsers()) {
+								User r = userService.findUserByUsername(recipient);
+								userService.addToMyMessages(r, m); // receiver's copy
+								Prattle.broadcastPrivateMessage(msg, recipient);
+							}
+						}
+					}
 					// If it is create user message
 					else if (msg.isUserCreate()) {
 						Message ackMsg;
@@ -360,20 +373,20 @@ public class ClientRunnable implements Runnable {
 					}
 					// If it is create group message
 					else if (msg.isCreateGroup()) {
-						Message ackMsg;
 						this.initialized = true;
 
 						if (!groupService.isGroupnameTaken(msg.getName())) {
 							Group group = groupService.createGroup(msg.getName());
 							if (group == null) {
-								ackMsg = Message.makeCreateGroupFail();
+								this.enqueueMessage(Message.makeCreateGroupFail());
 							} else {
-								ackMsg = Message.makeCreateGroupSuccess();
+								this.enqueueMessage( Message.makeCreateGroupSuccess());
+								this.enqueueMessage(this.addUserToGroup(msg.getName()));
 							}
 						} else {
-							ackMsg = Message.makeGroupExist();
+							this.enqueueMessage(Message.makeGroupExist());
 						}
-						this.enqueueMessage(ackMsg);
+						
 					}
 					// If it is login user message
 					else if (msg.isUserLogin()) {
@@ -384,27 +397,13 @@ public class ClientRunnable implements Runnable {
 							ackMsg = Message.makeLoginFail();
 						} else {
 							name = user.getUsername();
-							System.out.println("CR: " + name);
 							ackMsg = Message.makeLoginSuccess(name);
 						}
 						this.enqueueMessage(ackMsg);
 					}
 					// If it is Adding user to group message
 					else if (msg.isAddToGroup()) {
-						Message ackMsg;
-						this.initialized = true;
-						Group group = groupService.findGroupByName(msg.getName());
-						if (group == null) {
-							ackMsg = Message.makeGroupNotExist();
-						} else {
-							if (groupService.addUserToGroup(group, user) && userService.addGroupToUser(user, group)
-									&& !group.getListOfUsers().contains(user.getUsername())) {
-								ackMsg = Message.makeGroupAddSuc();
-							} else {
-								ackMsg = Message.makeGroupAddFail();
-							}
-						}
-						this.enqueueMessage(ackMsg);
+						this.enqueueMessage(this.addUserToGroup(msg.getName()));
 					}
 					// If user is exiting a group
 					else if (msg.isGroupExit()) {
@@ -414,16 +413,15 @@ public class ClientRunnable implements Runnable {
 						if (group == null) {
 							ackMsg = Message.makeGroupNotExist();
 						} else {
-							try {
-								List<Group> groups = new ArrayList<Group>();
-								groups.add(group);
-							//TODO	groupService.removeUserFromGroups(groups, user.getUsername());
+							if (groupService.exitGroup(user.getUsername(), group.getName())
+									&& user.getListOfGroups().contains(group.getName())) {
+								user = userService.findUserByUsername(user.getUsername());
 								ackMsg = Message.makeSuccessMsg();
-							} catch (Exception e) {
+							} else {
 								ackMsg = Message.makeFailMsg();
 							}
-							this.enqueueMessage(ackMsg);
 						}
+						this.enqueueMessage(ackMsg);
 					}
 					// If group is being deleted
 					else if (msg.isGroupDelete()) {
@@ -433,7 +431,8 @@ public class ClientRunnable implements Runnable {
 						if (group == null) {
 							ackMsg = Message.makeGroupNotExist();
 						} else {
-							if (true) {
+							if (groupService.deleteGroup(group.getName())) {
+								user = userService.findUserByUsername(user.getUsername());
 								ackMsg = Message.makeSuccessMsg();
 							} else {
 								ackMsg = Message.makeFailMsg();
@@ -449,10 +448,9 @@ public class ClientRunnable implements Runnable {
 						if (!msg.getName().equals(user.getPassword())) {
 							ackMsg = Message.makeUserWrongPasswordMsg();
 						} else {
-							try {
-								userService.deleteUser(user.getUsername());
+							if (userService.deleteUser(user.getUsername())) {
 								ackMsg = Message.makeDeleteUserSuccessMsg();
-							} catch (Exception e) {
+							} else {
 								ackMsg = Message.makeFailMsg();
 							}
 						}
@@ -468,7 +466,7 @@ public class ClientRunnable implements Runnable {
 							ackMsg = Message.makeUserWrongPasswordMsg();
 						} else {
 							if (userService.updateUser(user, msg.getText())) {
-								user.setPassword(msg.getText());
+								user = userService.findUserByUsername(user.getUsername());
 								ackMsg = Message.makeSuccessMsg();
 							} else {
 								ackMsg = Message.makeFailMsg();
@@ -568,6 +566,24 @@ public class ClientRunnable implements Runnable {
 		runnableMe = future;
 	}
 
+	private Message addUserToGroup(String groupName) throws JsonProcessingException {
+		Message ackMsg;
+		this.initialized = true;
+		Group group = groupService.findGroupByName(groupName);
+		if (group == null) {
+			ackMsg = Message.makeGroupNotExist();
+		} else {
+			if (groupService.addUserToGroup(group, user) && userService.addGroupToUser(user, group)
+					&& !group.getListOfUsers().contains(user.getUsername())) {
+				user = userService.findUserByUsername(user.getUsername());
+				ackMsg = Message.makeGroupAddSuc();
+			} else {
+				ackMsg = Message.makeGroupAddFail();
+			}
+		}
+		return ackMsg;
+	}
+	
 	/**
 	 * Terminate a client that we wish to remove. This termination could happen at
 	 * the client's request or due to system need.

@@ -174,12 +174,12 @@ public class UserServicePrattle {
 
 	}
 
-	public void addToMyMessages(User user, Message message) throws JsonProcessingException{
+	public void addToMyMessages(User user, String message) throws JsonProcessingException{
 //		ObjectMapper mapper = new ObjectMapper();
 //		String json = mapper.writeValueAsString(message);
 //		JSONObject jsonObj = new JSONObject(message);
-		String json =gson.toJson(message);
-		col.updateOne(Filters.eq("username", user.getUsername()), Updates.addToSet("myMessages", Document.parse(json)));
+		//String json =gson.toJson(message);
+		col.updateOne(Filters.eq("username", user.getUsername()), Updates.addToSet("myMessages", message));
 	}
 
 	public static String hashPassword(String password_plaintext) {
