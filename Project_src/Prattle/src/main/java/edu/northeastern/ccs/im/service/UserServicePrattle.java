@@ -17,6 +17,7 @@ import com.mongodb.client.model.Updates;
 import edu.northeastern.ccs.im.Message;
 import edu.northeastern.ccs.im.MongoDB.Model.Group;
 import edu.northeastern.ccs.im.MongoDB.Model.User;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +33,7 @@ public class UserServicePrattle {
 	private MongoDatabase db;
 	private Gson gson;
 	private GroupServicePrattle group_service;
+	private static int workload = 12;
 
 	/**
 	 *
@@ -44,6 +46,13 @@ public class UserServicePrattle {
 		group_service= new GroupServicePrattle(db);
 	}
 
+//	private String getHashedPassword(String username){
+//		Document doc = col.find(Filters.eq("username", username.toLowerCase())).first();
+//		if(doc != null)
+//			return  gson.fromJson(gson.toJson(doc), User.class).getPassword();
+//		else
+//			return "";
+//	}
 	/**
 	 *
 	 * @param username String username
@@ -51,10 +60,17 @@ public class UserServicePrattle {
 	 * @return authenticated user if found; else null
 	 */
 	public User authenticateUser(String username, String password) {
-		Document doc = col.find(Filters.and(Filters.eq("username", username.toLowerCase()),
-				Filters.eq("password", password))).first();
+		User user= findUserByUsername(username);
+		if(checkPassword(password,user.getPassword())){
+			return user;
+		}
+		else
+			return null;
+//		Document doc = col.find(Filters.eq("username", username.toLowerCase())).first();
+//		,
+//				Filters.eq("password", checkPassword(password,getHashedPassword(username))))).first();
 
-		return gson.fromJson(gson.toJson(doc), User.class);
+//		return gson.fromJson(gson.toJson(doc), User.class);
 	}
 
 	/**
@@ -66,6 +82,7 @@ public class UserServicePrattle {
 	 */
 	public User createUser(String username, String password) throws JsonProcessingException {
 		if (!isUsernameTaken(username)) {
+
 			User u = new User(username.toLowerCase(), password);
 			insertUser(u);
 			return u;
@@ -163,6 +180,32 @@ public class UserServicePrattle {
 //		JSONObject jsonObj = new JSONObject(message);
 		//String json =gson.toJson(message);
 		col.updateOne(Filters.eq("username", user.getUsername()), Updates.addToSet("myMessages", message));
+	}
+
+	public static String hashPassword(String password_plaintext) {
+		String salt = BCrypt.gensalt(workload);
+		String hashed_password = BCrypt.hashpw(password_plaintext, salt);
+
+		return(hashed_password);
+	}
+
+	/**
+	 * This method can be used to verify a computed hash from a plaintext (e.g. during a login
+	 * request) with that of a stored hash from a database. The password hash from the database
+	 * must be passed as the second variable.
+	 * @param password_plaintext The account's plaintext password, as provided during a login request
+	 * @param stored_hash The account's stored password hash, retrieved from the authorization database
+	 * @return boolean - true if the password matches the password of the stored hash, false otherwise
+	 */
+	public static boolean checkPassword(String password_plaintext, String stored_hash) {
+		boolean password_verified = false;
+
+		if(null == stored_hash || !stored_hash.startsWith("$2a$"))
+			throw new java.lang.IllegalArgumentException("Invalid hash provided for comparison");
+
+		password_verified = BCrypt.checkpw(password_plaintext, stored_hash);
+
+		return(password_verified);
 	}
 
 }

@@ -1,4 +1,5 @@
 package edu.northeastern.ccs.im.MongoDB.Model;
+import edu.northeastern.ccs.im.service.UserServicePrattle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +27,7 @@ public class User {
      */
     public User(String username, String password){
         this.username = username;
-        this.password = password;
+        this.password = UserServicePrattle.hashPassword(password);
         this.listOfGroups = new ArrayList<String>();
     }
 
