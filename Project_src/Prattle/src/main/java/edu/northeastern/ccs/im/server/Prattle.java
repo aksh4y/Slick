@@ -73,7 +73,11 @@ public abstract class Prattle {
             if (tt.isInitialized()) {
                 User u = userService.findUserByUsername(tt.getName());
                 try {
-                    String msg = "[BROADCAST] " + message.getName() + ": " + message.getText();
+                    String msg;
+                    if(u.getUsername().equalsIgnoreCase(message.getName()))
+                        msg = "[BROADCASTED] " + message.getText();
+                    else 
+                        msg = "[BROADCAST] " + message.getName() + ": " + message.getText();
                     userService.addToMyMessages(u, msg);
                 } catch (Exception e) {
                     // TODO Auto-generated catch block

@@ -3,6 +3,7 @@ package edu.northeastern.ccs.im.chatter;
 import edu.northeastern.ccs.im.IMConnection;
 import edu.northeastern.ccs.im.KeyboardScanner;
 import edu.northeastern.ccs.im.Message;
+import edu.northeastern.ccs.im.MessagePrinter;
 import edu.northeastern.ccs.im.MessageScanner;
 
 /**
@@ -18,6 +19,8 @@ import edu.northeastern.ccs.im.MessageScanner;
  */
 public class CommandLineMain {
 
+    public static final String ANSI_RED = "\033[31;1m";
+    public static final String ANSI_RESET = "\u001B[0m";
 	/**
 	 * This main method will perform all of the necessary actions for this phase of
 	 * the course project.
@@ -73,13 +76,13 @@ public class CommandLineMain {
 				    connect.setUsername(message.getSender());
 				if (!message.getSender().equals(connect.getUserName())) {
                     if(message.isBroadcastMessage())
-                        System.out.println("[Broadcast] " + message.getSender() + ": " + message.getText());
+                        System.out.println(ANSI_RED + "[Broadcast] " + message.getSender() + ": " + message.getText() + ANSI_RESET);
                     else if(message.isPrivateMessage())
-                        System.out.println("[Private Msg] " + message.getSender() + ": " + message.getText());
+                    	System.out.println(ANSI_RED + "[Private Msg] " + message.getSender() + ": " + message.getText() + ANSI_RESET);
                     else if(message.isGroupMessage())
-                        System.out.println("[" + message.getSender() + "@" + message.getMsgRecipient() + "] " + message.getText());
+                        System.out.println(ANSI_RED + "[" + message.getSender() + "@" + message.getMsgRecipient() + "] " + message.getText() + ANSI_RESET);
                     else
-                        System.out.println(message.getSender() + ": " + message.getText());
+                        System.out.println(ANSI_RED + message.getSender() + ": " + message.getText() + ANSI_RESET);
                 }
 			}
 		}
