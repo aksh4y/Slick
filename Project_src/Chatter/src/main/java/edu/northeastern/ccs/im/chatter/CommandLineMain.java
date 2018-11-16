@@ -3,6 +3,7 @@ package edu.northeastern.ccs.im.chatter;
 import edu.northeastern.ccs.im.IMConnection;
 import edu.northeastern.ccs.im.KeyboardScanner;
 import edu.northeastern.ccs.im.Message;
+import edu.northeastern.ccs.im.MessagePrinter;
 import edu.northeastern.ccs.im.MessageScanner;
 
 /**
@@ -75,7 +76,8 @@ public class CommandLineMain {
                     if(message.isBroadcastMessage())
                         System.out.println("[Broadcast] " + message.getSender() + ": " + message.getText());
                     else if(message.isPrivateMessage())
-                        System.out.println("[Private Msg] " + message.getSender() + ": " + message.getText());
+                    	MessagePrinter.printMessage("PIC||message.getSender()||message.getText()");
+                        //System.out.println("[Private Msg] " + message.getSender() + ": " + message.getText());
                     else if(message.isGroupMessage())
                         System.out.println("[" + message.getSender() + "@" + message.getMsgRecipient() + "] " + message.getText());
                     else
