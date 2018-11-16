@@ -109,7 +109,7 @@ public class ServerConstants {
 	 * @param message The message that was sent.
 	 * @return a list of messages if it exists, or null
 	 */
-	public static List<Message> getBroadcastResponses(String message) {
+	public static ArrayList<Message> getBroadcastResponses(String message) {
 		ArrayList<Message> result = new ArrayList<>();
 		if (message.compareToIgnoreCase(DATE_COMMAND) == 0) {
 			GregorianCalendar cal = new GregorianCalendar();
