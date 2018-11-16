@@ -11,8 +11,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 public class TestGroupService {
-
-    private MongoDatabase db = MongoConnection.createConnection();
+    MongoConnection mongoConnection = new MongoConnection();
+    private MongoDatabase db = mongoConnection.createConnection();
     private GroupServicePrattle groupService = new GroupServicePrattle(db);
     private UserServicePrattle userService = new UserServicePrattle(db);
 
@@ -28,8 +28,8 @@ public class TestGroupService {
         groupService.addUserToGroup(g2, userService.findUserByUsername("chetan"));
         groupService.addUserToGroup(g2, userService.findUserByUsername("peter"));
         assertEquals(true, groupService.deleteGroup(g2.getName()));
-
     }
+
     @Test
     public void checkIfGroupNameTaken() throws JsonProcessingException {
         if(groupService.isGroupnameTaken("chetangroup")){

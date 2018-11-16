@@ -119,7 +119,7 @@ public class UserServicePrattle {
 	public Boolean updateUser(User user, String updatedPassword) {
 		if(user!= null) {
 			UpdateResult updateResult=col.updateOne(Filters.eq("username", user.getUsername().toLowerCase()),
-					new Document("$set", new Document("password", updatedPassword)));
+					new Document("$set", new Document("password", hashPassword(updatedPassword))));
 			return updateResult.wasAcknowledged();
 		}
 		return false;

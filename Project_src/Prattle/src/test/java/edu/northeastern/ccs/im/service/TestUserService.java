@@ -4,10 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mongodb.client.MongoDatabase;
 import edu.northeastern.ccs.im.MongoConnection;
 import edu.northeastern.ccs.im.MongoDB.Model.User;
+import edu.northeastern.ccs.im.MongoDB.Model.Group;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 //import edu.northeastern.ccs.im.MongoDB.Model.User;
@@ -31,7 +34,7 @@ public class TestUserService {
 
     @Test void testCreateDeleteUser() throws JsonProcessingException {
         User user = userService.createUser("test1","test2");
-        assertEquals(true, userService.isUsernameTaken("test1"));
+        assertEquals(true, userService.isUsernameTaken(user.getUsername()));
         assertEquals(true, userService.deleteUser("test1"));
         assertEquals(false, userService.isUsernameTaken("test1"));
         assertNull(userService.createUser("chetan", "passchetan"));
@@ -46,7 +49,46 @@ public class TestUserService {
     }
 
     @Test
-    public void testAddRemoveGroupToUser(){
+    public void testAddRemoveGroupToUser() throws JsonProcessingException {
+        User user = userService.createUser("test1", "test1");
+        Group group1 = groupService.createGroup("coolgroup");
+        Group group2 = groupService.createGroup("hotgroup");
+        assertEquals(true, userService.addGroupToUser(user, group1));
+        assertEquals(true, userService.removeGroupFromUser(user.getUsername(),group1.getName()));
+        userService.addGroupToUser(user,group1);
+        userService.addGroupToUser(user,group2);
+        assertEquals(true, userService.deleteUser("test1"));
+        assertEquals(true, groupService.deleteGroup("coolgroup"));
+        assertEquals(true, groupService.deleteGroup("hotgroup"));
+    }
+
+    @Test
+    public void testUpdateUser() throws JsonProcessingException {
+        User user = userService.createUser("test1", "test1");
+        userService.updateUser(user, "testing");
+        user = userService.findUserByUsername("test1");
+        assertEquals(true, userService.checkPassword("testing",user.getPassword()));
+        assertEquals(true, userService.deleteUser("test1"));
+        assertEquals(false, userService.updateUser(null, "new"));
+        assertEquals(false, userService.deleteUser("testUserSubject"));
 
     }
+
+    @Test
+    public void testCheckPassword(){
+        try {
+            userService.checkPassword("check",null);
+            Assertions.fail();
+        }catch (IllegalArgumentException e){
+            assertTrue(true);
+        }
+    }
+
+//    @Test
+//    public void testUserMessages() throws JsonProcessingException {
+//        User user = userService.createUser("testmessage","testPass");
+//        userService.addToMyMessages(user,"Hello");
+//        userService.clearNewMessages(user);
+//        assertEquals(true, userService.deleteUser(user.getUsername()));
+//    }
 }
