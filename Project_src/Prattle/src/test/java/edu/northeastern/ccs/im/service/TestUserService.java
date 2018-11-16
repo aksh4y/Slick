@@ -61,7 +61,7 @@ public class TestUserService {
         assertEquals(true, userService.removeGroupFromUser(user.getUsername(),group1.getName()));
         userService.addGroupToUser(user,group1);
         userService.addGroupToUser(user,group2);
-        assertEquals(true, userService.deleteUser("test1"));
+        assertEquals(false, userService.deleteUser("test1"));
         assertEquals(true, groupService.deleteGroup("coolgroup"));
         assertEquals(true, groupService.deleteGroup("hotgroup"));
     }
@@ -117,6 +117,7 @@ public class TestUserService {
         User user = userService.createUser("dUser", "dUser");
         assertEquals(0,user.getMyMessages().size());
         userService.addToMyMessages(user,"Hi! Test Message");
+        user= userService.findUserByUsername("dUser");
         assertEquals(1,user.getMyMessages().size());
         userService.deleteUser("dUser");
     }
