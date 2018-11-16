@@ -159,11 +159,6 @@ public class UserServicePrattle {
 	}
 
 
-	public void clearNewMessages(User user){
-		col.updateOne(Filters.eq("name", user.getUsername()), Updates.set("myNewMessages", ""));
-	}
-
-
 	public void addToMyMessages(User user, String message){
 		col.updateOne(Filters.eq("username", user.getUsername()), Updates.addToSet("myMessages", message));
 	}

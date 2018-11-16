@@ -8,7 +8,12 @@ import edu.northeastern.ccs.im.MongoDB.Model.Group;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 //import edu.northeastern.ccs.im.MongoDB.Model.User;
@@ -30,7 +35,8 @@ public class TestUserService {
         assertEquals("chetan", user.getUsername());
     }
 
-    @Test void testCreateDeleteUser() throws JsonProcessingException {
+    @Test
+    public void testCreateDeleteUser() throws JsonProcessingException {
         User user = userService.createUser("test1","test2");
         assertEquals(true, userService.isUsernameTaken(user.getUsername()));
         assertEquals(true, userService.deleteUser("test1"));
@@ -96,8 +102,26 @@ public class TestUserService {
         }
     }
 
+    @Test
+    public void deleteUserMoreTest() throws  JsonProcessingException{
+        User user = userService.createUser("dUser", "dUser");
+        Group group = groupService.createGroup("dUserGroup");
+        groupService.addUserToGroup(group,user);
+        List<String>listOfGroups = new ArrayList<String>(Arrays.asList("dUserGroup"));
+        groupService.removeUserFromGroups(listOfGroups,"dUser");
+        assertTrue(userService.deleteUser("dUser"));
+        groupService.deleteGroup("dUserGroup");
+    }
+    @Test
+    public void addToMyMessages() throws  JsonProcessingException {
+        User user = userService.createUser("dUser", "dUser");
+        assertEquals(0,user.getMyMessages().size());
+        userService.addToMyMessages(user,"Hi! Test Message");
+        assertEquals(1,user.getMyMessages().size());
+        userService.deleteUser("dUser");
+    }
 //    @Test
-//    public void testUserMessages() throws JsonProcessingException {
+//    public void clean throws JsonProcessingException {
 //        User user = userService.createUser("testmessage","testPass");
 //        userService.addToMyMessages(user,"Hello");
 //        userService.clearNewMessages(user);
