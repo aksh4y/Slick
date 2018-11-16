@@ -125,12 +125,12 @@ public class UserServicePrattle {
 		return false;
 	}
 
-	public boolean deleteUser(String username) throws JsonProcessingException{
-		User user=findUserByUsername(username);
-		if(user != null) {
+	public boolean deleteUser(String username) throws JsonProcessingException {
+		User user = findUserByUsername(username);
+		if (user != null) {
 			List<String> listOfGroups = user.getListOfGroups();
 			DeleteResult dr = col.deleteOne(Filters.eq("username", username.toLowerCase()));
-			boolean removed = group_service.removeUserFromGroups(listOfGroups, username.toLowerCase());
+			boolean removed = listOfGroups.isEmpty() || group_service.removeUserFromGroups(listOfGroups, username.toLowerCase());
 			return (dr.wasAcknowledged() && removed);
 		}
 		return false;
@@ -151,16 +151,18 @@ public class UserServicePrattle {
 	 * @return True after updating
 	 * @throws JsonProcessingException
 	 */
+
 	public Boolean addGroupToUser(User user, Group group) {
-		col.updateOne(Filters.eq("username", user.getUsername()),
+		UpdateResult updateResult= col.updateOne(Filters.eq("username", user.getUsername()),
 				Updates.addToSet("listOfGroups", group.getName()));
-		return true;
+		return updateResult.wasAcknowledged();
 	}
 
 
 	public void clearNewMessages(User user){
 		col.updateOne(Filters.eq("name", user.getUsername()), Updates.set("myNewMessages", ""));
 	}
+
 
 	public void addToMyMessages(User user, String message){
 		col.updateOne(Filters.eq("username", user.getUsername()), Updates.addToSet("myMessages", message));

@@ -1,5 +1,11 @@
 package edu.northeastern.ccs.im.server;
 
+import com.mongodb.client.MongoDatabase;
+import edu.northeastern.ccs.im.Message;
+import edu.northeastern.ccs.im.MongoConnection;
+import edu.northeastern.ccs.im.MongoDB.Model.User;
+import edu.northeastern.ccs.im.service.UserServicePrattle;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
@@ -9,19 +15,7 @@ import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.mongodb.client.MongoDatabase;
-
-import edu.northeastern.ccs.im.Message;
-import edu.northeastern.ccs.im.MongoConnection;
-import edu.northeastern.ccs.im.MongoDB.Model.User;
-import edu.northeastern.ccs.im.service.UserServicePrattle;
+import java.util.concurrent.*;
 
 /**
  * A network server that communicates with IM clients that connect to it. This
@@ -81,7 +75,7 @@ public abstract class Prattle {
                 try {
                     String msg = "[BROADCAST] " + message.getName() + ": " + message.getText();
                     userService.addToMyMessages(u, msg);
-                } catch (JsonProcessingException e) {
+                } catch (Exception e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }    // sender's copy
