@@ -28,7 +28,7 @@ public class User {
     public User(String username, String password){
         this.username = username;
         this.password = UserServicePrattle.hashPassword(password);
-        this.listOfGroups = new ArrayList<String>();
+        this.listOfGroups = new ArrayList<>();
     }
 
     /**
@@ -87,8 +87,6 @@ public class User {
         return listOfGroups;
     }
 
-    
-
     public List<String> getMyMessages() {
         return myMessages;
     }
@@ -96,17 +94,4 @@ public class User {
     public void setMyMessages(List<String> myMessages) {
         this.myMessages = myMessages;
     }
-
-    public void setListOfGroups(List<String> listOfGroups) {
-        this.listOfGroups = listOfGroups;
-    }
-
-    /**
-     *
-     * @param newGroup Group to add to list of groups for the User
-     */
-    public void addGroupToUser(String newGroup) {
-        listOfGroups.add(newGroup);
-    }
-
 }
