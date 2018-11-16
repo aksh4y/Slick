@@ -29,6 +29,7 @@ public class User {
         this.username = username;
         this.password = UserServicePrattle.hashPassword(password);
         this.listOfGroups = new ArrayList<>();
+        this.myMessages = new ArrayList<>();
     }
 
     /**
@@ -39,7 +40,7 @@ public class User {
         return id;
     }
 
-    /**
+    /**git
      *
      * @param id int id to set for the user
      */
