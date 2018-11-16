@@ -323,11 +323,6 @@ public class Message {
 		} else if (handle.compareTo(MessageType.HISTORY_MESSAGE.toString()) == 0) {
 			result = makeHistoryMessage(srcName);
 		}
-		// else if (handle.compareTo(MessageType.GROUP_EXIT_FAIL.toString()) == 0) {
-		// result = makeGroupExitFail();
-		// }else if (handle.compareTo(MessageType.GROUP_EXIT_SUCCESS.toString()) == 0) {
-		// result = makeGroupExitSuc();
-		// }
 		return result;
 
 	}
@@ -557,23 +552,6 @@ public class Message {
 	public static Message makeGroupNotExist() {
 		return new Message(MessageType.GROUP_NOT_EXIST);
 	}
-
-	// /**
-	// * Create a new message to send if group exit fails
-	// *
-	// * @return Instance of Message.
-	// */
-	// public static Message makeGroupExitFail() {
-	// return new Message(MessageType.GROUP_EXIT_FAIL);
-	// }
-	/// **
-	// * Create a new message to send if group exit Success
-	// *
-	// * @return Instance of Message.
-	// */
-	// public static Message makeGroupExitSuc() {
-	// return new Message(MessageType.GROUP_EXIT_SUCCESS);
-	// }
 
 	/**
 	 * Create a new message to send if group add fails

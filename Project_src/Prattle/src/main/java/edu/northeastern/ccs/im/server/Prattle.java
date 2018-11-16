@@ -122,7 +122,6 @@ public abstract class Prattle {
     public static void main(String[] args) throws IOException {
         // Connect to the socket on the appropriate port to which this server connects.
         ServerSocketChannel serverSocket = null;
-        //db= MongoConnection.createConnection();
         try {
             serverSocket = ServerSocketChannel.open();
             serverSocket.configureBlocking(false);

@@ -72,7 +72,6 @@ public class ScanNetNB {
 			key = channel.register(selector, SelectionKey.OP_READ);
 		} catch (IOException e) {
 			// For the moment we are going to simply cover up that there was a problem.
-			//System.err.println(e.toString());
 			LOGGER.log(Level.WARNING,e.toString());
 			assert false;
 		}
@@ -175,9 +174,7 @@ public class ScanNetNB {
 				// Skip past the leading space
 				charBuffer.position(charBuffer.position() + 2);
 				// Read in the second argument containing the message
-				//final String message = readArgument(charBuffer);
 				// Add this message into our queue
-				//charBuffer.position(charBuffer.position() + 2);
 				Message newMsg;
 				if(handle.equals("PRI") || handle.equals("GRP")) {  // Private or Group
 	                // Read in the second argument containing the message
@@ -222,7 +219,6 @@ public class ScanNetNB {
 			throw new NextDoesNotExistException("No next line has been typed in at the keyboard");
 		}
 		Message msg = messages.remove();
-//		System.err.println(msg.toString());
 		LOGGER.log(Level.INFO,"ScanNet:" + msg.toString());
 		return msg;
 	}
@@ -231,7 +227,6 @@ public class ScanNetNB {
 		try {
 			selector.close();
 		} catch (IOException e) {
-			//System.err.print("Caught exception: ");
 			LOGGER.log(Level.WARNING,e.toString());
 			e.printStackTrace();
 			assert false;

@@ -1,12 +1,8 @@
 package edu.northeastern.ccs.im.server;
 
-import java.util.HashMap;
+import java.util.*;
 
 import edu.northeastern.ccs.im.Message;
-
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 
 /**
  * A network server that communicates with IM clients that connect to it. This
@@ -113,7 +109,7 @@ public class ServerConstants {
 	 * @param message The message that was sent.
 	 * @return a list of messages if it exists, or null
 	 */
-	public static ArrayList<Message> getBroadcastResponses(String message) {
+	public static List<Message> getBroadcastResponses(String message) {
 		ArrayList<Message> result = new ArrayList<>();
 		if (message.compareToIgnoreCase(DATE_COMMAND) == 0) {
 			GregorianCalendar cal = new GregorianCalendar();
