@@ -55,7 +55,12 @@ public class CommandLineMain {
 				if (line.equals("/quit")) {
 					connect.disconnect();
 					break;
-				} else {
+				} else if(line.equalsIgnoreCase("HELP")) {
+                    System.out.println("::Use The Following Commands::\nHello\tWTF\tHow are you?\tWhat time is it Mr. Fox?\tWhat is the date?\tWhat time is it?\t/quit"
+                            + "\nCREATE_USER\tUSER_LOGIN\tUPDATE_USER\tDELETE_USER\n"
+                            + "PRIVATE  \tBROADCAST\tGROUP\n"
+                            + "CREATE_GROUP\tADD_TO_GROUP\tEXIT_FROM_GROUP  \tDELETE_GROUP");
+                } else {
 					// Else, send the text so that it is broadcast to all users logged in to the IM
 					// server.
 					connect.sendMessage(line);

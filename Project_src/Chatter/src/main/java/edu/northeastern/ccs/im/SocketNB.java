@@ -227,7 +227,7 @@ public final class SocketNB {
 				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.USER_WRONG_PASSWORD) {
 					System.out.println("Entred password is wrong");
 				}
-				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.DELTE_USER_SUCCESS) {
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.DELETE_USER_SUCCESS) {
 					System.out.println("User has been deleted");
 					quitter = true;
 				}

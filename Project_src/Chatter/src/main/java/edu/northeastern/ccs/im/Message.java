@@ -73,13 +73,13 @@ public class Message {
 		/** Message to update user */
 		UPDATE_USER("UUS"),
 		/** Message to update user */
-		DELTE_USER("DUS"),
+		DELETE_USER("DUS"),
 		/** Message to send Success Message */
-		DELTE_USER_SUCCESS("SUD"),
+		DELETE_USER_SUCCESS("SUD"),
 		/** Message if password is wrong */
 		USER_WRONG_PASSWORD("WPD"),
 		/** Message to update user */
-		DELTE_GROUP("DGR"),
+		DELETE_GROUP("DGR"),
 		/** Message to send Success Message */
 		SUCCESS_MESSAGE("SUC"),
 		/** Message to send Fail Message */
@@ -319,13 +319,13 @@ public class Message {
 			result = makeAddUserToGroup(srcName);
 		} else if (handle.compareTo(MessageType.EXIT_FROM_GROUP.toString()) == 0) {
 			result = makeUserExitGroup(srcName);
-		} else if (handle.compareTo(MessageType.DELTE_GROUP.toString()) == 0) {
+		} else if (handle.compareTo(MessageType.DELETE_GROUP.toString()) == 0) {
 			result = makeDeleteGroupMessage(srcName);
-		} else if (handle.compareTo(MessageType.DELTE_USER.toString()) == 0) {
+		} else if (handle.compareTo(MessageType.DELETE_USER.toString()) == 0) {
 			result = makeDeleteUserMessage(srcName);
 		} else if (handle.compareTo(MessageType.SUCCESS_MESSAGE.toString()) == 0) {
 			result = makeSuccessMsg();
-		} else if (handle.compareTo(MessageType.DELTE_USER_SUCCESS.toString()) == 0) {
+		} else if (handle.compareTo(MessageType.DELETE_USER_SUCCESS.toString()) == 0) {
 			result = makeDeleteUserSuccessMsg();
 		} else if (handle.compareTo(MessageType.USER_WRONG_PASSWORD.toString()) == 0) {
 			result = makeUserWrongPasswordMsg();
@@ -344,7 +344,7 @@ public class Message {
 	 */
 
 	public static Message makeDeleteGroupMessage(String groupName) {
-		return new Message(MessageType.DELTE_GROUP, groupName);
+		return new Message(MessageType.DELETE_GROUP, groupName);
 	}
 
 	/**
@@ -353,7 +353,7 @@ public class Message {
 	 * @return Instance of Message.
 	 */
 	public static Message makeDeleteUserMessage(String password) {
-		return new Message(MessageType.DELTE_USER, password);
+		return new Message(MessageType.DELETE_USER, password);
 	}
 
 	/**
@@ -371,7 +371,7 @@ public class Message {
 	 * @return Instance of Message.
 	 */
 	public static Message makeDeleteUserSuccessMsg() {
-		return new Message(MessageType.DELTE_USER_SUCCESS);
+		return new Message(MessageType.DELETE_USER_SUCCESS);
 	}
 
 	/**
