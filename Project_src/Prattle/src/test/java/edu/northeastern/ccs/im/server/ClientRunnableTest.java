@@ -22,6 +22,7 @@ import edu.northeastern.ccs.im.Message;
 import edu.northeastern.ccs.im.PrattleRunabale;
 import edu.northeastern.ccs.im.ScanNetNB;
 import edu.northeastern.ccs.im.SocketNB;
+import edu.northeastern.ccs.im.MongoDB.Model.User;
 
 /**
  * Tests for ClientRunnable class
@@ -177,6 +178,7 @@ public class ClientRunnableTest {
 		assertFalse((Boolean) messageChecks.invoke(client, msg));
 		Message msg1 = Message.makeBroadcastMessage(null, "");
 		assertFalse((Boolean) messageChecks.invoke(client, msg1));
+		socket.close();
 	}
 
 	/*
@@ -224,6 +226,9 @@ public class ClientRunnableTest {
 		Class cls = client.getClass();
 		Field input = cls.getDeclaredField("input");
 		input.setAccessible(true);
+		Field userField = cls.getDeclaredField("user");
+		userField.setAccessible(true);
+		User user = (User) userField.get(client);
 		ScanNetNB scanNetNB = (ScanNetNB) input.get(client);
 		Class scanNet = scanNetNB.getClass();
 		Field messages = scanNet.getDeclaredField("messages");
@@ -234,34 +239,34 @@ public class ClientRunnableTest {
 		checkForInitialization.setAccessible(true);
 		checkForInitialization.invoke(client);
 		client.run();
-		
+
 		queue.add(msg);
 		queue.add(nonSpeacialBroadMsg);
 		checkForInitialization.invoke(client);
 		client.run();
-		
+
 		Message nonSpeacialBroadMsgNotNull = Message.makeBroadcastMessage("Test", "kk");
 		queue.add(msg);
 		queue.add(nonSpeacialBroadMsgNotNull);
 		checkForInitialization.invoke(client);
 		client.run();
-		
+
 		Message bombOff = Message.makeBroadcastMessage("Test", "Prattle says everyone log off");
 		queue.add(msg);
 		queue.add(bombOff);
 		checkForInitialization.invoke(client);
 		client.run();
-		
+
 		queue.add(msg);
 		queue.add(nonNameMessage);
 		checkForInitialization.invoke(client);
 		client.run();
-		
+
 		queue.add(msg);
 		queue.add(nonBroad);
 		checkForInitialization.invoke(client);
 		client.run();
-		
+
 		Field specialResponse = cls.getDeclaredField("specialResponse");
 		specialResponse.setAccessible(true);
 		Queue<Message> sResps = (Queue<Message>) specialResponse.get(client);
@@ -273,7 +278,7 @@ public class ClientRunnableTest {
 		queue.add(msg);
 		checkForInitialization.invoke(client);
 		client.run();
-		
+
 		Field immediateResponse = cls.getDeclaredField("immediateResponse");
 		immediateResponse.setAccessible(true);
 		Queue<Message> imi = (Queue<Message>) immediateResponse.get(client);
@@ -281,12 +286,94 @@ public class ClientRunnableTest {
 		imi.add(msg);
 		checkForInitialization.invoke(client);
 		client.run();
+
+		Message correctCreateUserMessage = Message.makeCreateUserMessage("crTest", "crTest");
+		Message correctCreateGroupMessage = Message.makeCreateGroupMessage("crGroupTest");
+		// Message userNameTakenMessage = Message.makeCreateUserMessage("nipun",
+		// "test");
+		Message correctLoginMessage = Message.makeLoginMessage("crTest", "crTest");
+		// Message incorrectLoginMessage = Message.makeLoginMessage("crTest1", "tewst");
+		Message groupDeleteMessage = Message.makeDeleteGroupMessage("crGroupTest");
+		Message userDeleteMessage = Message.makeDeleteUserMessage("crTest");
+		Message userDeleteWrongPasswordMessage = Message.makeDeleteUserMessage("crTest1");
+		Message userUpdateMessage = Message.makeUpdateUserMessage("crTest", "crTest");
+		Message userUpdateWrongPasswordMessage = Message.makeUpdateUserMessage("crTest1", "crTest");
+		Message userAddToWrongGroupMessage = Message.makeAddUserToGroup("crGroupTest1");
+		Message userAddToGroupMessage = Message.makeAddUserToGroup("crGroupTest");
+		Message userExitWrongGroupMessage = Message.makeUserExitGroup("crGroupTest1");
+		Message userExitGroupMessage = Message.makeUserExitGroup("crGroupTest");
+
 		
-		assertTrue(client.isInitialized());
-		queue.add(terminate);
-		Assertions.assertThrows(NullPointerException.class, () -> {
-			client.run();
-		});
+		
+		queue.add(correctCreateUserMessage);
+		client.run();
+
+		queue.add(correctCreateUserMessage);
+		client.run();
+
+		queue.add(correctCreateGroupMessage);
+		user = new User("crTest", "crTest");
+		client.run();
+
+		queue.add(correctCreateGroupMessage);
+		client.run();
+
+		queue.add(correctLoginMessage);
+		client.run();
+
+		// Update password
+		queue.add(userUpdateWrongPasswordMessage);
+		client.run();
+		queue.add(userUpdateMessage);
+		client.run();
+
+		// Add to Group
+		queue.add(userAddToWrongGroupMessage);
+		user = new User("crTest", "crTest");
+		client.run();
+		queue.add(userAddToGroupMessage);
+		user = new User("crTest", "crTest");
+		client.run();
+		
+		//Exit Group
+
+		queue.add(userExitWrongGroupMessage);
+		user = new User("crTest", "crTest");
+		client.run();
+		queue.add(userExitGroupMessage);
+		user = new User("crTest", "crTest");
+		client.run();
+		queue.add(userExitGroupMessage);
+		user = new User("crTest", "crTest");
+		client.run();
+		//Group Delete
+		queue.add(groupDeleteMessage);
+		user = new User("crTest", "crTest");
+		client.run();
+
+		queue.add(groupDeleteMessage);
+		client.run();
+
+		queue.add(userDeleteWrongPasswordMessage);
+		user = new User("crTest", "crTest");
+		client.run();
+
+		queue.add(userDeleteMessage);
+		user = new User("crTest", "crTest");
+		client.run();
+
+		queue.add(userDeleteMessage);
+		client.run();
+
+		queue.add(correctLoginMessage);
+		client.run();
+		
+		 assertTrue(client.isInitialized());
+		 queue.add(terminate);
+		 Assertions.assertThrows(NullPointerException.class, () -> {
+		 client.run();
+		 });
+
 	}
 
 	/*

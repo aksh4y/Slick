@@ -447,7 +447,7 @@ public class ClientRunnable implements Runnable {
 						Message ackMsg;
 						this.initialized = true;
 
-						if (!msg.getName().equals(user.getPassword())) {
+						if (!UserServicePrattle.checkPassword(msg.getName(), user.getPassword())) {
 							ackMsg = Message.makeUserWrongPasswordMsg();
 						} else {
 							if (userService.deleteUser(user.getUsername())) {
