@@ -43,10 +43,6 @@ public class UserServicePrattle {
 		group_service= new GroupServicePrattle(db);
 	}
 
-	public void clearUserTable(){
-		col.deleteMany(new Document());
-	}
-
 	/**
 	 *
 	 * @param username String username

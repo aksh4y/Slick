@@ -40,10 +40,6 @@ public class GroupServicePrattle {
 		gson = new Gson();
 	}
 
-	public void clearGroupTable(){
-		gcol.deleteMany(new Document());
-	}
-
 	/**
 	 *
 	 * @param name name of the group
@@ -120,9 +116,7 @@ public class GroupServicePrattle {
 	 * @throws JsonProcessingException
 	 */
 	public Boolean addUserToGroup(Group group, User user) throws JsonProcessingException {
-
 		gcol.updateOne(Filters.eq("name", group.getName()), Updates.addToSet("listOfUsers", user.getUsername()));
-
 		UserServicePrattle userService= new UserServicePrattle(db);
 		userService.addGroupToUser(user,group);
 		return true;
