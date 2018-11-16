@@ -32,7 +32,7 @@ public class CommandLineMain {
 			
 		    System.out.println("\t\t\t::Welcome to Slick::");
             //String username = in.nextLine();
-            System.out.println("Welcome! Begin by logging in using USER_LOGIN <username> <password>");
+            System.out.println("Welcome! Begin by logging in using USER_LOGIN <username> <password>\nTip: Use the help command to see a list of commands at any point!");
             String user = "DUMMYUSER";
 			// Create a Connection to the IM server.
 			connect = new IMConnection(args[0], Integer.parseInt(args[1]), user);
