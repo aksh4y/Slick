@@ -120,7 +120,7 @@ public class UserServicePrattle {
 		if(user!= null) {
 			UpdateResult updateResult=col.updateOne(Filters.eq("username", user.getUsername().toLowerCase()),
 					new Document("$set", new Document("password", hashPassword(updatedPassword))));
-			return (updateResult.getMatchedCount()==1);
+			return (updateResult.getModifiedCount()==1);
 		}
 		return false;
 	}
@@ -155,7 +155,7 @@ public class UserServicePrattle {
 	public Boolean addGroupToUser(User user, Group group) {
 		UpdateResult updateResult= col.updateOne(Filters.eq("username", user.getUsername()),
 				Updates.addToSet("listOfGroups", group.getName()));
-		return (updateResult.getMatchedCount()==1);
+		return (updateResult.getModifiedCount()==1);
 	}
 
 

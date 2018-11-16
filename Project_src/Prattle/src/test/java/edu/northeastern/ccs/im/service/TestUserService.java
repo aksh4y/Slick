@@ -8,9 +8,7 @@ import edu.northeastern.ccs.im.MongoDB.Model.Group;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 //import edu.northeastern.ccs.im.MongoDB.Model.User;
@@ -64,8 +62,11 @@ public class TestUserService {
 
     @Test
     public void testUpdateUser() throws JsonProcessingException {
-        User user = userService.createUser("test1", "test1");
-        userService.updateUser(user, "testing");
+
+        User user = new User("failTest", "failTest");
+        assertEquals(false,userService.updateUser(user, "failTest123"));
+        user = userService.createUser("test1", "test1");
+        assertEquals(true,userService.updateUser(user, "testing"));
         user = userService.findUserByUsername("test1");
         assertEquals(true, userService.checkPassword("testing",user.getPassword()));
         assertEquals(true, userService.deleteUser("test1"));
@@ -82,7 +83,17 @@ public class TestUserService {
         }catch (IllegalArgumentException e){
             assertTrue(true);
         }
-        assertEquals(false, userService.checkPassword("john","$2a$"));
+        try {
+            userService.checkPassword("check","$@!#");
+            Assertions.fail();
+        }catch (IllegalArgumentException e){
+            assertTrue(true);
+        }
+        try {
+           assertFalse(userService.checkPassword("check","$2a$12$NJ2.h9oZK7XhSftYXDslGeB6C25r.i8s7Ux8ajwIw3Vw7T7tJzMNa"));
+        }catch (IllegalArgumentException e){
+            assertTrue(true);
+        }
     }
 
 //    @Test
