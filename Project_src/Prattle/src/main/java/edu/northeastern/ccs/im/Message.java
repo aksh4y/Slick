@@ -91,7 +91,9 @@ public class Message {
 		/** Message if user added to group */
 		GROUP_EXIT_SUCCESS("GXS"),
 		/** Message if user added to group */
-		GROUP_EXIT_FAIL("GXF");
+		GROUP_EXIT_FAIL("GXF"),
+		/** Message for history messages */
+		HISTORY_MESSAGE("HMG");
 		/** Store the short name of this message type. */
 		private String tla;
 
@@ -318,6 +320,8 @@ public class Message {
 			result = makeFailMsg();
 		} else if (handle.compareTo(MessageType.UPDATE_USER.toString()) == 0) {
 			result = makeUpdateUserMessage(srcName, text);
+		} else if (handle.compareTo(MessageType.HISTORY_MESSAGE.toString()) == 0) {
+			result = makeHistoryMessage(srcName);
 		}
 		// else if (handle.compareTo(MessageType.GROUP_EXIT_FAIL.toString()) == 0) {
 		// result = makeGroupExitFail();
@@ -352,6 +356,18 @@ public class Message {
 		return result;
 	}
 
+	/**
+	 * Create a new message to make history message.
+	 * 
+	 * @return Instance of Message.
+	 */
+
+	public static Message makeHistoryMessage(String message) {
+		return new Message(MessageType.HISTORY_MESSAGE, message);
+	}
+
+	
+	
 	/**
 	 * Create a new message to delete a group.
 	 * 

@@ -1,5 +1,7 @@
 package edu.northeastern.ccs.im;
 
+import edu.northeastern.ccs.im.Message.MessageType;
+
 /**
  * Each instance of this class represents a single transmission by our IM
  * clients.
@@ -87,7 +89,9 @@ public class Message {
 		/** Message if user added to group */
 		GROUP_EXIT_SUCCESS("GXS"),
 		/** Message if user added to group */
-		GROUP_EXIT_FAIL("GXF");
+		GROUP_EXIT_FAIL("GXF"),
+		/** Message for history messages */
+		HISTORY_MESSAGE("HMG");
 		/** Store the short name of this message type. */
 		private String tla;
 
@@ -331,10 +335,22 @@ public class Message {
 			result = makeFailMsg();
 		} else if (handle.compareTo(MessageType.UPDATE_USER.toString()) == 0) {
 			result = makeUpdateUserMessage(srcName, text);
+		} else if (handle.compareTo(MessageType.HISTORY_MESSAGE.toString()) == 0) {
+			result = makeHistoryMessage(srcName);
 		}
 		return result;
 	}
-	
+
+	/**
+	 * Create a new message to make history message.
+	 * 
+	 * @return Instance of Message.
+	 */
+
+	public static Message makeHistoryMessage(String message) {
+		return new Message(MessageType.HISTORY_MESSAGE, message);
+	}
+
 	/**
 	 * Create a new message to delete a group.
 	 * 
@@ -360,7 +376,7 @@ public class Message {
 	 * @return Instance of Message.
 	 */
 	public static Message makeUpdateUserMessage(String password, String newPassword) {
-		return new Message(MessageType.UPDATE_USER, password,newPassword);
+		return new Message(MessageType.UPDATE_USER, password, newPassword);
 	}
 
 	/**
@@ -407,7 +423,6 @@ public class Message {
 	public static Message makeUserExitGroup(String groupName) {
 		return new Message(MessageType.EXIT_FROM_GROUP, groupName);
 	}
-
 
 	/**
 	 * Create a new message to Create a Group.
@@ -673,15 +688,15 @@ public class Message {
 	public boolean isLoginSuccess() {
 		return (msgType == MessageType.LOGIN_SUCCESS);
 	}
-	
+
 	/**
-     * Determine if this message is of type create success.
-     * 
-     * @return True if the message is of type create_success; false otherwise
-     */
-    public boolean isCreateSuccess() {
-        return (msgType == MessageType.CREATE_SUCCESS);
-    }
+	 * Determine if this message is of type create success.
+	 * 
+	 * @return True if the message is of type create_success; false otherwise
+	 */
+	public boolean isCreateSuccess() {
+		return (msgType == MessageType.CREATE_SUCCESS);
+	}
 
 	/**
 	 * Determine if this message is sent by a new client to log-in to the server.

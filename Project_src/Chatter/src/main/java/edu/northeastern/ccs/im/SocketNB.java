@@ -237,6 +237,9 @@ public final class SocketNB {
 				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.SUCCESS_MESSAGE) {
 					System.out.println("Success");
 				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.HISTORY_MESSAGE) {
+					System.out.println(newMsg);
+				}
 
 				// Now pass this message on to the system.
 				messages.add(newMsg);
