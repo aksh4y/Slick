@@ -326,12 +326,17 @@ public class ClientRunnable implements Runnable {
 							new GregorianCalendar().getTimeInMillis() + TERMINATE_AFTER_INACTIVE_BUT_LOGGEDIN_IN_MS);
 					// Handle Private Message
 					if (msg.isPrivateMessage()) {
-						String m = "PRIVATE " + msg.getMsgRecipient() + " " + msg.getText();
-						userService.addToMyMessages(user, m); // sender's copy
-						User recipient = userService.findUserByUsername(msg.getMsgRecipient());
-						m = "[Private Msg] " + user.getUsername() + ": " + msg.getText();
-						userService.addToMyMessages(recipient, m); // receiver's copy
-						Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
+						if (userService.findUserByUsername(msg.getMsgRecipient()) != null) {
+							String m = "PRIVATE " + msg.getMsgRecipient() + " " + msg.getText();
+							userService.addToMyMessages(user, m); // sender's copy
+							User recipient = userService.findUserByUsername(msg.getMsgRecipient());
+							m = "[Private Msg] " + user.getUsername() + ": " + msg.getText();
+							userService.addToMyMessages(recipient, m); // receiver's copy
+							Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
+						}
+						else {
+							this.enqueueMessage(Message.makeFailMsg());
+						}
 					}
 					// Handle Group Message
 					else if (msg.isGroupMessage()) {
