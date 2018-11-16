@@ -288,13 +288,13 @@ public class ClientRunnableTest {
 		client.run();
 
 		Message correctCreateUserMessage = Message.makeCreateUserMessage("crTest", "crTest");
+		Message correctCreateUser2Message = Message.makeCreateUserMessage("crTest2", "crTest");
 		Message correctCreateGroupMessage = Message.makeCreateGroupMessage("crGroupTest");
-		// Message userNameTakenMessage = Message.makeCreateUserMessage("nipun",
-		// "test");
 		Message correctLoginMessage = Message.makeLoginMessage("crTest", "crTest");
 		// Message incorrectLoginMessage = Message.makeLoginMessage("crTest1", "tewst");
 		Message groupDeleteMessage = Message.makeDeleteGroupMessage("crGroupTest");
 		Message userDeleteMessage = Message.makeDeleteUserMessage("crTest");
+		Message userDeleteMessage2 = Message.makeDeleteUserMessage("crTest2");
 		Message userDeleteWrongPasswordMessage = Message.makeDeleteUserMessage("crTest1");
 		Message userUpdateMessage = Message.makeUpdateUserMessage("crTest", "crTest");
 		Message userUpdateWrongPasswordMessage = Message.makeUpdateUserMessage("crTest1", "crTest");
@@ -302,15 +302,28 @@ public class ClientRunnableTest {
 		Message userAddToGroupMessage = Message.makeAddUserToGroup("crGroupTest");
 		Message userExitWrongGroupMessage = Message.makeUserExitGroup("crGroupTest1");
 		Message userExitGroupMessage = Message.makeUserExitGroup("crGroupTest");
+		Message privateMsg = Message.makePrivateMessage("crTest", "crTest2", "private test");
+		Message privateWrongMsg = Message.makePrivateMessage("crTest", "crTest12", "private test");
 
 		
 		
 		queue.add(correctCreateUserMessage);
 		client.run();
-
 		queue.add(correctCreateUserMessage);
 		client.run();
+		
+		queue.add(correctCreateUser2Message);
+		client.run();
 
+		
+		queue.add(privateMsg);
+		user = new User("crTest", "crTest");
+		client.run();
+		
+		queue.add(privateWrongMsg);
+		user = new User("crTest", "crTest");
+		client.run();
+		
 		queue.add(correctCreateGroupMessage);
 		user = new User("crTest", "crTest");
 		client.run();
@@ -364,15 +377,16 @@ public class ClientRunnableTest {
 
 		queue.add(userDeleteMessage);
 		client.run();
-
+		queue.add(userDeleteMessage2);
+		client.run();
 		queue.add(correctLoginMessage);
 		client.run();
 		
 		 assertTrue(client.isInitialized());
 		 queue.add(terminate);
 		 Assertions.assertThrows(NullPointerException.class, () -> {
-		 client.run();
-		 });
+			client.run();
+		});
 
 	}
 
