@@ -20,30 +20,9 @@ public class MongoDBClient {
 
         UserServicePrattle userService = new UserServicePrattle(db);
         GroupServicePrattle grpService = new GroupServicePrattle(db);
-        cleanDB(db);
-
-//        grpService.deleteGroup("MytestGroup");
-//        userService.createUser("pwdHash","test!@#");
-
-//        User usr = userService.findUserByUsername("Peter");
-
-//        userService.createUser("testChetan","testchetan");
-//        User usr = userService.findUserByUsername("pwdHash");
-//        usr = userService.authenticateUser("pwdHash","test!#");
+//        cleanDB(db);
 
 
-//        grpService.createGroup("MyTestGroup");
-//        Group grp = grpService.findGroupByName("MyTestGroup");
-//        User usr = userService.findUserByUsername("Peter");
-
-//
-//        grpService.addUserToGroup(grp, usr);
-//        usr=userService.findUserByUsername("Peter");
-//        grpService.addUserToGroup(grp, usr);
-
-//        grpService.exitGroup(usr.getUsername(),grp.getName());
-
-//        userService.deleteUser("John");
     }
 
     public static void cleanDB(MongoDatabase db) throws JsonProcessingException{
@@ -52,8 +31,8 @@ public class MongoDBClient {
         userService.clearUserTable();
         grpService.clearGroupTable();
 
-        List<String> listOfUsers = new ArrayList<String>(Arrays.asList("Akshay","Chetan","Nipun","Peter","Test","dummy"));
-        List<String> listOfGroups = new ArrayList<String>(Arrays.asList("AkshayGroup","ChetanGroup",
+        List<String> listOfUsers = new ArrayList<>(Arrays.asList("Akshay","Chetan","Nipun","Peter","Test","dummy"));
+        List<String> listOfGroups = new ArrayList<>(Arrays.asList("AkshayGroup","ChetanGroup",
                 "NipunGroup","PeterGroup","TestGroup","dummyGroup"));
 
 
@@ -71,11 +50,6 @@ public class MongoDBClient {
             //add yourself to your group
             grpService.addUserToGroup(grp,userService.findUserByUsername(listOfUsers.get(i++)));
         }
-
-
-
-
-//        grpService.createGroup("test");
     }
 
 }

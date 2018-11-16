@@ -1,25 +1,22 @@
 package edu.northeastern.ccs.im.service;
 
-import com.mongodb.WriteResult;
+import edu.northeastern.ccs.im.MongoDB.Model.Group;
+import edu.northeastern.ccs.im.MongoDB.Model.User;
+
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
-import org.bson.Document;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
+import org.bson.Document;
 
-import edu.northeastern.ccs.im.Message;
-import edu.northeastern.ccs.im.MongoDB.Model.Group;
-import edu.northeastern.ccs.im.MongoDB.Model.User;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import org.mindrot.jbcrypt.BCrypt;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -46,17 +43,10 @@ public class UserServicePrattle {
 		group_service= new GroupServicePrattle(db);
 	}
 
-//	private String getHashedPassword(String username){
-//		Document doc = col.find(Filters.eq("username", username.toLowerCase())).first();
-//		if(doc != null)
-//			return  gson.fromJson(gson.toJson(doc), User.class).getPassword();
-//		else
-//			return "";
-//	}
-
 	public void clearUserTable(){
 		col.deleteMany(new Document());
 	}
+
 	/**
 	 *
 	 * @param username String username
@@ -65,16 +55,11 @@ public class UserServicePrattle {
 	 */
 	public User authenticateUser(String username, String password) {
 		User user= findUserByUsername(username);
-		if(checkPassword(password,user.getPassword())){
+		if(user!= null && checkPassword(password,user.getPassword())){
 			return user;
 		}
 		else
 			return null;
-//		Document doc = col.find(Filters.eq("username", username.toLowerCase())).first();
-//		,
-//				Filters.eq("password", checkPassword(password,getHashedPassword(username))))).first();
-
-//		return gson.fromJson(gson.toJson(doc), User.class);
 	}
 
 	/**
@@ -86,7 +71,6 @@ public class UserServicePrattle {
 	 */
 	public User createUser(String username, String password) throws JsonProcessingException {
 		if (!isUsernameTaken(username)) {
-
 			User u = new User(username.toLowerCase(), password);
 			insertUser(u);
 			return u;
@@ -113,7 +97,6 @@ public class UserServicePrattle {
 	 */
 	public User findUserByUsername(String username) {
 		Document doc = col.find(Filters.eq("username", username.toLowerCase())).first();
-
 		return gson.fromJson(gson.toJson(doc), User.class);
 	}
 
@@ -134,17 +117,23 @@ public class UserServicePrattle {
 	 * @return True after updating
 	 */
 	public Boolean updateUser(User user, String updatedPassword) {
-		col.updateOne(Filters.eq("username", user.getUsername().toLowerCase()),
-				new Document("$set", new Document("password", updatedPassword)));
-		return true;
+		if(user!= null) {
+			UpdateResult updateResult=col.updateOne(Filters.eq("username", user.getUsername().toLowerCase()),
+					new Document("$set", new Document("password", updatedPassword)));
+			return updateResult.wasAcknowledged();
+		}
+		return false;
 	}
 
 	public boolean deleteUser(String username) throws JsonProcessingException{
 		User user=findUserByUsername(username);
-		List<String> listOfGroups = user.getListOfGroups();
-		DeleteResult dr = col.deleteOne(Filters.eq("username", username.toLowerCase()));
-		boolean removed=group_service.removeUserFromGroups(listOfGroups,username.toLowerCase());
-		return (dr.wasAcknowledged() && removed);
+		if(user != null) {
+			List<String> listOfGroups = user.getListOfGroups();
+			DeleteResult dr = col.deleteOne(Filters.eq("username", username.toLowerCase()));
+			boolean removed = group_service.removeUserFromGroups(listOfGroups, username.toLowerCase());
+			return (dr.wasAcknowledged() && removed);
+		}
+		return false;
 	}
 
 	public boolean removeGroupFromUser(String username, String groupName){
@@ -162,35 +151,24 @@ public class UserServicePrattle {
 	 * @return True after updating
 	 * @throws JsonProcessingException
 	 */
-	public Boolean addGroupToUser(User user, Group group) throws JsonProcessingException {
-		// col.updateOne(Filters.eq("name", user.getName()), new Document("$push",
-		// {"listOfGroups", group}));
-//		ObjectMapper mapper = new ObjectMapper();
-//		String json = mapper.writeValueAsString(group);
-//		String json =gson.toJson(group);
-		col.updateOne(Filters.eq("username", user.getUsername()), Updates.addToSet("listOfGroups", group.getName()));
+	public Boolean addGroupToUser(User user, Group group) {
+		col.updateOne(Filters.eq("username", user.getUsername()),
+				Updates.addToSet("listOfGroups", group.getName()));
 		return true;
 	}
 
 
 	public void clearNewMessages(User user){
 		col.updateOne(Filters.eq("name", user.getUsername()), Updates.set("myNewMessages", ""));
-
 	}
 
-	public void addToMyMessages(User user, String message) throws JsonProcessingException{
-//		ObjectMapper mapper = new ObjectMapper();
-//		String json = mapper.writeValueAsString(message);
-//		JSONObject jsonObj = new JSONObject(message);
-		//String json =gson.toJson(message);
+	public void addToMyMessages(User user, String message){
 		col.updateOne(Filters.eq("username", user.getUsername()), Updates.addToSet("myMessages", message));
 	}
 
 	public static String hashPassword(String password_plaintext) {
 		String salt = BCrypt.gensalt(workload);
-		String hashed_password = BCrypt.hashpw(password_plaintext, salt);
-
-		return(hashed_password);
+		return BCrypt.hashpw(password_plaintext, salt);
 	}
 
 	/**
