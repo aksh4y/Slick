@@ -3,7 +3,6 @@ package edu.northeastern.ccs.im.chatter;
 import edu.northeastern.ccs.im.IMConnection;
 import edu.northeastern.ccs.im.KeyboardScanner;
 import edu.northeastern.ccs.im.Message;
-import edu.northeastern.ccs.im.MessagePrinter;
 import edu.northeastern.ccs.im.MessageScanner;
 
 /**
