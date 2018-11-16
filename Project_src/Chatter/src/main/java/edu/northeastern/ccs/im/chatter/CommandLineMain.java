@@ -69,7 +69,7 @@ public class CommandLineMain {
 			// Get any recent messages received from the IM server.
 			if (mess.hasNext()) {
 				Message message = mess.next();
-				if(message.isLoginSuccess())
+				if(message.isLoginSuccess() || message.isCreateSuccess())
 				    connect.setUsername(message.getSender());
 				if (!message.getSender().equals(connect.getUserName())) {
                     if(message.isBroadcastMessage())

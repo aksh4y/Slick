@@ -1,7 +1,5 @@
 package edu.northeastern.ccs.im;
 
-import edu.northeastern.ccs.im.Message.MessageType;
-
 /**
  * Each instance of this class represents a single transmission by our IM
  * clients.
@@ -675,6 +673,15 @@ public class Message {
 	public boolean isLoginSuccess() {
 		return (msgType == MessageType.LOGIN_SUCCESS);
 	}
+	
+	/**
+     * Determine if this message is of type create success.
+     * 
+     * @return True if the message is of type create_success; false otherwise
+     */
+    public boolean isCreateSuccess() {
+        return (msgType == MessageType.CREATE_SUCCESS);
+    }
 
 	/**
 	 * Determine if this message is sent by a new client to log-in to the server.

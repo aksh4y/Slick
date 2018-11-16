@@ -95,6 +95,7 @@ public final class ScanForMessagesWorker extends SwingWorker<Void, Message> {
 				imConnection.fireStatusChange(imConnection.getUserName());
 				break;
 			case LOGIN_SUCCESS:
+			case CREATE_SUCCESS:
 			    publishList.add(m);
 			default:
 				// Message does need to do anything; do nothing.
