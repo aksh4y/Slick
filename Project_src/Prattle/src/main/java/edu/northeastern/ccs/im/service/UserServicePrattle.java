@@ -53,6 +53,10 @@ public class UserServicePrattle {
 //		else
 //			return "";
 //	}
+
+	public void clearUserTable(){
+		col.deleteMany(new Document());
+	}
 	/**
 	 *
 	 * @param username String username

@@ -43,6 +43,10 @@ public class GroupServicePrattle {
 		gson = new Gson();
 	}
 
+	public void clearGroupTable(){
+		gcol.deleteMany(new Document());
+	}
+
 	/**
 	 *
 	 * @param name name of the group
