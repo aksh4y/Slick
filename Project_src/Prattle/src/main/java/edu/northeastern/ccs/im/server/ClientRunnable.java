@@ -333,8 +333,7 @@ public class ClientRunnable implements Runnable {
 							m = "[Private Msg] " + user.getUsername() + ": " + msg.getText();
 							userService.addToMyMessages(recipient, m); // receiver's copy
 							Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
-						}
-						else {
+						} else {
 							this.enqueueMessage(Message.makeFailMsg());
 						}
 					}
@@ -580,8 +579,7 @@ public class ClientRunnable implements Runnable {
 		if (group == null) {
 			ackMsg = Message.makeGroupNotExist();
 		} else {
-			if (groupService.addUserToGroup(group, user) && userService.addGroupToUser(user, group)
-					&& !group.getListOfUsers().contains(user.getUsername())) {
+			if (groupService.addUserToGroup(group, user) && !group.getListOfUsers().contains(user.getUsername())) {
 				user = userService.findUserByUsername(user.getUsername());
 				ackMsg = Message.makeGroupAddSuc();
 			} else {

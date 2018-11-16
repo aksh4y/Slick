@@ -287,24 +287,26 @@ public class ClientRunnableTest {
 		checkForInitialization.invoke(client);
 		client.run();
 
-		Message correctCreateUserMessage = Message.makeCreateUserMessage("crTest", "crTest");
-		Message correctCreateUser2Message = Message.makeCreateUserMessage("crTest2", "crTest");
+		Message correctCreateUserMessage = Message.makeCreateUserMessage("crtest", "crtest");
+		Message correctCreateUser2Message = Message.makeCreateUserMessage("crtest2", "crtest");
 		Message correctCreateGroupMessage = Message.makeCreateGroupMessage("crGroupTest");
-		Message correctLoginMessage = Message.makeLoginMessage("crTest", "crTest");
-		// Message incorrectLoginMessage = Message.makeLoginMessage("crTest1", "tewst");
+		Message correctLoginMessage = Message.makeLoginMessage("crtest", "crtest");
+		// Message incorrectLoginMessage = Message.makeLoginMessage("crtest1", "tewst");
 		Message groupDeleteMessage = Message.makeDeleteGroupMessage("crGroupTest");
-		Message userDeleteMessage = Message.makeDeleteUserMessage("crTest");
-		Message userDeleteMessage2 = Message.makeDeleteUserMessage("crTest2");
-		Message userDeleteWrongPasswordMessage = Message.makeDeleteUserMessage("crTest1");
-		Message userUpdateMessage = Message.makeUpdateUserMessage("crTest", "crTest");
-		Message userUpdateWrongPasswordMessage = Message.makeUpdateUserMessage("crTest1", "crTest");
+		Message userDeleteMessage = Message.makeDeleteUserMessage("crtest");
+		Message userDeleteMessage2 = Message.makeDeleteUserMessage("crtest2");
+		Message userDeleteWrongPasswordMessage = Message.makeDeleteUserMessage("crtest1");
+		Message userUpdateMessage = Message.makeUpdateUserMessage("crtest", "crtest");
+		Message userUpdateWrongPasswordMessage = Message.makeUpdateUserMessage("crtest1", "crtest");
 		Message userAddToWrongGroupMessage = Message.makeAddUserToGroup("crGroupTest1");
 		Message userAddToGroupMessage = Message.makeAddUserToGroup("crGroupTest");
 		Message userExitWrongGroupMessage = Message.makeUserExitGroup("crGroupTest1");
 		Message userExitGroupMessage = Message.makeUserExitGroup("crGroupTest");
-		Message privateMsg = Message.makePrivateMessage("crTest", "crTest2", "private test");
-		Message privateWrongMsg = Message.makePrivateMessage("crTest", "crTest12", "private test");
-
+		Message privateMsg = Message.makePrivateMessage("crtest", "crtest2", "private test");
+		Message privateWrongMsg = Message.makePrivateMessage("crtest", "crtest12", "private test");
+		Message groupMsg = Message.makeGroupMessage("crtest", "crGroupTest", "Hey hello group");
+		Message wrongGroupMsg = Message.makeGroupMessage("crtest1", "crGroupTest", "Hey hello group");
+		Message wrongGroupMsg2 = Message.makeGroupMessage("crtest", "crGroupTest22", "Hey hello group");
 		
 		
 		queue.add(correctCreateUserMessage);
@@ -317,20 +319,33 @@ public class ClientRunnableTest {
 
 		
 		queue.add(privateMsg);
-		user = new User("crTest", "crTest");
+		user = new User("crtest", "crtest");
 		client.run();
 		
 		queue.add(privateWrongMsg);
-		user = new User("crTest", "crTest");
+		user = new User("crtest", "crtest");
 		client.run();
 		
 		queue.add(correctCreateGroupMessage);
-		user = new User("crTest", "crTest");
+		user = new User("crtest", "crtest");
 		client.run();
 
 		queue.add(correctCreateGroupMessage);
+		user = new User("crtest", "crtest");
 		client.run();
 
+		queue.add(groupMsg);
+		user = new User("crtest", "crtest");
+		client.run();
+		
+		queue.add(wrongGroupMsg);
+		user = new User("crtest", "crtest");
+		client.run();
+		
+		queue.add(wrongGroupMsg2);
+		user = new User("crtest", "crtest");
+		client.run();
+		
 		queue.add(correctLoginMessage);
 		client.run();
 
@@ -342,42 +357,44 @@ public class ClientRunnableTest {
 
 		// Add to Group
 		queue.add(userAddToWrongGroupMessage);
-		user = new User("crTest", "crTest");
+		user = new User("crtest", "crtest");
 		client.run();
 		queue.add(userAddToGroupMessage);
-		user = new User("crTest", "crTest");
+		user = new User("crtest", "crtest");
 		client.run();
 		
 		//Exit Group
 
 		queue.add(userExitWrongGroupMessage);
-		user = new User("crTest", "crTest");
+		user = new User("crtest", "crtest");
 		client.run();
 		queue.add(userExitGroupMessage);
-		user = new User("crTest", "crTest");
+		user = new User("crtest", "crtest");
 		client.run();
 		queue.add(userExitGroupMessage);
-		user = new User("crTest", "crTest");
+		user = new User("crtest", "crtest");
 		client.run();
 		//Group Delete
 		queue.add(groupDeleteMessage);
-		user = new User("crTest", "crTest");
+		user = new User("crtest", "crtest");
 		client.run();
 
 		queue.add(groupDeleteMessage);
 		client.run();
 
 		queue.add(userDeleteWrongPasswordMessage);
-		user = new User("crTest", "crTest");
+		user = new User("crtest", "crtest");
 		client.run();
 
 		queue.add(userDeleteMessage);
-		user = new User("crTest", "crTest");
+		user = new User("crtest", "crtest");
 		client.run();
 
 		queue.add(userDeleteMessage);
+		user = new User("crtest", "crtest");
 		client.run();
 		queue.add(userDeleteMessage2);
+		user = new User("crtest2", "crtest");
 		client.run();
 		queue.add(correctLoginMessage);
 		client.run();
