@@ -140,8 +140,90 @@ public class TestMessage {
         message = Message.makeMessage(Message.MessageType.HELLO.toString(),null,MY_MESSAGE);
         message.toString();
 
+        message = Message.makeMessage(Message.MessageType.LOGIN_USER.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.isUserLogin());
+
+        message = Message.makeMessage(Message.MessageType.LOGIN_SUCCESS.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.getMessageType().toString().equals(Message.MessageType.LOGIN_SUCCESS.toString()));
+
+        message = Message.makeMessage(Message.MessageType.LOGIN_FAIL.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.getMessageType().toString().equals(Message.MessageType.LOGIN_FAIL.toString()));
+
+        message = Message.makeMessage(Message.MessageType.CREATE_USER.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.isUserCreate());
+
+        message = Message.makeMessage(Message.MessageType.CREATE_SUCCESS.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.getMessageType().toString().equals(Message.MessageType.CREATE_SUCCESS.toString()));
+
+        message = Message.makeMessage(Message.MessageType.CREATE_FAIL.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.getMessageType().toString().equals(Message.MessageType.CREATE_FAIL.toString()));
+
+        message = Message.makeMessage(Message.MessageType.USER_EXIST.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.getMessageType().toString().equals(Message.MessageType.USER_EXIST.toString()));
+
+        message = Message.makeMessage(Message.MessageType.CREATE_GROUP.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.isCreateGroup());
+
+        message = Message.makeMessage(Message.MessageType.GROUP_CREATE_SUCCESS.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.getMessageType().toString().equals(Message.MessageType.GROUP_CREATE_SUCCESS.toString()));
+
+        message = Message.makeMessage(Message.MessageType.GROUP_CREATE_FAIL.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.getMessageType().toString().equals(Message.MessageType.GROUP_CREATE_FAIL.toString()));
+
+        message = Message.makeMessage(Message.MessageType.ADD_TO_GROUP.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.isAddToGroup());
+
+        message = Message.makeMessage(Message.MessageType.GROUP_NOT_EXIST.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.getMessageType().toString().equals(Message.MessageType.GROUP_NOT_EXIST.toString()));
+
+        message = Message.makeMessage(Message.MessageType.GROUP_ADD_SUCCESS.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.getMessageType().toString().equals(Message.MessageType.GROUP_ADD_SUCCESS.toString()));
+
+        message = Message.makeMessage(Message.MessageType.GROUP_ADD_FAIL.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.getMessageType().toString().equals(Message.MessageType.GROUP_ADD_FAIL.toString()));
+
+        message = Message.makeMessage(Message.MessageType.EXIT_FROM_GROUP.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.isGroupExit());
+
+        message = Message.makeMessage(Message.MessageType.DELETE_GROUP.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.isGroupDelete());
+
+        message = Message.makeMessage(Message.MessageType.DELETE_USER.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.isUserDelete());
+
+        message = Message.makeMessage(Message.MessageType.SUCCESS_MESSAGE.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.getMessageType().toString().equals(Message.MessageType.SUCCESS_MESSAGE.toString()));
+
+        message = Message.makeMessage(Message.MessageType.DELETE_USER_SUCCESS.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.getMessageType().toString().equals(Message.MessageType.DELETE_USER_SUCCESS.toString()));
+
+        message = Message.makeMessage(Message.MessageType.USER_WRONG_PASSWORD.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.getMessageType().toString().equals(Message.MessageType.USER_WRONG_PASSWORD.toString()));
+
+        message = Message.makeMessage(Message.MessageType.FAIL_MESSAGE.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.getMessageType().toString().equals(Message.MessageType.FAIL_MESSAGE.toString()));
+
+        message = Message.makeMessage(Message.MessageType.UPDATE_USER.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.isUserUpdate());
+
+        message = Message.makeMessage(Message.MessageType.HISTORY_MESSAGE.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.getMessageType().toString().equals(Message.MessageType.HISTORY_MESSAGE.toString()));
+
+        message = Message.makeMessage(Message.MessageType.GROUP_EXIST.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.getMessageType().toString().equals(Message.MessageType.GROUP_EXIST.toString()));
     }
 
-
-
+    @Test
+    public void testMessageTypes(){
+        message = message.makePrivateMessage("Joe", "Joey", "Hi");
+        message.setMsgRecipient("Ross");
+        assertEquals("Ross", message.getMsgRecipient());
+        assertEquals(true, message.isPrivateMessage());
+        message = message.makeGroupMessage("John", "MSD","Hello");
+        assertEquals(true,message.isGroupMessage());
+        message = message.makeMessage(Message.MessageType.PRIVATE.toString(),SENDER,"rec",MY_MESSAGE);
+        assertEquals(42, message.toString().length());
+        message = message.makeMessage(Message.MessageType.GROUP.toString(),SENDER,"rec",MY_MESSAGE);
+        assertTrue(message.getMessageType().toString().equals(Message.MessageType.GROUP.toString()));
+    }
 }
