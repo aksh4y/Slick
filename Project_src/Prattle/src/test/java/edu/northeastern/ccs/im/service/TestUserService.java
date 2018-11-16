@@ -82,6 +82,7 @@ public class TestUserService {
         }catch (IllegalArgumentException e){
             assertTrue(true);
         }
+        assertEquals(false, userService.checkPassword("john","$2a$"));
     }
 
 //    @Test

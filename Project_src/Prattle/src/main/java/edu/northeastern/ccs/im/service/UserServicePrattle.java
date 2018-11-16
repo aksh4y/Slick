@@ -140,7 +140,7 @@ public class UserServicePrattle {
 		UpdateResult updateResult= col.updateOne(Filters.eq("username", username),
 				Updates.pull("listOfGroups", groupName));
 
-		return (updateResult.getMatchedCount()==1);
+		return (updateResult.getModifiedCount()==1);
 	}
 
 

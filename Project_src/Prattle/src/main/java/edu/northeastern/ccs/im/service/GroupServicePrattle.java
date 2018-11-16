@@ -86,7 +86,7 @@ public class GroupServicePrattle {
 				}
 			}
 
-			return (dr.getDeletedCount()==1 && removedGroup);
+			return (removedGroup);
 		}
 		return false;
 	}
