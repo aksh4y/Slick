@@ -213,6 +213,7 @@ public class IMConnection {
 			String[] params = message.split(" ");
 			msg = Message.makePrivateMessage(username, params[1], message.substring(9 + params[1].length()));
 			MessagePrinter.printMessage("POU||params[1]||message.substring(9 + params[1].length()))");
+			//Something similar can be saved in db
 		} else if (message.contains("GROUP_CREATE")) {
 			String[] msgArray = message.split(" ");
 			msg = Message.makeCreateGroupMessage(msgArray[1]);
