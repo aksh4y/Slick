@@ -21,10 +21,8 @@ public class MongoDBClient {
         UserServicePrattle userService = new UserServicePrattle(db);
         GroupServicePrattle grpService = new GroupServicePrattle(db);
 //        cleanDB(db);
-//        User user= userService.
-//        userService.addToMyMessages(User user, String message){
-//            col.updateOne(Filters.eq("username", user.getUsername()), Updates.addToSet("myMessages", message));
-//        }
+        User usr=userService.authenticateUser("peter","test");
+
 
 
     }

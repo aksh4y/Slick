@@ -73,18 +73,22 @@ public class GroupServicePrattle {
 
 	public boolean deleteGroup(String groupname) throws JsonProcessingException {
 		UserServicePrattle userService= new UserServicePrattle(db);
-		List<String> listOfUsers = findGroupByName(groupname).getListOfUsers();
-		DeleteResult dr =gcol.deleteOne(Filters.eq("name", groupname.toLowerCase()));
-		boolean removedGroup=false;
-		if(listOfUsers.size()==0){
-			removedGroup=true;
-		}else {
-			for (String username : listOfUsers) {
-				removedGroup = userService.removeGroupFromUser(username, groupname.toLowerCase());
+		Group group= findGroupByName(groupname);
+		if(group != null){
+			List<String> listOfUsers = group.getListOfUsers();
+			DeleteResult dr =gcol.deleteOne(Filters.eq("name", groupname.toLowerCase()));
+			boolean removedGroup=false;
+			if(listOfUsers.size()==0){
+				removedGroup=true;
+			}else {
+				for (String username : listOfUsers) {
+					removedGroup = userService.removeGroupFromUser(username, groupname.toLowerCase());
+				}
 			}
-		}
 
-		return (dr.wasAcknowledged() && removedGroup);
+			return (dr.getDeletedCount()==1 && removedGroup);
+		}
+		return false;
 	}
 
 	/**
@@ -127,14 +131,16 @@ public class GroupServicePrattle {
 	public boolean removeUserFromGroups(List<String> listOfGroups, String username) throws JsonProcessingException {
 		boolean result=false;
 		for( String group : listOfGroups) {
-			 result = gcol.updateOne(Filters.eq("name", group), Updates.pull("listOfUsers", username)).wasAcknowledged();
+			 result = gcol.updateOne(Filters.eq("name", group),
+					 Updates.pull("listOfUsers", username)).getModifiedCount()==1;
 		}
 		return result;
 	}
 
 	public boolean exitGroup(String username, String groupname){
 		//remove user from group
-		boolean update=gcol.updateOne(Filters.eq("name", groupname), Updates.pull("listOfUsers", username)).wasAcknowledged();
+		boolean update=gcol.updateOne(Filters.eq("name", groupname),
+				Updates.pull("listOfUsers", username)).getModifiedCount()==1;
 
 		//remove group from user
 		UserServicePrattle userService= new UserServicePrattle(db);

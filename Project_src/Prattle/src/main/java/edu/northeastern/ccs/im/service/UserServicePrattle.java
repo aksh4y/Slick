@@ -120,7 +120,7 @@ public class UserServicePrattle {
 		if(user!= null) {
 			UpdateResult updateResult=col.updateOne(Filters.eq("username", user.getUsername().toLowerCase()),
 					new Document("$set", new Document("password", hashPassword(updatedPassword))));
-			return updateResult.wasAcknowledged();
+			return (updateResult.getMatchedCount()==1);
 		}
 		return false;
 	}
@@ -131,7 +131,7 @@ public class UserServicePrattle {
 			List<String> listOfGroups = user.getListOfGroups();
 			DeleteResult dr = col.deleteOne(Filters.eq("username", username.toLowerCase()));
 			boolean removed = listOfGroups.isEmpty() || group_service.removeUserFromGroups(listOfGroups, username.toLowerCase());
-			return (dr.wasAcknowledged() && removed);
+			return (dr.getDeletedCount()==1 && removed);
 		}
 		return false;
 	}
@@ -140,7 +140,7 @@ public class UserServicePrattle {
 		UpdateResult updateResult= col.updateOne(Filters.eq("username", username),
 				Updates.pull("listOfGroups", groupName));
 
-		return updateResult.wasAcknowledged();
+		return (updateResult.getMatchedCount()==1);
 	}
 
 
@@ -155,7 +155,7 @@ public class UserServicePrattle {
 	public Boolean addGroupToUser(User user, Group group) {
 		UpdateResult updateResult= col.updateOne(Filters.eq("username", user.getUsername()),
 				Updates.addToSet("listOfGroups", group.getName()));
-		return updateResult.wasAcknowledged();
+		return (updateResult.getMatchedCount()==1);
 	}
 
 
