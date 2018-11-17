@@ -39,9 +39,8 @@ public class Message {
 		GROUP("GRP"),
 		/** Message whose contents is broadcast to all connected users. */
 		BROADCAST("BCT"),
-		/**
-		 * Message sent by the user attempting to login using a specified username.
-		 */
+		/** MIME type msg */
+		MIME("MIM"),
 		/** Message which logins a user */
 		LOGIN_USER("LUS"),
 		/** Message if login is successful */
@@ -353,10 +352,16 @@ public class Message {
 			result = makePrivateMessage(srcName, recipient, text);
 		if(handle.compareTo(MessageType.GROUP.toString()) == 0)
 		    result = makeGroupMessage(srcName, recipient, text);
+		if(handle.compareTo(MessageType.MIME.toString()) == 0)
+		    result = makeMIMEMessage(srcName, recipient, text);
 		return result;
 	}
 
-	/**
+	private static Message makeMIMEMessage(String srcName, String recipient, String url) {
+	    return new Message(MessageType.MIME, srcName, recipient, url);
+    }
+
+    /**
 	 * Create a new message to make history message.
 	 * 
 	 * @return Instance of Message.
@@ -760,6 +765,14 @@ public class Message {
      */
     public boolean isGroupMessage() {
         return (msgType == MessageType.GROUP);
+    }
+    
+    /**
+     * Determine if this message is of type MIME
+     * @return
+     */
+    public boolean isMIME() {
+        return (msgType == MessageType.MIME);
     }
 
 	/**
