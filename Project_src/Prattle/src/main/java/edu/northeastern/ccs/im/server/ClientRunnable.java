@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledFuture;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mongodb.client.MongoDatabase;
@@ -110,6 +112,9 @@ public class ClientRunnable implements Runnable {
 	private User user;
 
 	private MongoDatabase db;
+	
+	private final static Logger LOGGER =
+            Logger.getLogger(Logger.class.getName());
 
 	/**
 	 * Create a new thread with which we will communicate with this single client.
@@ -326,12 +331,16 @@ public class ClientRunnable implements Runnable {
 							new GregorianCalendar().getTimeInMillis() + TERMINATE_AFTER_INACTIVE_BUT_LOGGEDIN_IN_MS);
 					// Handle Private Message
 					if (msg.isPrivateMessage()) {
-						String m = "PRIVATE " + msg.getMsgRecipient() + " " + msg.getText();
-						userService.addToMyMessages(user, m); // sender's copy
-						User recipient = userService.findUserByUsername(msg.getMsgRecipient());
-						m = "[Private Msg] " + user.getUsername() + ": " + msg.getText();
-						userService.addToMyMessages(recipient, m); // receiver's copy
-						Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
+						if (userService.findUserByUsername(msg.getMsgRecipient()) != null) {
+							String m = "PRIVATE " + msg.getMsgRecipient() + " " + msg.getText();
+							userService.addToMyMessages(user, m); // sender's copy
+							User recipient = userService.findUserByUsername(msg.getMsgRecipient());
+							m = "[Private Msg] " + user.getUsername() + ": " + msg.getText();
+							userService.addToMyMessages(recipient, m); // receiver's copy
+							Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
+						} else {
+							this.enqueueMessage(Message.makeFailMsg());
+						}
 					}
 					// Handle Group Message
 					else if (msg.isGroupMessage()) {
@@ -352,6 +361,15 @@ public class ClientRunnable implements Runnable {
 								Prattle.broadcastPrivateMessage(msg, recipient);
 							}
 						}
+					}
+					// Handle MIME messages
+					else if (msg.isMIME()) {
+					    String m = "File Sent To " + msg.getMsgRecipient();
+                        userService.addToMyMessages(user, m); // sender's copy
+                        User recipient = userService.findUserByUsername(msg.getMsgRecipient());
+                        m = "File Received From " + user.getUsername();
+                        userService.addToMyMessages(recipient, m); // receiver's copy
+                        Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
 					}
 					// If it is create user message
 					else if (msg.isUserCreate()) {
@@ -447,7 +465,7 @@ public class ClientRunnable implements Runnable {
 						Message ackMsg;
 						this.initialized = true;
 
-						if (!msg.getName().equals(user.getPassword())) {
+						if (!UserServicePrattle.checkPassword(msg.getName(), user.getPassword())) {
 							ackMsg = Message.makeUserWrongPasswordMsg();
 						} else {
 							if (userService.deleteUser(user.getUsername())) {
@@ -539,7 +557,7 @@ public class ClientRunnable implements Runnable {
 				terminate |= !keepAlive;
 			} catch (JsonProcessingException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOGGER.log(Level.SEVERE,e.toString());				
 			} finally {
 				// When it is appropriate, terminate the current client.
 				if (terminate) {
@@ -575,8 +593,7 @@ public class ClientRunnable implements Runnable {
 		if (group == null) {
 			ackMsg = Message.makeGroupNotExist();
 		} else {
-			if (groupService.addUserToGroup(group, user) && userService.addGroupToUser(user, group)
-					&& !group.getListOfUsers().contains(user.getUsername())) {
+			if (groupService.addUserToGroup(group, user) && !group.getListOfUsers().contains(user.getUsername())) {
 				user = userService.findUserByUsername(user.getUsername());
 				ackMsg = Message.makeGroupAddSuc();
 			} else {
@@ -597,7 +614,7 @@ public class ClientRunnable implements Runnable {
 			socket.close();
 		} catch (IOException e) {
 			// If we have an IOException, ignore the problem
-			e.printStackTrace();
+			LOGGER.log(Level.WARNING,e.toString());
 		} finally {
 			// Remove the client from our client listing.
 			Prattle.removeClient(this);

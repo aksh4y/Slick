@@ -50,7 +50,7 @@ public class UserTest {
         userService.addGroupToUser(user, group2);
         user = userService.findUserByUsername("John");
         assertEquals(2, user.getListOfGroups().size());
-        assertEquals(true, userService.deleteUser("John"));
+        assertEquals(false, userService.deleteUser("John"));
     }
 
     @Test

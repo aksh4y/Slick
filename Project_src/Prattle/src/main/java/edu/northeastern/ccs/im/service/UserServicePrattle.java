@@ -43,10 +43,6 @@ public class UserServicePrattle {
 		group_service= new GroupServicePrattle(db);
 	}
 
-	public void clearUserTable(){
-		col.deleteMany(new Document());
-	}
-
 	/**
 	 *
 	 * @param username String username
@@ -120,7 +116,7 @@ public class UserServicePrattle {
 		if(user!= null) {
 			UpdateResult updateResult=col.updateOne(Filters.eq("username", user.getUsername().toLowerCase()),
 					new Document("$set", new Document("password", hashPassword(updatedPassword))));
-			return (updateResult.getMatchedCount()==1);
+			return (updateResult.getModifiedCount()==1);
 		}
 		return false;
 	}
@@ -140,7 +136,7 @@ public class UserServicePrattle {
 		UpdateResult updateResult= col.updateOne(Filters.eq("username", username),
 				Updates.pull("listOfGroups", groupName));
 
-		return (updateResult.getMatchedCount()==1);
+		return (updateResult.getModifiedCount()==1);
 	}
 
 
@@ -155,12 +151,7 @@ public class UserServicePrattle {
 	public Boolean addGroupToUser(User user, Group group) {
 		UpdateResult updateResult= col.updateOne(Filters.eq("username", user.getUsername()),
 				Updates.addToSet("listOfGroups", group.getName()));
-		return (updateResult.getMatchedCount()==1);
-	}
-
-
-	public void clearNewMessages(User user){
-		col.updateOne(Filters.eq("name", user.getUsername()), Updates.set("myNewMessages", ""));
+		return (updateResult.getModifiedCount()==1);
 	}
 
 

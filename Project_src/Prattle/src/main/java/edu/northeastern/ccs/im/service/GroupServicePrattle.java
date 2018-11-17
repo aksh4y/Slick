@@ -40,10 +40,6 @@ public class GroupServicePrattle {
 		gson = new Gson();
 	}
 
-	public void clearGroupTable(){
-		gcol.deleteMany(new Document());
-	}
-
 	/**
 	 *
 	 * @param name name of the group
@@ -71,14 +67,14 @@ public class GroupServicePrattle {
 		gcol.insertOne(Document.parse(json));
 	}
 
-	public boolean deleteGroup(String groupname) throws JsonProcessingException {
+	public boolean deleteGroup(String groupname) {
 		UserServicePrattle userService= new UserServicePrattle(db);
 		Group group= findGroupByName(groupname);
 		if(group != null){
 			List<String> listOfUsers = group.getListOfUsers();
-			DeleteResult dr =gcol.deleteOne(Filters.eq("name", groupname.toLowerCase()));
+			gcol.deleteOne(Filters.eq("name", groupname.toLowerCase()));
 			boolean removedGroup=false;
-			if(listOfUsers.size()==0){
+			if(listOfUsers.isEmpty()){
 				removedGroup=true;
 			}else {
 				for (String username : listOfUsers) {
@@ -86,7 +82,7 @@ public class GroupServicePrattle {
 				}
 			}
 
-			return (dr.getDeletedCount()==1 && removedGroup);
+			return (removedGroup);
 		}
 		return false;
 	}
@@ -119,16 +115,14 @@ public class GroupServicePrattle {
 	 * @return True once updated
 	 * @throws JsonProcessingException
 	 */
-	public Boolean addUserToGroup(Group group, User user) throws JsonProcessingException {
-
+	public Boolean addUserToGroup(Group group, User user) {
 		gcol.updateOne(Filters.eq("name", group.getName()), Updates.addToSet("listOfUsers", user.getUsername()));
-
 		UserServicePrattle userService= new UserServicePrattle(db);
 		userService.addGroupToUser(user,group);
 		return true;
 	}
 
-	public boolean removeUserFromGroups(List<String> listOfGroups, String username) throws JsonProcessingException {
+	public boolean removeUserFromGroups(List<String> listOfGroups, String username) {
 		boolean result=false;
 		for( String group : listOfGroups) {
 			 result = gcol.updateOne(Filters.eq("name", group),

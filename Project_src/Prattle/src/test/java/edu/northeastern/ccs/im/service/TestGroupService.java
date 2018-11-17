@@ -7,7 +7,12 @@ import edu.northeastern.ccs.im.MongoDB.Model.User;
 import edu.northeastern.ccs.im.MongoDB.Model.Group;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 
 public class TestGroupService {
@@ -18,16 +23,18 @@ public class TestGroupService {
 
     @Test
     public void testCreateAndDeleteGroup() throws JsonProcessingException{
-//        Group g = groupService.createGroup("Rock");
-//        assertEquals("rock", g.getName());
-//        boolean check = groupService.deleteGroup("rock");
-//        assertEquals(true,check);
-//        Group g1 = groupService.createGroup("chetangroup");
-//        assertNull(g1);
+        Group g = groupService.createGroup("Rock");
+        assertEquals("rock", g.getName());
+        boolean check = groupService.deleteGroup("rock");
+        assertEquals(true,check);
+        Group g1 = groupService.createGroup("chetangroup");
+        assertNull(g1);
         Group g2 = groupService.createGroup("dummy");
         groupService.addUserToGroup(g2, userService.findUserByUsername("chetan"));
         groupService.addUserToGroup(g2, userService.findUserByUsername("peter"));
         assertEquals(true, groupService.deleteGroup(g2.getName()));
+        assertEquals(false, groupService.deleteGroup("asdf"));
+
     }
 
     @Test
@@ -51,20 +58,40 @@ public class TestGroupService {
     @Test void testAddExitUserToGroup() throws JsonProcessingException {
         assertEquals(true, userService.isUsernameTaken("chetan"));
         User chetan = userService.findUserByUsername("chetan");
-        Group group1 = groupService.findGroupByName("chetangroup");
+        Group group1 = groupService.findGroupByName("petergroup");
         assertEquals(true, groupService.addUserToGroup(group1, chetan));
         assertEquals(true, groupService.exitGroup(chetan.getUsername(),group1.getName()));
+        assertEquals(false, groupService.exitGroup("asdf", "dfkh"));
+        assertEquals(false, groupService.exitGroup("asdf",group1.getName()));
+        assertEquals(false, groupService.exitGroup("akshay",group1.getName()));
+        assertEquals(false, groupService.exitGroup(chetan.getUsername(), "dfkh"));
     }
 
-//    @Test void testRemoveUserFromGroup() throws JsonProcessingException{
-//        User chetan = userService.findUserByUsername("chetan");
-//        Group g1 = groupService.findGroupByName("chetangroup");
-//        Group g2 = groupService.findGroupByName("petergroup");
-//        groupService.addUserToGroup(g1, chetan);
-//        groupService.addUserToGroup(g2, chetan);
-//        List<String> groups = new ArrayList<>();
-//        groups.add(g1.getName());
-//        groups.add(g2.getName());
-//        System.out.println(groupService.removeUserFromGroups(groups, chetan.getUsername()));
-//    }
+    @Test
+    public void testExitGroupBadData() throws JsonProcessingException {
+        User user = userService.createUser("BadOne", "BadOnePass");
+        Group group = groupService.createGroup("BadGroup");
+        groupService.addUserToGroup(group,user);
+        userService.removeGroupFromUser(user.getUsername(),group.getName());
+        assertEquals(false, groupService.exitGroup(user.getUsername(),group.getName()));
+        assertEquals(true, userService.deleteUser(user.getUsername()));
+        assertEquals(true, groupService.deleteGroup(group.getName()));
+    }
+
+    @Test
+    public void testRemoveAbsentUserFromGroup() throws JsonProcessingException {
+        List<String> lgroup = new ArrayList<>(Arrays.asList("petergroup"));
+        assertEquals(false, groupService.removeUserFromGroups(lgroup, "chetan"));
+        groupService.addUserToGroup(groupService.findGroupByName("petergroup"),userService.findUserByUsername("dummy"));
+        assertEquals(true, groupService.removeUserFromGroups(lgroup, "dummy"));
+    }
+    @Test
+    public void testDeleteGroupBadData() throws JsonProcessingException {
+        User user1 = userService.createUser("BadTwo", "BadPass");
+        Group group = groupService.createGroup("badgrouptwo");
+        groupService.addUserToGroup(group,user1);
+        userService.removeGroupFromUser(user1.getUsername(),group.getName());
+        assertEquals(false, groupService.deleteGroup(group.getName()));
+        assertEquals(true, userService.deleteUser(user1.getUsername()));
+    }
 }

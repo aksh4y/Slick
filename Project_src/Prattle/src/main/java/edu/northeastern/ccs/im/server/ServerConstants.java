@@ -1,12 +1,8 @@
 package edu.northeastern.ccs.im.server;
 
-import java.util.HashMap;
+import java.util.*;
 
 import edu.northeastern.ccs.im.Message;
-
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 
 /**
  * A network server that communicates with IM clients that connect to it. This
