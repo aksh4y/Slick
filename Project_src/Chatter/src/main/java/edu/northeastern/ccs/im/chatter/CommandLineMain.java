@@ -29,9 +29,7 @@ public class CommandLineMain {
 	public static void main(String[] args) {
 		IMConnection connect;
 		do {
-			// Prompt the user to type in a username.
-			//System.out.println("What username would you like?");
-			
+			// Prompt the user to type in a username.		
 		    System.out.println("\t\t\t::Welcome to Slick::");
             //String username = in.nextLine();
             System.out.println("Welcome! Begin by logging in using USER_LOGIN <username> <password>\nTip: Use the help command to see a list of commands at any point!");
