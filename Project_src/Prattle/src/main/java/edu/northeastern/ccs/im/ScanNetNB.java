@@ -228,7 +228,6 @@ public class ScanNetNB {
 			selector.close();
 		} catch (IOException e) {
 			LOGGER.log(Level.WARNING,e.toString());
-			e.printStackTrace();
 			assert false;
 		}
 	}

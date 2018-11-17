@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledFuture;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mongodb.client.MongoDatabase;
@@ -110,6 +112,9 @@ public class ClientRunnable implements Runnable {
 	private User user;
 
 	private MongoDatabase db;
+	
+	private final static Logger LOGGER =
+            Logger.getLogger(Logger.class.getName());
 
 	/**
 	 * Create a new thread with which we will communicate with this single client.
@@ -543,7 +548,7 @@ public class ClientRunnable implements Runnable {
 				terminate |= !keepAlive;
 			} catch (JsonProcessingException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOGGER.log(Level.SEVERE,e.toString());				
 			} finally {
 				// When it is appropriate, terminate the current client.
 				if (terminate) {
@@ -600,7 +605,7 @@ public class ClientRunnable implements Runnable {
 			socket.close();
 		} catch (IOException e) {
 			// If we have an IOException, ignore the problem
-			e.printStackTrace();
+			LOGGER.log(Level.WARNING,e.toString());
 		} finally {
 			// Remove the client from our client listing.
 			Prattle.removeClient(this);
