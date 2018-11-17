@@ -36,8 +36,9 @@ public class ServerConstantsTest {
 
     /** Random string to test Random input */
     private static final String MY_MESSAGE = "my_message_goes_here"; // static message
-
-
+    
+    /** Command to send a PM */
+    private static final String PRIVATE_COMMAND = "Private";
     /**
      * Initialization test.
      */
@@ -66,7 +67,16 @@ public class ServerConstantsTest {
         messages = ServerConstants.getBroadcastResponses(QUERY_COMMAND);
         assertEquals(2, messages.size());
     }
+    
+    /**
+     * PM message test.
+     */
 
+    @Test
+    public void privateMessageTest() {
+        List<Message> messages;
+        messages = ServerConstants.getBroadcastResponses(PRIVATE_COMMAND);
+    }
     /**
      * Cool message test.
      */

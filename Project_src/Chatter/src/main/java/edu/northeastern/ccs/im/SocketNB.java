@@ -33,8 +33,8 @@ public final class SocketNB {
 	private int imPort;
 
 	/**
-	 * This class merely acts as a wrapper for Java's SocketChannel class; this
-	 * is the actual instance of SocketChannel.
+	 * This class merely acts as a wrapper for Java's SocketChannel class; this is
+	 * the actual instance of SocketChannel.
 	 */
 	private SocketChannel channel;
 
@@ -57,14 +57,13 @@ public final class SocketNB {
 	private ByteBuffer buff;
 
 	/**
-	 * Creates a new network connection that connects to the specified port
-	 * number on the named host.
+	 * Creates a new network connection that connects to the specified port number
+	 * on the named host.
 	 * 
 	 * @param host
 	 *            Hostname of the computer to which we are connecting
 	 * @param port
-	 *            Number of the port on the other computer which we use to
-	 *            connect
+	 *            Number of the port on the other computer which we use to connect
 	 */
 	public SocketNB(String host, int port) {
 		hostname = host;
@@ -77,13 +76,12 @@ public final class SocketNB {
 	 * <p>
 	 * Closes this non-blocking socket.
 	 * <p>
-	 * Once a SocketNB has been closed, it is not available for further
-	 * networking use (i.e. can't be reconnected or rebound). A new SocketNB
-	 * needs to be created.
+	 * Once a SocketNB has been closed, it is not available for further networking
+	 * use (i.e. can't be reconnected or rebound). A new SocketNB needs to be
+	 * created.
 	 * 
 	 * @throws IOException
-	 *             Exception thrown when an I/O error occurs closing this
-	 *             socket.
+	 *             Exception thrown when an I/O error occurs closing this socket.
 	 */
 	private void close() throws IOException {
 		selector.close();
@@ -128,8 +126,8 @@ public final class SocketNB {
 	}
 
 	/**
-	 * This method will block while it waits to enqueue 1 (or more) messages
-	 * sent from the server.
+	 * This method will block while it waits to enqueue 1 (or more) messages sent
+	 * from the server.
 	 * 
 	 * @param messages
 	 *            Queue to which the messages should be added.
@@ -171,14 +169,77 @@ public final class SocketNB {
 				// Skip past the leading space
 				charBuffer.position(charBuffer.position() + 2);
 				// Read in the second argument containing the message
-				final String message = readArgument(charBuffer);
+				Message newMsg;
+				if (handle.equals("PRI") || handle.equals("GRP")) {
+					// Read in the second argument containing the message
+					final String reciever = readArgument(charBuffer);
+					charBuffer.position(charBuffer.position() + 2);
+					// Read in the second argument containing the message
+					final String message = readArgument(charBuffer);
+					newMsg = Message.makeMessage(handle, sender, reciever, message);
+				} else {
+					final String message = readArgument(charBuffer);
+					newMsg = Message.makeMessage(handle, sender, message);
+				}
+				// messages.add(newMsg);
+				// final String message = readArgument(charBuffer);
 				// Add this message into our queue
-				Message newMsg = Message.makeMessage(handle, sender, message);
+				// Message newMsg = Message.makeMessage(handle, sender, message);
 				// And move the position to the start of the next character
 				start = charBuffer.position() + 1;
 				// Check if this message is closing our connection
 				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.QUIT) {
 					quitter = true;
+				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.LOGIN_FAIL) {
+					System.out.println("Username/Password is wrong");
+				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.LOGIN_SUCCESS) {
+					System.out.println("Login Successfull");
+				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.CREATE_FAIL) {
+					System.out.println("User can not be created at this time, try again later");
+				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.CREATE_SUCCESS) {
+					System.out.println("User Created");
+				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.USER_EXIST) {
+					System.out.println("Userid Exist");
+				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.CREATE_FAIL) {
+					System.out.println("Group can not be created at this time, try again later");
+				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.GROUP_CREATE_SUCCESS) {
+					System.out.println("Group Created");
+				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.GROUP_EXIST) {
+					System.out.println("Group name Exist");
+				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.GROUP_ADD_FAIL) {
+					System.out.println("User can not be added to this group");
+				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.GROUP_ADD_SUCCESS) {
+					System.out.println("Added to Group");
+				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.GROUP_NOT_EXIST) {
+					System.out.println("This group does not exist");
+				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.USER_WRONG_PASSWORD) {
+					System.out.println("Entred password is wrong");
+				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.DELETE_USER_SUCCESS) {
+					System.out.println("User has been deleted");
+					quitter = true;
+				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.FAIL_MESSAGE) {
+					System.out.println("Failed");
+				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.SUCCESS_MESSAGE) {
+					System.out.println("Success");
+				}
+				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.HISTORY_MESSAGE) {
+					//System.out.println(newMsg.getSender());
+					MessagePrinter.printMessage(newMsg.getSender());
 				}
 
 				// Now pass this message on to the system.
@@ -216,9 +277,9 @@ public final class SocketNB {
 	}
 
 	/**
-	 * Send a Message over the network. This method performs its actions by
-	 * printing the given Message over the SocketNB instance with which the
-	 * SendIM was instantiated.
+	 * Send a Message over the network. This method performs its actions by printing
+	 * the given Message over the SocketNB instance with which the SendIM was
+	 * instantiated.
 	 * 
 	 * @param msg
 	 *            Message to be sent out over the network.

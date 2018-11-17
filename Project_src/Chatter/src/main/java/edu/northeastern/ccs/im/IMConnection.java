@@ -43,11 +43,11 @@ public class IMConnection {
 	/** Server to which this connection will be made. */
 	private String hostName;
 
+	/** The username of the client */
+	private String username;
+
 	/** Port to which this connection will be made. */
 	private int portNum;
-
-	/** Name of the user for which this connection was formed. */
-	private String userName;
 
 	/**
 	 * Holds the SwingWorker which is used to read and process all incoming data.
@@ -61,17 +61,21 @@ public class IMConnection {
 	 * Creates an instance that will manage a connection with an IM server, but does
 	 * not begin the process of making a connection to the IM server.
 	 * 
-	 * @param host     The name of the host that this connection is using
-	 * @param port     The port number to use.
-	 * @param username Name of the user for which this connection is being made.
+	 * @param host
+	 *            The name of the host that this connection is using
+	 * @param port
+	 *            The port number to use.
+	 * @param username
+	 *            Name of the user for which this connection is being made.
 	 */
 	public IMConnection(String host, int port, String username) {
 		if ((username == null) || username.trim().equals("")) {
-			username = "TooDumbToEnterRealUsername";
+			// user.setName("TooDumbToEnterRealUsername");
+			username = "DUMMYUSER";
 		}
 		linkListeners = new Vector<LinkListener>();
 		messageListeners = new Vector<MessageListener>();
-		userName = username;
+		this.username = username;
 		hostName = host;
 		portNum = port;
 	}
@@ -80,10 +84,12 @@ public class IMConnection {
 	 * Add the given listener to be notified whenever 1 or more Messages are
 	 * received from IM server via this connection.
 	 * 
-	 * @param listener Instance which will begin to receive notifications of any
-	 *                 messages received by this IMConnection.
-	 * @throws InvalidListenerException Exception thrown when this is called with a
-	 *                                  value of null for {@code listener}
+	 * @param listener
+	 *            Instance which will begin to receive notifications of any messages
+	 *            received by this IMConnection.
+	 * @throws InvalidListenerException
+	 *             Exception thrown when this is called with a value of null for
+	 *             {@code listener}
 	 */
 	public void addMessageListener(MessageListener listener) {
 		if (listener == null) {
@@ -98,9 +104,9 @@ public class IMConnection {
 	 * already someone with that username.<br/>
 	 * Precondition: connectionActive() == false
 	 * 
-	 * @throws IllegalNameException Exception thrown if we try to connect with an
-	 *                              illegal username. Legal usernames can only
-	 *                              contain letters and numbers.
+	 * @throws IllegalNameException
+	 *             Exception thrown if we try to connect with an illegal username.
+	 *             Legal usernames can only contain letters and numbers.
 	 * @return True if the connection was successfully made; false otherwise.
 	 */
 	public boolean connect() {
@@ -179,7 +185,7 @@ public class IMConnection {
 	 *         logged in to this IM server.
 	 */
 	public String getUserName() {
-		return userName;
+		return username;
 	}
 
 	/**
@@ -187,14 +193,50 @@ public class IMConnection {
 	 * message to all of the users logged in to the IM server. <br/>
 	 * Precondition: connectionActive() == true
 	 * 
-	 * @param message Text of the message which will be broadcast to all users.
+	 * @param message
+	 *            Text of the message which will be broadcast to all users.
 	 */
 	public void sendMessage(String message) {
+		Message msg;
 		if (!connectionActive()) {
 			throw new IllegalOperationException("Cannot send a message if you are not connected to a server!\n");
+		} else if (message.contains("UPDATE_PASSWORD")) {
+			String[] msgArray = message.split(" ");
+			msg = Message.makeUpdateUserMessage(msgArray[1], msgArray[2]);
+		} else if (message.contains("DELETE_USER")) {
+			String[] msgArray = message.split(" ");
+			msg = Message.makeDeleteUserMessage(msgArray[1]);
+		} else if (message.contains("DELETE_GROUP")) {
+			String[] msgArray = message.split(" ");
+			msg = Message.makeDeleteGroupMessage(msgArray[1]);
+		} else if (message.contains("PRIVATE")) {
+			String[] params = message.split(" ");
+			msg = Message.makePrivateMessage(username, params[1], message.substring(9 + params[1].length()));
+			//MessagePrinter.printMessage("POU||params[1]||message.substring(9 + params[1].length()))");
+			//Something similar can be saved in db
+			//MessagePrinter.printMessage(msg);
+		} else if (message.contains("GROUP_CREATE")) {
+			String[] msgArray = message.split(" ");
+			msg = Message.makeCreateGroupMessage(msgArray[1]);
+		} else if (message.contains("ADD_GROUP")) {
+			String[] msgArray = message.split(" ");
+			msg = Message.makeAddUserToGroup(msgArray[1]);
+		} else if (message.contains("EXIT_GROUP")) {
+			String[] msgArray = message.split(" ");
+			msg = Message.makeUserExitGroup(msgArray[1]);
+		} else if (message.contains("GROUP")) {
+			String[] params = message.split(" ");
+			msg = Message.makeGroupMessage(username, params[1], message.substring(7 + params[1].length()));
+		} else if (message.contains("USER_LOGIN")) {
+			String[] msgArray = message.split(" ");
+			msg = Message.makeUserLoginMessage(msgArray[1], msgArray[2]);
+		} else if (message.contains("USER_CREATE")) {
+			String[] msgArray = message.split(" ");
+			msg = Message.makeCreateUserMessage(msgArray[1], msgArray[2]);
+		} else {
+			msg = Message.makeBroadcastMessage(username, message);
 		}
-		Message bctMessage = Message.makeBroadcastMessage(userName, message);
-		socketConnection.print(bctMessage);
+		socketConnection.print(msg);
 	}
 
 	/**
@@ -207,7 +249,7 @@ public class IMConnection {
 	 */
 	private boolean login() {
 		// Now log in using this name.
-		Message loginMessage = Message.makeLoginMessage(userName);
+		Message loginMessage = Message.makeLoginMessage(username);
 		try {
 			socketConnection = new SocketNB(hostName, portNum);
 			socketConnection.startIMConnection();
@@ -255,5 +297,14 @@ public class IMConnection {
 
 	protected void loggedOut() {
 		socketConnection = null;
+	}
+
+	/**
+	 * 
+	 * @param name
+	 *            the username
+	 */
+	public void setUsername(String name) {
+		this.username = name;
 	}
 }

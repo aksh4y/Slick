@@ -6,13 +6,24 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledFuture;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.mongodb.client.MongoDatabase;
 
 import edu.northeastern.ccs.im.Message;
+import edu.northeastern.ccs.im.MongoConnection;
 import edu.northeastern.ccs.im.PrintNetNB;
 import edu.northeastern.ccs.im.ScanNetNB;
+import edu.northeastern.ccs.im.MongoDB.Model.Group;
+import edu.northeastern.ccs.im.MongoDB.Model.User;
+import edu.northeastern.ccs.im.service.GroupServicePrattle;
+import edu.northeastern.ccs.im.service.UserServicePrattle;
 
 /**
  * Instances of this class handle all of the incoming communication from a
@@ -94,15 +105,33 @@ public class ClientRunnable implements Runnable {
 	/** Collection of messages queued up to be sent to this client. */
 	private Queue<Message> waitingList;
 
+	private UserServicePrattle userService;
+
+	private GroupServicePrattle groupService;
+
+	private User user;
+
+	private MongoDatabase db;
+	
+	private final static Logger LOGGER =
+            Logger.getLogger(Logger.class.getName());
+
 	/**
 	 * Create a new thread with which we will communicate with this single client.
 	 * 
-	 * @param client SocketChannel over which we will communicate with this new
-	 *               client
-	 * @throws IOException Exception thrown if we have trouble completing this
-	 *                     connection
+	 * @param client
+	 *            SocketChannel over which we will communicate with this new client
+	 * @throws IOException
+	 *             Exception thrown if we have trouble completing this connection
 	 */
 	public ClientRunnable(SocketChannel client) throws IOException {
+
+		// initialize db
+		db = MongoConnection.createConnection();
+
+		userService = new UserServicePrattle(db);
+
+		groupService = new GroupServicePrattle(db);
 		// Set up the SocketChannel over which we will communicate.
 		socket = client;
 		socket.configureBlocking(false);
@@ -130,7 +159,8 @@ public class ClientRunnable implements Runnable {
 	 * handle the messages and return true if msg is "special." Otherwise, it
 	 * returns false.
 	 * 
-	 * @param msg Message in which we are interested.
+	 * @param msg
+	 *            Message in which we are interested.
 	 * @return True if msg is "special"; false otherwise.
 	 */
 	private boolean broadcastMessageIsSpecial(Message msg) {
@@ -171,7 +201,8 @@ public class ClientRunnable implements Runnable {
 	/**
 	 * Process one of the special responses
 	 * 
-	 * @param msg Message to add to the list of special responses.
+	 * @param msg
+	 *            Message to add to the list of special responses.
 	 */
 	private void handleSpecial(Message msg) {
 		if (specialResponse.isEmpty()) {
@@ -185,7 +216,8 @@ public class ClientRunnable implements Runnable {
 	 * Check if the message is properly formed. At the moment, this means checking
 	 * that the identifier is set properly.
 	 * 
-	 * @param msg Message to be checked
+	 * @param msg
+	 *            Message to be checked
 	 * @return True if message is correct; false otherwise
 	 */
 	private boolean messageChecks(Message msg) {
@@ -197,7 +229,8 @@ public class ClientRunnable implements Runnable {
 	 * Immediately send this message to the client. This returns if we were
 	 * successful or not in our attempt to send the message.
 	 * 
-	 * @param message Message to be sent immediately.
+	 * @param message
+	 *            Message to be sent immediately.
 	 * @return True if we sent the message successfully; false otherwise.
 	 */
 	private boolean sendMessage(Message message) {
@@ -208,7 +241,8 @@ public class ClientRunnable implements Runnable {
 	/**
 	 * Try allowing this user to set his/her user name to the given username.
 	 * 
-	 * @param userName The new value to which we will try to set userName.
+	 * @param userName
+	 *            The new value to which we will try to set userName.
 	 * @return True if the username is deemed acceptable; false otherwise
 	 */
 	private boolean setUserName(String userName) {
@@ -228,7 +262,8 @@ public class ClientRunnable implements Runnable {
 	 * Add the given message to this client to the queue of message to be sent to
 	 * the client.
 	 * 
-	 * @param message Complete message to be sent.
+	 * @param message
+	 *            Complete message to be sent.
 	 */
 	public void enqueueMessage(Message message) {
 		waitingList.add(message);
@@ -246,7 +281,8 @@ public class ClientRunnable implements Runnable {
 	/**
 	 * Set the name of the user for which this ClientRunnable was created.
 	 * 
-	 * @param name The name for which this ClientRunnable.
+	 * @param name
+	 *            The name for which this ClientRunnable.
 	 */
 	public void setName(String name) {
 		this.name = name;
@@ -293,8 +329,165 @@ public class ClientRunnable implements Runnable {
 					// inactivity.
 					terminateInactivity.setTimeInMillis(
 							new GregorianCalendar().getTimeInMillis() + TERMINATE_AFTER_INACTIVE_BUT_LOGGEDIN_IN_MS);
+					// Handle Private Message
+					if (msg.isPrivateMessage()) {
+						if (userService.findUserByUsername(msg.getMsgRecipient()) != null) {
+							String m = "PRIVATE " + msg.getMsgRecipient() + " " + msg.getText();
+							userService.addToMyMessages(user, m); // sender's copy
+							User recipient = userService.findUserByUsername(msg.getMsgRecipient());
+							m = "[Private Msg] " + user.getUsername() + ": " + msg.getText();
+							userService.addToMyMessages(recipient, m); // receiver's copy
+							Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
+						} else {
+							this.enqueueMessage(Message.makeFailMsg());
+						}
+					}
+					// Handle Group Message
+					else if (msg.isGroupMessage()) {
+						String groupName = msg.getMsgRecipient();
+						Group group = groupService.findGroupByName(groupName);
+						if (group == null || !group.getListOfUsers().contains(msg.getName())) { // group does not exist
+																								// or user not part of
+																								// group
+							Message failMsg = Message.makeGroupNotExist();
+							this.enqueueMessage(failMsg);
+						} else {
+							String m = "GROUP " + msg.getMsgRecipient() + " " + msg.getText();
+							userService.addToMyMessages(user, m); // sender's copy
+							m = "[" + user.getUsername() + "@" + msg.getMsgRecipient() + "] " + msg.getText();
+							for (String recipient : group.getListOfUsers()) {
+								User r = userService.findUserByUsername(recipient);
+								userService.addToMyMessages(r, m); // receiver's copy
+								Prattle.broadcastPrivateMessage(msg, recipient);
+							}
+						}
+					}
+					// If it is create user message
+					else if (msg.isUserCreate()) {
+						Message ackMsg;
+						this.initialized = true;
+
+						if (!userService.isUsernameTaken(msg.getName())) {
+							user = userService.createUser(msg.getName(), msg.getText());
+							if (user == null) {
+								ackMsg = Message.makeCreateUserFail();
+							} else {
+								name = user.getUsername();
+								ackMsg = Message.makeCreateUserSuccess(name);
+							}
+						} else {
+							ackMsg = Message.makeUserIdExist();
+						}
+						this.enqueueMessage(ackMsg);
+					}
+					// If it is create group message
+					else if (msg.isCreateGroup()) {
+						this.initialized = true;
+
+						if (!groupService.isGroupnameTaken(msg.getName())) {
+							Group group = groupService.createGroup(msg.getName());
+							if (group == null) {
+								this.enqueueMessage(Message.makeCreateGroupFail());
+							} else {
+								this.enqueueMessage(Message.makeCreateGroupSuccess());
+								this.enqueueMessage(this.addUserToGroup(msg.getName()));
+							}
+						} else {
+							this.enqueueMessage(Message.makeGroupExist());
+						}
+
+					}
+					// If it is login user message
+					else if (msg.isUserLogin()) {
+						this.initialized = true;
+						user = userService.authenticateUser(msg.getName(), msg.getText());
+						if (user == null) {
+							this.enqueueMessage(Message.makeLoginFail());
+						} else {
+							name = user.getUsername();
+							this.enqueueMessage(Message.makeLoginSuccess(name));
+							List<String> messages = user.getMyMessages();
+							for (String text : messages) {
+								this.enqueueMessage(Message.makeHistoryMessage(text));
+							}
+						}
+					}
+					// If it is Adding user to group message
+					else if (msg.isAddToGroup()) {
+						this.enqueueMessage(this.addUserToGroup(msg.getName()));
+					}
+					// If user is exiting a group
+					else if (msg.isGroupExit()) {
+						Message ackMsg;
+						this.initialized = true;
+						Group group = groupService.findGroupByName(msg.getName());
+						if (group == null) {
+							ackMsg = Message.makeGroupNotExist();
+						} else {
+							if (groupService.exitGroup(user.getUsername(), group.getName())
+									&& user.getListOfGroups().contains(group.getName())) {
+								user = userService.findUserByUsername(user.getUsername());
+								ackMsg = Message.makeSuccessMsg();
+							} else {
+								ackMsg = Message.makeFailMsg();
+							}
+						}
+						this.enqueueMessage(ackMsg);
+					}
+					// If group is being deleted
+					else if (msg.isGroupDelete()) {
+						Message ackMsg;
+						this.initialized = true;
+						Group group = groupService.findGroupByName(msg.getName());
+						if (group == null) {
+							ackMsg = Message.makeGroupNotExist();
+						} else {
+							if (groupService.deleteGroup(group.getName())) {
+								user = userService.findUserByUsername(user.getUsername());
+								ackMsg = Message.makeSuccessMsg();
+							} else {
+								ackMsg = Message.makeFailMsg();
+							}
+						}
+						this.enqueueMessage(ackMsg);
+					}
+					// If user is being deleted
+					else if (msg.isUserDelete()) {
+						Message ackMsg;
+						this.initialized = true;
+
+						if (!UserServicePrattle.checkPassword(msg.getName(), user.getPassword())) {
+							ackMsg = Message.makeUserWrongPasswordMsg();
+						} else {
+							if (userService.deleteUser(user.getUsername())) {
+								ackMsg = Message.makeDeleteUserSuccessMsg();
+							} else {
+								ackMsg = Message.makeFailMsg();
+							}
+						}
+						this.enqueueMessage(ackMsg);
+					}
+
+					// If user is being updated
+					else if (msg.isUserUpdate()) {
+						Message ackMsg;
+						this.initialized = true;
+
+						if (!UserServicePrattle.checkPassword(msg.getName(), user.getPassword())) {
+							ackMsg = Message.makeUserWrongPasswordMsg();
+						} else {
+							if (userService.updateUser(user, msg.getText())) {
+								user = userService.findUserByUsername(user.getUsername());
+								ackMsg = Message.makeSuccessMsg();
+							} else {
+								ackMsg = Message.makeFailMsg();
+							}
+						}
+						this.enqueueMessage(ackMsg);
+					}
+
 					// If the message is a broadcast message, send it out
-					if (msg.isDisplayMessage()) {
+					else if (msg.isDisplayMessage()) {
 						// Check if the message is legal formatted
 						if (messageChecks(msg)) {
 							// Check for our "special messages"
@@ -353,6 +546,9 @@ public class ClientRunnable implements Runnable {
 					} while (!waitingList.isEmpty());
 				}
 				terminate |= !keepAlive;
+			} catch (JsonProcessingException e) {
+				// TODO Auto-generated catch block
+				LOGGER.log(Level.SEVERE,e.toString());				
 			} finally {
 				// When it is appropriate, terminate the current client.
 				if (terminate) {
@@ -373,11 +569,29 @@ public class ClientRunnable implements Runnable {
 	 * Store the object used by this client runnable to control when it is scheduled
 	 * for execution in the thread pool.
 	 * 
-	 * @param future Instance controlling when the runnable is executed from within
-	 *               the thread pool.
+	 * @param future
+	 *            Instance controlling when the runnable is executed from within the
+	 *            thread pool.
 	 */
 	public void setFuture(ScheduledFuture<ClientRunnable> future) {
 		runnableMe = future;
+	}
+
+	private Message addUserToGroup(String groupName) throws JsonProcessingException {
+		Message ackMsg;
+		this.initialized = true;
+		Group group = groupService.findGroupByName(groupName);
+		if (group == null) {
+			ackMsg = Message.makeGroupNotExist();
+		} else {
+			if (groupService.addUserToGroup(group, user) && !group.getListOfUsers().contains(user.getUsername())) {
+				user = userService.findUserByUsername(user.getUsername());
+				ackMsg = Message.makeGroupAddSuc();
+			} else {
+				ackMsg = Message.makeGroupAddFail();
+			}
+		}
+		return ackMsg;
 	}
 
 	/**
@@ -391,7 +605,7 @@ public class ClientRunnable implements Runnable {
 			socket.close();
 		} catch (IOException e) {
 			// If we have an IOException, ignore the problem
-			e.printStackTrace();
+			LOGGER.log(Level.WARNING,e.toString());
 		} finally {
 			// Remove the client from our client listing.
 			Prattle.removeClient(this);

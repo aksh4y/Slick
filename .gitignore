@@ -33,8 +33,13 @@ hs_err_pid*
 .recommenders
 Servers
 
+.sonarlint
+
 # IntelliJ files
 *.iml
 *.iws
 *.ipr
 .idea/
+
+# Maven ignored files
+target/

@@ -81,6 +81,8 @@ public final class ScanForMessagesWorker extends SwingWorker<Void, Message> {
 			case QUIT:
 				flagForClosure = true;
 				break;
+            case PRIVATE:
+            case GROUP:
 			case BROADCAST:
 				publishList.add(m);
 				break;
@@ -92,6 +94,9 @@ public final class ScanForMessagesWorker extends SwingWorker<Void, Message> {
 			case ACKNOWLEDGE:
 				imConnection.fireStatusChange(imConnection.getUserName());
 				break;
+			case LOGIN_SUCCESS:
+			case CREATE_SUCCESS:
+			    publishList.add(m);
 			default:
 				// Message does need to do anything; do nothing.
 			}
