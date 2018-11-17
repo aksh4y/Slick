@@ -84,6 +84,7 @@ public final class ScanForMessagesWorker extends SwingWorker<Void, Message> {
             case PRIVATE:
             case GROUP:
 			case BROADCAST:
+			case MIME:
 				publishList.add(m);
 				break;
 			case NO_ACKNOWLEDGE:
