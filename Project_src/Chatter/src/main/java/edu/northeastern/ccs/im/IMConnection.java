@@ -212,13 +212,10 @@ public class IMConnection {
 		} else if (message.contains("PRIVATE")) {
 			String[] params = message.split(" ");
 			msg = Message.makePrivateMessage(username, params[1], message.substring(9 + params[1].length()));
-			//MessagePrinter.printMessage("POU||params[1]||message.substring(9 + params[1].length()))");
-			//Something similar can be saved in db
-			//MessagePrinter.printMessage(msg);
-		} else if (message.contains("GROUP_CREATE")) {
+		} else if (message.contains("CREATE_GROUP")) {
 			String[] msgArray = message.split(" ");
 			msg = Message.makeCreateGroupMessage(msgArray[1]);
-		} else if (message.contains("ADD_GROUP")) {
+		} else if (message.contains("JOIN_GROUP")) {
 			String[] msgArray = message.split(" ");
 			msg = Message.makeAddUserToGroup(msgArray[1]);
 		} else if (message.contains("EXIT_GROUP")) {
@@ -227,10 +224,10 @@ public class IMConnection {
 		} else if (message.contains("GROUP")) {
 			String[] params = message.split(" ");
 			msg = Message.makeGroupMessage(username, params[1], message.substring(7 + params[1].length()));
-		} else if (message.contains("USER_LOGIN")) {
+		} else if (message.contains("LOGIN_USER")) {
 			String[] msgArray = message.split(" ");
 			msg = Message.makeUserLoginMessage(msgArray[1], msgArray[2]);
-		} else if (message.contains("USER_CREATE")) {
+		} else if (message.contains("CREATE_USER")) {
 			String[] msgArray = message.split(" ");
 			msg = Message.makeCreateUserMessage(msgArray[1], msgArray[2]);
 		} else if (message.contains("MIME")) {

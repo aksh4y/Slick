@@ -195,28 +195,28 @@ public final class SocketNB {
                     System.out.println("Username/Password is wrong");
                 }
                 if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.LOGIN_SUCCESS) {
-                    System.out.println("Login Successfull");
+                    System.out.println("Login Successful");
                 }
                 if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.CREATE_FAIL) {
-                    System.out.println("User can not be created at this time, try again later");
+                    System.out.println("User cannot be created at this time, try again later");
                 }
                 if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.CREATE_SUCCESS) {
                     System.out.println("User Created");
                 }
                 if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.USER_EXIST) {
-                    System.out.println("Userid Exist");
+                    System.out.println("Userid Exists");
                 }
                 if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.CREATE_FAIL) {
-                    System.out.println("Group can not be created at this time, try again later");
+                    System.out.println("Group cannot be created at this time, try again later");
                 }
                 if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.GROUP_CREATE_SUCCESS) {
                     System.out.println("Group Created");
                 }
                 if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.GROUP_EXIST) {
-                    System.out.println("Group name Exist");
+                    System.out.println("Group name exists");
                 }
                 if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.GROUP_ADD_FAIL) {
-                    System.out.println("User can not be added to this group");
+                    System.out.println("User cannot be added to this group");
                 }
                 if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.GROUP_ADD_SUCCESS) {
                     System.out.println("Added to Group");
@@ -225,7 +225,7 @@ public final class SocketNB {
                     System.out.println("This group does not exist");
                 }
                 if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.USER_WRONG_PASSWORD) {
-                    System.out.println("Entred password is wrong");
+                    System.out.println("Entered password is wrong");
                 }
                 if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.DELETE_USER_SUCCESS) {
                     System.out.println("User has been deleted");
