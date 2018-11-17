@@ -43,3 +43,5 @@ Servers
 
 # Maven ignored files
 target/
+
+.DS_Store
