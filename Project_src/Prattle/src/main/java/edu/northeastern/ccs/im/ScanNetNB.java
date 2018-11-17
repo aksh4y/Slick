@@ -176,7 +176,7 @@ public class ScanNetNB {
 				// Read in the second argument containing the message
 				// Add this message into our queue
 				Message newMsg;
-				if(handle.equals("PRI") || handle.equals("GRP")) {  // Private or Group
+				if(handle.equals("PRI") || handle.equals("GRP") || handle.equals("MIM")) {  // Private or Group
 	                // Read in the second argument containing the message
 	                final String reciever = readArgument(charBuffer);
 	                charBuffer.position(charBuffer.position() + 2);

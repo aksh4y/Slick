@@ -362,6 +362,15 @@ public class ClientRunnable implements Runnable {
 							}
 						}
 					}
+					// Handle MIME messages
+					else if (msg.isMIME()) {
+					    String m = "File Sent To " + msg.getMsgRecipient();
+                        userService.addToMyMessages(user, m); // sender's copy
+                        User recipient = userService.findUserByUsername(msg.getMsgRecipient());
+                        m = "File Received From " + user.getUsername();
+                        userService.addToMyMessages(recipient, m); // receiver's copy
+                        Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
+					}
 					// If it is create user message
 					else if (msg.isUserCreate()) {
 						Message ackMsg;
