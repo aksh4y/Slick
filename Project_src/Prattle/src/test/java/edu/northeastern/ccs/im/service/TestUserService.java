@@ -121,11 +121,4 @@ public class TestUserService {
         assertEquals(1,user.getMyMessages().size());
         userService.deleteUser("dUser");
     }
-//    @Test
-//    public void clean throws JsonProcessingException {
-//        User user = userService.createUser("testmessage","testPass");
-//        userService.addToMyMessages(user,"Hello");
-//        userService.clearNewMessages(user);
-//        assertEquals(true, userService.deleteUser(user.getUsername()));
-//    }
 }
