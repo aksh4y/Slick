@@ -16,12 +16,14 @@ import java.nio.channels.spi.SelectorProvider;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A network server that communicates with IM clients that connect to it. This
  * version of the server spawns a new thread to handle each client that connects
- * to it. At this point, messages are broadcast to all of the other clients. 
- * It does not send a response when the user has gone off-line.
+ * to it. At this point, messages are broadcast to all of the other clients. It
+ * does not send a response when the user has gone off-line.
  * 
  * This work is licensed under the Creative Commons Attribution-ShareAlike 4.0
  * International License. To view a copy of this license, visit
@@ -34,182 +36,188 @@ import java.util.concurrent.*;
 
 public abstract class Prattle {
 
-    /** Amount of time we should wait for a signal to arrive. */
-    private static final int DELAY_IN_MS = 50;
+	/** Amount of time we should wait for a signal to arrive. */
+	private static final int DELAY_IN_MS = 50;
 
-    /** Number of threads available in our thread pool. */
-    private static final int THREAD_POOL_SIZE = 20;
+	/** Number of threads available in our thread pool. */
+	private static final int THREAD_POOL_SIZE = 20;
 
-    /** Delay between times the thread pool runs the client check. */
-    private static final int CLIENT_CHECK_DELAY = 200;
+	/** Delay between times the thread pool runs the client check. */
+	private static final int CLIENT_CHECK_DELAY = 200;
 
-    /** Collection of threads that are currently being used. */
-    private static ConcurrentLinkedQueue<ClientRunnable> active;
-    
-    private static boolean  done;
-    
-    private static MongoDatabase db;
-    
-    private static UserServicePrattle userService;
+	/** Collection of threads that are currently being used. */
+	private static ConcurrentLinkedQueue<ClientRunnable> active;
 
-    /** All of the static initialization occurs in this "method" */
-    static {
-        // Create the new queue of active threads.
-        active = new ConcurrentLinkedQueue<ClientRunnable>();
-        db = MongoConnection.createConnection();
-        userService = new UserServicePrattle(db);
-    }
+	private static boolean done;
 
-    /**
-     * Broadcast a given message to all the other IM clients currently on the
-     * system. This message _will_ be sent to the client who originally sent it.
-     * 
-     * @param message Message that the client sent.
-     */
-    public static void broadcastMessage(Message message) {
-        // Loop through all of our active threads
-        for (ClientRunnable tt : active) {
-            // Do not send the message to any clients that are not ready to receive it.
-            if (tt.isInitialized()) {
-                User u = userService.findUserByUsername(tt.getName());
-                try {
-                    String msg;
-                    if(u.getUsername().equalsIgnoreCase(message.getName()))
-                        msg = "[BROADCASTED] " + message.getText();
-                    else 
-                        msg = "[BROADCAST] " + message.getName() + ": " + message.getText();
-                    userService.addToMyMessages(u, msg);
-                } catch (Exception e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }    // sender's copy
-                tt.enqueueMessage(message);
-            }
-        }
-    }
-    
-    /**
-     * Broadcast a given private message to all the other given receiver handle
-     * system. 
-     * 
-     * @param message Message that the client sent.
-     * @param receiver the receiver
-     */
-    public static void broadcastPrivateMessage(Message message, String receiver) {
-        // Loop through all of our active threads
-        for (ClientRunnable tt : active) {
-            // Do not send the message to any clients that are not ready to receive it.
-            if (tt.isInitialized() && tt.getName().equalsIgnoreCase(receiver)) {
-                tt.enqueueMessage(message);
-            }
-        }
-    }
+	private static MongoDatabase db;
 
-    /**
-     * Start up the threaded talk server. This class accepts incoming connections on
-     * a specific port specified on the command-line. Whenever it receives a new
-     * connection, it will spawn a thread to perform all of the I/O with that
-     * client. This class relies on the server not receiving too many requests -- it
-     * does not include any code to limit the number of extant threads.
-     * 
-     * @param args String arguments to the server from the command line. At present
-     *             the only legal (and required) argument is the port on which this
-     *             server should list.
-     * @throws IOException Exception thrown if the server cannot connect to the port
-     *                     to which it is supposed to listen.
-     */
-    @SuppressWarnings("unchecked")
-    public static void main(String[] args) throws IOException {
-        // Connect to the socket on the appropriate port to which this server connects.
-        ServerSocketChannel serverSocket = null;
-        try {
-            serverSocket = ServerSocketChannel.open();
-            serverSocket.configureBlocking(false);
-            serverSocket.socket().bind(new InetSocketAddress(ServerConstants.PORT));
-            // Create the Selector with which our channel is registered.
-            Selector selector = SelectorProvider.provider().openSelector();
-            // Register to receive any incoming connection messages.
-            serverSocket.register(selector, SelectionKey.OP_ACCEPT);
+	private static UserServicePrattle userService;
 
-            // Create our pool of threads on which we will execute.
-            ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(THREAD_POOL_SIZE);
-            // Listen on this port until ...
-            done = false;
-            while (!done) {
-                // Check if we have a valid incoming request, but limit the time we may wait.
-                while (selector.select(DELAY_IN_MS) != 0) {
-                    // Get the list of keys that have arrived since our last check
-                    Set<SelectionKey> acceptKeys = selector.selectedKeys();
-                    // Now iterate through all of the keys
-                    Iterator<SelectionKey> it = acceptKeys.iterator();
-                    while (it.hasNext()) {
-                        // Get the next key; it had better be from a new incoming connection
-                        SelectionKey key = it.next();
-                        it.remove();
-                        // Assert certain things I really hope is true
-                        assert key.isAcceptable();
-                        assert key.channel() == serverSocket;
-                        // Create a new thread to handle the client for which we just received a
-                        // request.
-                        try {
-                            // Accept the connection and create a new thread to handle this client.
-                            SocketChannel socket = serverSocket.accept();
-                            // Make sure we have a connection to work with.
-                            if (socket != null) {
-                                ClientRunnable tt = new ClientRunnable(socket);
-                                // Add the thread to the queue of active threads
-                                active.add(tt);
-                                // Have the client executed by our pool of threads.
-                                @SuppressWarnings("rawtypes")
-                                ScheduledFuture clientFuture = threadPool.scheduleAtFixedRate(tt, CLIENT_CHECK_DELAY,
-                                        CLIENT_CHECK_DELAY, TimeUnit.MILLISECONDS);
-                                tt.setFuture(clientFuture);
-                            }
-                        } catch (AssertionError ae) {
-                            System.err.println("Caught Assertion: " + ae.toString());
-                        } catch (Exception e) {
-                            System.err.println("Caught Exception: " + e.toString());
-                        }
-                    }
-                }
-            }
-        }
-        catch(Exception e) {
-            System.err.println("Exception while trying to open socket: " + e.toString());
-        }
-        finally {
-            if(serverSocket != null)
-                serverSocket.close();
-        }
-    }
+	private final static Logger LOGGER = Logger.getLogger(Logger.class.getName());
+	/** All of the static initialization occurs in this "method" */
+	static {
+		// Create the new queue of active threads.
+		active = new ConcurrentLinkedQueue<ClientRunnable>();
+		db = MongoConnection.createConnection();
+		userService = new UserServicePrattle(db);
+	}
 
-    /**
-     * 
-     * @return the done flag
-     */
-    public static boolean isDone() {
-        return done;
-    }
+	/**
+	 * Broadcast a given message to all the other IM clients currently on the
+	 * system. This message _will_ be sent to the client who originally sent it.
+	 * 
+	 * @param message
+	 *            Message that the client sent.
+	 */
+	public static void broadcastMessage(Message message) {
+		// Loop through all of our active threads
+		for (ClientRunnable tt : active) {
+			// Do not send the message to any clients that are not ready to receive it.
+			if (tt.isInitialized()) {
+				User u = userService.findUserByUsername(tt.getName());
+				try {
+					String msg;
+					if (u.getUsername().equalsIgnoreCase(message.getName()))
+						msg = "[BROADCASTED] " + message.getText();
+					else
+						msg = "[BROADCAST] " + message.getName() + ": " + message.getText();
+					userService.addToMyMessages(u, msg);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					LOGGER.log(Level.WARNING, e.toString());
+				} // sender's copy
+				tt.enqueueMessage(message);
+			}
+		}
+	}
 
-    /**
-     * Sets the done flag
-     * @param done
-     */
-    public static void setDone(boolean done) {
-        Prattle.done = done;
-    }
+	/**
+	 * Broadcast a given private message to all the other given receiver handle
+	 * system.
+	 * 
+	 * @param message
+	 *            Message that the client sent.
+	 * @param receiver
+	 *            the receiver
+	 */
+	public static void broadcastPrivateMessage(Message message, String receiver) {
+		// Loop through all of our active threads
+		for (ClientRunnable tt : active) {
+			// Do not send the message to any clients that are not ready to receive it.
+			if (tt.isInitialized() && tt.getName().equalsIgnoreCase(receiver)) {
+				tt.enqueueMessage(message);
+			}
+		}
+	}
 
-    /**
-     * Remove the given IM client from the list of active threads.
-     * 
-     * @param dead Thread which had been handling all the I/O for a client who has
-     *             since quit.
-     */
-    public static void removeClient(ClientRunnable dead) {
-        // Test and see if the thread was in our list of active clients so that we
-        // can remove it.
-        if (!active.remove(dead)) {
-            System.out.println("Could not find a thread that I tried to remove!\n");
-        }
-    }
+	/**
+	 * Start up the threaded talk server. This class accepts incoming connections on
+	 * a specific port specified on the command-line. Whenever it receives a new
+	 * connection, it will spawn a thread to perform all of the I/O with that
+	 * client. This class relies on the server not receiving too many requests -- it
+	 * does not include any code to limit the number of extant threads.
+	 * 
+	 * @param args
+	 *            String arguments to the server from the command line. At present
+	 *            the only legal (and required) argument is the port on which this
+	 *            server should list.
+	 * @throws IOException
+	 *             Exception thrown if the server cannot connect to the port to
+	 *             which it is supposed to listen.
+	 */
+	@SuppressWarnings("unchecked")
+	public static void main(String[] args) throws IOException {
+		// Connect to the socket on the appropriate port to which this server connects.
+		ServerSocketChannel serverSocket = null;
+		try {
+			serverSocket = ServerSocketChannel.open();
+			serverSocket.configureBlocking(false);
+			serverSocket.socket().bind(new InetSocketAddress(ServerConstants.PORT));
+			// Create the Selector with which our channel is registered.
+			Selector selector = SelectorProvider.provider().openSelector();
+			// Register to receive any incoming connection messages.
+			serverSocket.register(selector, SelectionKey.OP_ACCEPT);
+
+			// Create our pool of threads on which we will execute.
+			ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(THREAD_POOL_SIZE);
+			// Listen on this port until ...
+			done = false;
+			while (!done) {
+				// Check if we have a valid incoming request, but limit the time we may wait.
+				while (selector.select(DELAY_IN_MS) != 0) {
+					// Get the list of keys that have arrived since our last check
+					Set<SelectionKey> acceptKeys = selector.selectedKeys();
+					// Now iterate through all of the keys
+					Iterator<SelectionKey> it = acceptKeys.iterator();
+					while (it.hasNext()) {
+						// Get the next key; it had better be from a new incoming connection
+						SelectionKey key = it.next();
+						it.remove();
+						// Assert certain things I really hope is true
+						assert key.isAcceptable();
+						assert key.channel() == serverSocket;
+						// Create a new thread to handle the client for which we just received a
+						// request.
+						try {
+							// Accept the connection and create a new thread to handle this client.
+							SocketChannel socket = serverSocket.accept();
+							// Make sure we have a connection to work with.
+							if (socket != null) {
+								ClientRunnable tt = new ClientRunnable(socket);
+								// Add the thread to the queue of active threads
+								active.add(tt);
+								// Have the client executed by our pool of threads.
+								@SuppressWarnings("rawtypes")
+								ScheduledFuture clientFuture = threadPool.scheduleAtFixedRate(tt, CLIENT_CHECK_DELAY,
+										CLIENT_CHECK_DELAY, TimeUnit.MILLISECONDS);
+								tt.setFuture(clientFuture);
+							}
+						} catch (AssertionError ae) {
+							System.err.println("Caught Assertion: " + ae.toString());
+						} catch (Exception e) {
+							System.err.println("Caught Exception: " + e.toString());
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("Exception while trying to open socket: " + e.toString());
+		} finally {
+			if (serverSocket != null)
+				serverSocket.close();
+		}
+	}
+
+	/**
+	 * 
+	 * @return the done flag
+	 */
+	public static boolean isDone() {
+		return done;
+	}
+
+	/**
+	 * Sets the done flag
+	 * 
+	 * @param done
+	 */
+	public static void setDone(boolean done) {
+		Prattle.done = done;
+	}
+
+	/**
+	 * Remove the given IM client from the list of active threads.
+	 * 
+	 * @param dead
+	 *            Thread which had been handling all the I/O for a client who has
+	 *            since quit.
+	 */
+	public static void removeClient(ClientRunnable dead) {
+		// Test and see if the thread was in our list of active clients so that we
+		// can remove it.
+		if (!active.remove(dead)) {
+			System.out.println("Could not find a thread that I tried to remove!\n");
+		}
+	}
 }
