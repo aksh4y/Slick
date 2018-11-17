@@ -94,5 +94,4 @@ public class TestGroupService {
         assertEquals(false, groupService.deleteGroup(group.getName()));
         assertEquals(true, userService.deleteUser(user1.getUsername()));
     }
-
 }
