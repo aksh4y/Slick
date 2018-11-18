@@ -16,3 +16,4 @@ After running the command and entering a username, send one of the reserved mess
 
 ### Broadcast messaging (send to everyone)
 Open up multiple terminal windows and run the maven command on each of them to create separate instances of Chatter. After that send a message from any of the instances to send it to all other connected instances.
+

@@ -54,7 +54,7 @@ public abstract class Prattle {
 
 	private static UserServicePrattle userService;
 
-	private final static Logger LOGGER = Logger.getLogger(Logger.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
 	/** All of the static initialization occurs in this "method" */
 	static {
 		// Create the new queue of active threads.
@@ -84,7 +84,6 @@ public abstract class Prattle {
 						msg = "[BROADCAST] " + message.getName() + ": " + message.getText();
 					userService.addToMyMessages(u, msg);
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					LOGGER.log(Level.WARNING, e.toString());
 				} // sender's copy
 				tt.enqueueMessage(message);
