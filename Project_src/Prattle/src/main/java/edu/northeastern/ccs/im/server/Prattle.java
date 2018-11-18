@@ -84,7 +84,6 @@ public abstract class Prattle {
 						msg = "[BROADCAST] " + message.getName() + ": " + message.getText();
 					userService.addToMyMessages(u, msg);
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					LOGGER.log(Level.WARNING, e.toString());
 				} // sender's copy
 				tt.enqueueMessage(message);
