@@ -47,7 +47,7 @@ public class ScanNetNB {
 
 	private Queue<Message> messages;
 	
-	private final static Logger LOGGER =
+	private static final Logger LOGGER =
             Logger.getLogger(Logger.class.getName());
 	
 	/**

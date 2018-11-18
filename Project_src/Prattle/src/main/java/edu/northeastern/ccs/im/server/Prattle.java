@@ -54,7 +54,7 @@ public abstract class Prattle {
 
 	private static UserServicePrattle userService;
 
-	private final static Logger LOGGER = Logger.getLogger(Logger.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
 	/** All of the static initialization occurs in this "method" */
 	static {
 		// Create the new queue of active threads.
