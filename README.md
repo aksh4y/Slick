@@ -3,7 +3,7 @@ team repo for team-203-F18
 
 # AWS
 ### Link
-ec2-54-184-242-154.us-west-2.compute.amazonaws.com
+ec2-34-221-112-30.us-west-2.compute.amazonaws.com
 ### Port
 4545
 ### Usage
