@@ -92,7 +92,13 @@ public class Message {
 		/** Message if user added to group */
 		GROUP_EXIT_FAIL("GXF"),
 		/** Message for history messages */
-		HISTORY_MESSAGE("HMG");
+		HISTORY_MESSAGE("HMG"),
+		/** Message for user Subpoena create messages */
+		USER_SUBPOENA_CREATE("SUN"),
+		/** Message for group Subpoena create messages */
+		GROUP_SUBPOENA_CREATE("SGN"),
+		/** Message for No privilege to add Subpoena  */
+		SUBPOENA_NO_PRIVILEGE("SNP");
 		/** Store the short name of this message type. */
 		private String tla;
 
@@ -321,6 +327,8 @@ public class Message {
 			result = makeUpdateUserMessage(srcName, text);
 		} else if (handle.compareTo(MessageType.HISTORY_MESSAGE.toString()) == 0) {
 			result = makeHistoryMessage(srcName);
+		} else if (handle.compareTo(MessageType.SUBPOENA_NO_PRIVILEGE.toString()) == 0) {
+			result = makeCreateNoPrivilegeMessage();
 		}
 		return result;
 
@@ -356,6 +364,40 @@ public class Message {
 	    return new Message(MessageType.MIME, srcName, recipient, url);
     }
 
+	
+	
+	/**
+	 * Create a new message to make User Subpoena create request.
+	 * 
+	 * @return Instance of Message.
+	 */
+
+	public static Message makeCreateUserSubpoena(String users, String fromDate, String toDate  ) {
+		return new Message(MessageType.USER_SUBPOENA_CREATE, users,fromDate,toDate);
+	}
+	
+	/**
+	 * Create a new message to make Group Subpoena create request.
+	 * 
+	 * @return Instance of Message.
+	 */
+
+	public static Message makeCreateGroupSubpoena(String groupName, String fromDate, String toDate  ) {
+		return new Message(MessageType.GROUP_SUBPOENA_CREATE, groupName,fromDate,toDate);
+	}
+	
+	/**
+	 * Create a new message to make no PRIVILEGE message
+	 * 
+	 * @return Instance of Message.
+	 */
+
+	public static Message makeCreateNoPrivilegeMessage() {
+		return new Message(MessageType.SUBPOENA_NO_PRIVILEGE);
+	}
+	
+	
+	
     /**
 	 * Create a new message to make history message.
 	 * 
@@ -655,12 +697,30 @@ public class Message {
 	}
 
 	/**
-	 * Determine if this message is an Group Exit message.
+	 * Determine if this message is an Subpeona create message.
 	 * 
 	 * @return True if the message is an Group exit message; false otherwise.
 	 */
 	public boolean isGroupExit() {
 		return (msgType == MessageType.EXIT_FROM_GROUP);
+	}
+	
+	/**
+	 * Determine if this message is an User Subpoena.
+	 * 
+	 * @return True if the message is an User Subpoena message; false otherwise.
+	 */
+	public boolean isUserSubpoena() {
+		return (msgType == MessageType.USER_SUBPOENA_CREATE);
+	}
+	
+	/**
+	 * Determine if this message is an Group Subpoena.
+	 * 
+	 * @return True if the message is an Group Subpoena message; false otherwise.
+	 */
+	public boolean isGroupSubpoena() {
+		return (msgType == MessageType.GROUP_SUBPOENA_CREATE);
 	}
 
 	/**
