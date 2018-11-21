@@ -165,6 +165,8 @@ public class UserServicePrattle {
 		col.updateOne(Filters.eq("username", user.getUsername()), Updates.addToSet("myUnreadMessages", message));
 	}
 	public void clearUnreadMessages(User user){
+		user = findUserByUsername(user.getUsername());
+		col.updateOne(Filters.eq("username", user.getUsername()), Updates.pushEach("myMessages", user.getMyUnreadMessages()));
 		col.updateOne(Filters.eq("username", user.getUsername()), Updates.pullAll("myUnreadMessages", user.getMyUnreadMessages()));
 	}
 

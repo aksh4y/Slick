@@ -21,19 +21,27 @@ public class MongoDBClient {
         UserServicePrattle userService = new UserServicePrattle(db);
         GroupServicePrattle grpService = new GroupServicePrattle(db);
 //        cleanDB(db);
-//        User user = userService.findUserByUsername("peter");
+        clearUnreadMessages(db);
 
-        userService.getLastSentMessage("user", "peter", "akshay");
-//        userService.addToMyMessages(user,"This message will be recalled");
+//        userService.getLastSentMessage("user", "peter", "akshay");
+
 //        userService.getLastSentMessage("user","akshay");
 
-//        userService.clearUnreadMessages(user);
+
 //        userService.addToMyMessages(user, "confirm last message");
 //        user = userService.findUserByUsername("peter");
 //        System.out.println(user.getMyMessages().get(user.getMyMessages().size()-1));
 
 
 
+    }
+    public static void clearUnreadMessages(MongoDatabase db) throws JsonProcessingException{
+        UserServicePrattle userService = new UserServicePrattle(db);
+        User user = userService.findUserByUsername("peter");
+        userService.addToUnreadMessages(user,"This message is unread");
+        userService.addToUnreadMessages(user,"This message is also unread");
+        userService.addToMyMessages(user,"This message is read");
+        userService.clearUnreadMessages(user);
     }
 
     public static void cleanDB(MongoDatabase db) throws JsonProcessingException{

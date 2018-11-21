@@ -19,9 +19,6 @@ public class User {
     private String password;
     private List<String> listOfGroups;
     private List<String> myMessages;
-
-
-
     private List<String> myUnreadMessages;
 
     /**

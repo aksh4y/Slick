@@ -496,6 +496,8 @@ public class ClientRunnable implements Runnable {
 					}
 					else if (msg.isRecallMessage()) {
 						//TODO Peter code to recall
+						userService.getLastSentMessage("user",user.getUsername(),msg.getName());
+
 
 					}
 
