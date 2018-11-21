@@ -92,7 +92,9 @@ public class Message {
 		/** Message if user added to group */
 		GROUP_EXIT_FAIL("GXF"),
 		/** Message for history messages */
-		HISTORY_MESSAGE("HMG");
+		HISTORY_MESSAGE("HMG"),
+		/** Recall last message */
+		RECALL("REC");
 		/** Store the short name of this message type. */
 		private String tla;
 
@@ -734,8 +736,10 @@ public class Message {
 	public boolean isPrivateMessage() {
 		return (msgType == MessageType.PRIVATE);
 	}
-	
-	
+
+	public boolean isRecallMessage() {
+		return (msgType == MessageType.RECALL);
+	}
 	   /**
      * Determine if this message is restricted to a group.
      * 

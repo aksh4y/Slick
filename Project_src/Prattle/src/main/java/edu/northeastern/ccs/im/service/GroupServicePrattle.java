@@ -141,5 +141,8 @@ public class GroupServicePrattle {
 		boolean removeGroup = userService.removeGroupFromUser(username,groupname);
 		return (update && removeGroup);
 	}
+	public void clearGroupTable(){
+		gcol.deleteMany(new Document());
+	}
 
 }

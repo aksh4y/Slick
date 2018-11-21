@@ -20,6 +20,10 @@ public class User {
     private List<String> listOfGroups;
     private List<String> myMessages;
 
+
+
+    private List<String> myUnreadMessages;
+
     /**
      *
      * @param username username for the user
@@ -30,6 +34,7 @@ public class User {
         this.password = UserServicePrattle.hashPassword(password);
         this.listOfGroups = new ArrayList<>();
         this.myMessages = new ArrayList<>();
+        this.myUnreadMessages = new ArrayList<>();
     }
 
     /**
@@ -94,5 +99,13 @@ public class User {
 
     public void setMyMessages(List<String> myMessages) {
         this.myMessages = myMessages;
+    }
+
+    public List<String> getMyUnreadMessages() {
+        return myUnreadMessages;
+    }
+
+    public void setMyUnreadMessages(List<String> myUnreadMessages) {
+        this.myUnreadMessages = myUnreadMessages;
     }
 }
