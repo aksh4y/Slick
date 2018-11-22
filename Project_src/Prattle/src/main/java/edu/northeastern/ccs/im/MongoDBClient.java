@@ -3,14 +3,18 @@ package edu.northeastern.ccs.im;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import edu.northeastern.ccs.im.MongoDB.Model.Group;
+import edu.northeastern.ccs.im.MongoDB.Model.Subpoena;
 import edu.northeastern.ccs.im.service.GroupServicePrattle;
+import edu.northeastern.ccs.im.service.SubpoenaServicePrattle;
 import edu.northeastern.ccs.im.service.UserServicePrattle;
 import com.mongodb.client.MongoDatabase;
 
 import edu.northeastern.ccs.im.MongoDB.Model.User;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 
@@ -21,7 +25,8 @@ public class MongoDBClient {
         UserServicePrattle userService = new UserServicePrattle(db);
         GroupServicePrattle grpService = new GroupServicePrattle(db);
 //        cleanDB(db);
-        clearUnreadMessages(db);
+//        clearUnreadMessages(db);
+        createSubpoena(db);
 
 //        userService.getLastSentMessage("user", "peter", "akshay");
 
@@ -34,6 +39,11 @@ public class MongoDBClient {
 
 
 
+    }
+
+    public static void createSubpoena (MongoDatabase db) throws JsonProcessingException{
+        SubpoenaServicePrattle subService = new SubpoenaServicePrattle(db);
+        Subpoena s= subService.createSubpoena("peter","nipun","", Date.from(Instant.now()), Date.from(Instant.now()));
     }
     public static void clearUnreadMessages(MongoDatabase db) throws JsonProcessingException{
         UserServicePrattle userService = new UserServicePrattle(db);
