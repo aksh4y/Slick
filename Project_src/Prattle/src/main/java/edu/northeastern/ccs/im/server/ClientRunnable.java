@@ -494,6 +494,12 @@ public class ClientRunnable implements Runnable {
 						}
 						this.enqueueMessage(ackMsg);
 					}
+					else if (msg.isRecallMessage()) {
+						//TODO Peter code to recall
+						userService.getLastSentMessage("user",user.getUsername(),msg.getName());
+
+
+					}
 
 					// If the message is a broadcast message, send it out
 					else if (msg.isDisplayMessage()) {

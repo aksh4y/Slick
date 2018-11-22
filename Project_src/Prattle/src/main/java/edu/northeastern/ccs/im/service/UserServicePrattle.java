@@ -1,5 +1,6 @@
 package edu.northeastern.ccs.im.service;
 
+import com.mongodb.BasicDBObject;
 import edu.northeastern.ccs.im.MongoDB.Model.Group;
 import edu.northeastern.ccs.im.MongoDB.Model.User;
 
@@ -17,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import org.mindrot.jbcrypt.BCrypt;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -154,10 +156,78 @@ public class UserServicePrattle {
 		return (updateResult.getModifiedCount()==1);
 	}
 
-
 	public void addToMyMessages(User user, String message){
 		col.updateOne(Filters.eq("username", user.getUsername()), Updates.addToSet("myMessages", message));
 	}
+
+
+	public void addToUnreadMessages(User user, String message){
+		col.updateOne(Filters.eq("username", user.getUsername()), Updates.addToSet("myUnreadMessages", message));
+	}
+	public void clearUnreadMessages(User user){
+		user = findUserByUsername(user.getUsername());
+		col.updateOne(Filters.eq("username", user.getUsername()), Updates.pushEach("myMessages", user.getMyUnreadMessages()));
+		col.updateOne(Filters.eq("username", user.getUsername()), Updates.pullAll("myUnreadMessages", user.getMyUnreadMessages()));
+	}
+
+	public void getLastSentMessage(String type, String sender, String receiver) {
+		if(type.equalsIgnoreCase("user")){
+			User user = findUserByUsername(receiver);
+			List<String> myMessages = user.getMyMessages();
+			String lastSentMessage="";
+//			String sentTo="";
+			Collections.reverse(myMessages);
+			for(String message: myMessages){
+				if(message.contains("[")){
+					lastSentMessage = message;
+//					sentTo= lastSentMessage.split(" ")[1];
+					break;
+				}
+			}
+
+			BasicDBObject query = new BasicDBObject();
+			query.put("username", receiver);
+			query.put("myMessages", lastSentMessage);
+			BasicDBObject data = new BasicDBObject();
+			data.put("myMessages.$", "Message deleted");
+			BasicDBObject command = new BasicDBObject();
+			command.put("$set", data);
+			col.updateOne(query, command);
+
+			user = findUserByUsername(sender);
+			myMessages = user.getMyMessages();
+			lastSentMessage="";
+//			String sentTo="";
+			Collections.reverse(myMessages);
+			for(String message: myMessages){
+				if(!message.contains("[")){
+					lastSentMessage = message;
+//					sentTo= lastSentMessage.split(" ")[1];
+					break;
+				}
+			}
+
+			query = new BasicDBObject();
+			query.put("username", sender);
+			query.put("myMessages", lastSentMessage);
+			data = new BasicDBObject();
+			data.put("myMessages.$", "[Recalled] updated message");
+			command = new BasicDBObject();
+			command.put("$set", data);
+
+			col.updateOne(query, command);
+
+
+//			UpdateResult updateResult= col.updateOne(Filters.eq("username", username), Updates.("myMessages"));
+
+
+		}
+	}
+
+
+
+
+
 
 	public static String hashPassword(String password_plaintext) {
 		String salt = BCrypt.gensalt(workload);
@@ -183,4 +253,7 @@ public class UserServicePrattle {
 		return(password_verified);
 	}
 
+	public void clearUserTable(){
+		col.deleteMany(new Document());
+	}
 }
