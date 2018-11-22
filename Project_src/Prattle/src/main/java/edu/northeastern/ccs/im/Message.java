@@ -94,7 +94,9 @@ public class Message {
 		/** Message for history messages */
 		HISTORY_MESSAGE("HMG"),
 		/** Recall last message */
-		RECALL("REC");
+		RECALL("REC"), 
+		/** Notify pending msgs exist */
+		NOTIFY_PENDING("PEN");
 		/** Store the short name of this message type. */
 		private String tla;
 
@@ -323,6 +325,8 @@ public class Message {
 			result = makeUpdateUserMessage(srcName, text);
 		} else if (handle.compareTo(MessageType.HISTORY_MESSAGE.toString()) == 0) {
 			result = makeHistoryMessage(srcName);
+		} else if (handle.compareTo(MessageType.NOTIFY_PENDING.toString()) == 0) {
+		    result = makePendingMsgNotif();
 		}
 		return result;
 
@@ -460,6 +464,15 @@ public class Message {
 	public static Message makeLoginSuccess(String name) {
 		return new Message(MessageType.LOGIN_SUCCESS, name);
 	}
+	
+	/**
+     * Create a new message if pending messages exist
+     * 
+     * @return Instance of Message.
+     */
+    public static Message makePendingMsgNotif() {
+        return new Message(MessageType.NOTIFY_PENDING);
+    }
 
 	/**
 	 * Create a new message to if Login fails

@@ -1,5 +1,13 @@
 package edu.northeastern.ccs.im.chatter;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.Base64;
+
+import javax.imageio.ImageIO;
+
 import edu.northeastern.ccs.im.IMConnection;
 import edu.northeastern.ccs.im.KeyboardScanner;
 import edu.northeastern.ccs.im.Message;
@@ -84,7 +92,9 @@ public class CommandLineMain {
                 if (message.isLoginSuccess() || message.isCreateSuccess())
                     connect.setUsername(message.getSender());
                 if (!message.getSender().equals(connect.getUserName())) {
-                    if (message.isBroadcastMessage())
+                    if(message.isMIME())
+                        decode(message.getText());
+                    else if (message.isBroadcastMessage())
                         System.out.println(ANSI_RED + "[Broadcast] "
                                 + message.getSender() + ": " + message.getText()
                                 + ANSI_RESET);
@@ -104,5 +114,26 @@ public class CommandLineMain {
         }
         System.out.println("Program complete.");
         System.exit(0);
+    }
+    
+    public static void decode(String url) {
+        url = url.substring(3);
+        byte[] imageBytes = Base64.getDecoder().decode(url);
+        BufferedImage img;
+        File outputfile = new File("image.png");
+        try {
+            img = ImageIO.read(new ByteArrayInputStream(imageBytes));
+            int num = 1;
+            while(outputfile.exists()) {
+                outputfile = new File("image" + num++ + ".png");
+            }
+            ImageIO.write(img, "png", outputfile);
+            img.flush();
+            //System.out.println("FILE RECEIVED " + outputfile.getName() + " FROM " + srcName);
+            
+        } catch (IOException e) {
+            //  Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 }

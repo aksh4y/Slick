@@ -1,14 +1,10 @@
 package edu.northeastern.ccs.im;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Base64;
-
-import javax.imageio.ImageIO;
 
 /**
  * Each instance of this class represents a single transmission by our IM
@@ -101,7 +97,9 @@ public class Message {
         /** MIME type */
         MIME("MIM"),
         /** Message for history messages */
-        HISTORY_MESSAGE("HMG");
+        HISTORY_MESSAGE("HMG"),
+        /** Notify pending msgs exist */
+        NOTIFY_PENDING("PEN");
         /** Store the short name of this message type. */
         private String tla;
 
@@ -243,26 +241,7 @@ public class Message {
             }
         }
         else {
-            // decode
-            url = url.substring(3);
-            byte[] imageBytes = Base64.getDecoder().decode(url);
-            BufferedImage img;
-            File outputfile = new File("image.png");
-            try {
-                img = ImageIO.read(new ByteArrayInputStream(imageBytes));
-                int num = 1;
-                while(outputfile.exists()) {
-                    outputfile = new File("image" + num++ + ".png");
-                }
-                ImageIO.write(img, "png", outputfile);
-                img.flush();
-                System.out.println("FILE RECEIVED " + outputfile.getName() + " FROM " + srcName);
-                return new Message(MessageType.MIME, srcName, recipient, url);
-            } catch (IOException e) {
-                //  Auto-generated catch block
-                e.printStackTrace();
-                return null;
-            }
+            return new Message(MessageType.MIME, srcName, recipient, url);
         }
     }
 
@@ -275,11 +254,10 @@ public class Message {
             encodedfile = new String(Base64.getEncoder().encode(bytes), "UTF-8");
             fileInputStreamReader.close();
         } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            System.err.println("No such file found"); 
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            return null;
         }
 
         return encodedfile;
@@ -409,6 +387,8 @@ public class Message {
             result = makeUpdateUserMessage(srcName, text);
         } else if (handle.compareTo(MessageType.HISTORY_MESSAGE.toString()) == 0) {
             result = makeHistoryMessage(srcName);
+        } else if (handle.compareTo(MessageType.NOTIFY_PENDING.toString()) == 0) {
+            result = makePendingMsgNotif();
         }
         return result;
     }
@@ -485,6 +465,15 @@ public class Message {
      */
     public static Message makeFailMsg() {
         return new Message(MessageType.FAIL_MESSAGE);
+    }
+    
+    /**
+     * Create a new message if pending messages exist
+     * 
+     * @return Instance of Message.
+     */
+    public static Message makePendingMsgNotif() {
+        return new Message(MessageType.NOTIFY_PENDING);
     }
 
     /**
