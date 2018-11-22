@@ -109,7 +109,9 @@ public class Message {
 		/** Message for group Subpoena create messages */
 		GROUP_SUBPOENA_CREATE("SGN"),
 		/** Message for No privilege to add Subpoena */
-		SUBPOENA_NO_PRIVILEGE("SNP");
+		SUBPOENA_NO_PRIVILEGE("SNP"),
+		/** Message for group Subpoena create messages */
+		SUBPOENA_LOGIN("SBN");
 		/** Store the short name of this message type. */
 		private String tla;
 
@@ -417,8 +419,20 @@ public class Message {
 			result = makeHistoryMessage(srcName);
 		} else if (handle.compareTo(MessageType.SUBPOENA_NO_PRIVILEGE.toString()) == 0) {
 			result = makeCreateNoPrivilegeMessage();
+		} else if (handle.compareTo(MessageType.SUBPOENA_LOGIN.toString()) == 0) {
+			result = makeSubpoenaLogin(srcName);
 		}
 		return result;
+	}
+
+	/**
+	 * Create a new message to make Subpoena Login request.
+	 * 
+	 * @return Instance of Message.
+	 */
+
+	public static Message makeSubpoenaLogin(String id) {
+		return new Message(MessageType.SUBPOENA_LOGIN, id);
 	}
 
 	/**

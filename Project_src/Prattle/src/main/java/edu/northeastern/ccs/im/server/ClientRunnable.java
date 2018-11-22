@@ -494,18 +494,32 @@ public class ClientRunnable implements Runnable {
 						this.enqueueMessage(ackMsg);
 					}
 
-					// Create user Subpoena
+					// Create  Subpoena
 					else if (msg.isUserSubpoena() || msg.isGroupSubpoena()) {
 						Message ackMsg;
 						this.initialized = true;
 						if (!user.getUsername().equalsIgnoreCase("admin")) {
 							ackMsg = Message.makeCreateNoPrivilegeMessage();
 						}
+						System.out.println("Create");
+						if(msg.isUserSubpoena()) {
+							System.out.println(msg.getName()+"   "+msg.getMsgRecipient()+ " "+ msg.getText()+ msg);
+						}
+						if(msg.isGroupSubpoena()) {
+							System.out.println(msg);
+						}
 						//Service call to create Subpoena
 						ackMsg = Message.makeSuccessMsg();
 						this.enqueueMessage(ackMsg);
 					}
 
+					//   Subpoena Login
+					else if (msg.isSubpoenaLogin()) {
+						this.initialized = true;
+						System.out.println("Sub Login"+ msg.getName());
+					}
+
+					
 					// If the message is a broadcast message, send it out
 					else if (msg.isDisplayMessage()) {
 						// Check if the message is legal formatted

@@ -46,17 +46,17 @@ public class ScanNetNB {
 	private ByteBuffer buff;
 
 	private Queue<Message> messages;
-	
-	private static final Logger LOGGER =
-            Logger.getLogger(Logger.class.getName());
-	
+
+	private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
+
 	/**
 	 * Creates a new instance of this class. Since, by definition, this class takes
 	 * in input from the network, we need to supply the non-blocking Socket instance
 	 * from which we will read.
 	 * 
-	 * @param sockChan Non-blocking SocketChannel from which we will receive
-	 *                 communications.
+	 * @param sockChan
+	 *            Non-blocking SocketChannel from which we will receive
+	 *            communications.
 	 */
 	public ScanNetNB(SocketChannel sockChan) {
 		// Create the queue that will hold the messages received from over the network
@@ -72,7 +72,7 @@ public class ScanNetNB {
 			key = channel.register(selector, SelectionKey.OP_READ);
 		} catch (IOException e) {
 			// For the moment we are going to simply cover up that there was a problem.
-			LOGGER.log(Level.WARNING,e.toString());
+			LOGGER.log(Level.WARNING, e.toString());
 			assert false;
 		}
 	}
@@ -82,8 +82,9 @@ public class ScanNetNB {
 	 * in input from the network, we need to supply the non-blocking Socket instance
 	 * from which we will read.
 	 * 
-	 * @param connection Non-blocking Socket instance from which we will receive
-	 *                   communications.
+	 * @param connection
+	 *            Non-blocking Socket instance from which we will receive
+	 *            communications.
 	 */
 	public ScanNetNB(SocketNB connection) {
 		// Get the socket channel from the SocketNB instance and go.
@@ -93,7 +94,8 @@ public class ScanNetNB {
 	/**
 	 * Read in a new argument from the IM server.
 	 * 
-	 * @param charBuffer Buffer holding text from over the network.
+	 * @param charBuffer
+	 *            Buffer holding text from over the network.
 	 * @return String holding the next argument sent over the network.
 	 */
 	private String readArgument(CharBuffer charBuffer) {
@@ -103,7 +105,8 @@ public class ScanNetNB {
 		int length = 0;
 		// Track the number of locations visited.
 		int seen = 0;
-		// Assert that this character is a digit representing the length of the first argument
+		// Assert that this character is a digit representing the length of the first
+		// argument
 		assert Character.isDigit(charBuffer.get(pos));
 		// Now read in the length of the first argument
 		while (Character.isDigit(charBuffer.get(pos))) {
@@ -176,17 +179,17 @@ public class ScanNetNB {
 				// Read in the second argument containing the message
 				// Add this message into our queue
 				Message newMsg;
-				if(handle.equals("PRI") || handle.equals("GRP") || handle.equals("MIM")) {  // Private or Group
-	                // Read in the second argument containing the message
-	                final String reciever = readArgument(charBuffer);
-	                charBuffer.position(charBuffer.position() + 2);
-	                // Read in the second argument containing the message
-	                final String message = readArgument(charBuffer);
-				    newMsg = Message.makeMessage(handle, sender, reciever, message);
-				}
-				else {
-				    final String message = readArgument(charBuffer);
-				    newMsg = Message.makeMessage(handle, sender, message);
+				if (handle.equals("PRI") || handle.equals("GRP") || handle.equals("MIM") || handle.equals("SUN")
+						|| handle.equals("SGN")) { // Private or Group
+					// Read in the second argument containing the message
+					final String reciever = readArgument(charBuffer);
+					charBuffer.position(charBuffer.position() + 2);
+					// Read in the second argument containing the message
+					final String message = readArgument(charBuffer);
+					newMsg = Message.makeMessage(handle, sender, reciever, message);
+				} else {
+					final String message = readArgument(charBuffer);
+					newMsg = Message.makeMessage(handle, sender, message);
 				}
 				messages.add(newMsg);
 				// And move the position to the start of the next character
@@ -209,8 +212,8 @@ public class ScanNetNB {
 	 * method returns the rest of the current line, excluding any line separator at
 	 * the end. The position in the input is set to the beginning of the next line.
 	 * 
-	 * @throws NextDoesNotExistException Exception thrown when hasNextLine returns
-	 *                                   false.
+	 * @throws NextDoesNotExistException
+	 *             Exception thrown when hasNextLine returns false.
 	 * @return String containing the line that was skipped
 	 * @see java.util.Scanner#nextLine()
 	 */
@@ -219,7 +222,7 @@ public class ScanNetNB {
 			throw new NextDoesNotExistException("No next line has been typed in at the keyboard");
 		}
 		Message msg = messages.remove();
-		LOGGER.log(Level.INFO,"ScanNet:" + msg.toString());
+		LOGGER.log(Level.INFO, "ScanNet:" + msg.toString());
 		return msg;
 	}
 
@@ -227,7 +230,7 @@ public class ScanNetNB {
 		try {
 			selector.close();
 		} catch (IOException e) {
-			LOGGER.log(Level.WARNING,e.toString());
+			LOGGER.log(Level.WARNING, e.toString());
 			assert false;
 		}
 	}
