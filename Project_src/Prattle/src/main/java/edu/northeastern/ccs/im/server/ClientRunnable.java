@@ -112,9 +112,8 @@ public class ClientRunnable implements Runnable {
 	private User user;
 
 	private MongoDatabase db;
-	
-	private final static Logger LOGGER =
-            Logger.getLogger(Logger.class.getName());
+
+	private final static Logger LOGGER = Logger.getLogger(Logger.class.getName());
 
 	/**
 	 * Create a new thread with which we will communicate with this single client.
@@ -364,12 +363,12 @@ public class ClientRunnable implements Runnable {
 					}
 					// Handle MIME messages
 					else if (msg.isMIME()) {
-					    String m = "File Sent To " + msg.getMsgRecipient();
-                        userService.addToMyMessages(user, m); // sender's copy
-                        User recipient = userService.findUserByUsername(msg.getMsgRecipient());
-                        m = "File Received From " + user.getUsername();
-                        userService.addToMyMessages(recipient, m); // receiver's copy
-                        Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
+						String m = "File Sent To " + msg.getMsgRecipient();
+						userService.addToMyMessages(user, m); // sender's copy
+						User recipient = userService.findUserByUsername(msg.getMsgRecipient());
+						m = "File Received From " + user.getUsername();
+						userService.addToMyMessages(recipient, m); // receiver's copy
+						Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
 					}
 					// If it is create user message
 					else if (msg.isUserCreate()) {
@@ -495,6 +494,18 @@ public class ClientRunnable implements Runnable {
 						this.enqueueMessage(ackMsg);
 					}
 
+					// Create user Subpoena
+					else if (msg.isUserSubpoena() || msg.isGroupSubpoena()) {
+						Message ackMsg;
+						this.initialized = true;
+						if (!user.getUsername().equalsIgnoreCase("admin")) {
+							ackMsg = Message.makeCreateNoPrivilegeMessage();
+						}
+						//Service call to create Subpoena
+						ackMsg = Message.makeSuccessMsg();
+						this.enqueueMessage(ackMsg);
+					}
+
 					// If the message is a broadcast message, send it out
 					else if (msg.isDisplayMessage()) {
 						// Check if the message is legal formatted
@@ -557,7 +568,7 @@ public class ClientRunnable implements Runnable {
 				terminate |= !keepAlive;
 			} catch (JsonProcessingException e) {
 				// TODO Auto-generated catch block
-				LOGGER.log(Level.SEVERE,e.toString());				
+				LOGGER.log(Level.SEVERE, e.toString());
 			} finally {
 				// When it is appropriate, terminate the current client.
 				if (terminate) {
@@ -614,7 +625,7 @@ public class ClientRunnable implements Runnable {
 			socket.close();
 		} catch (IOException e) {
 			// If we have an IOException, ignore the problem
-			LOGGER.log(Level.WARNING,e.toString());
+			LOGGER.log(Level.WARNING, e.toString());
 		} finally {
 			// Remove the client from our client listing.
 			Prattle.removeClient(this);

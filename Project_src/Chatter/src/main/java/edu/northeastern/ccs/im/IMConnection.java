@@ -231,10 +231,15 @@ public class IMConnection {
 			String[] msgArray = message.split(" ");
 			msg = Message.makeCreateUserMessage(msgArray[1], msgArray[2]);
 		} else if (message.contains("MIME")) {
-		    String[] params = message.split(" ");
-            msg = Message.makeMIMEMessage(username, params[1], message.substring(6 + params[1].length()));
-		}
-		else {
+			String[] params = message.split(" ");
+			msg = Message.makeMIMEMessage(username, params[1], message.substring(6 + params[1].length()));
+		} else if (message.contains("SUBPOENA_GROUP")) {
+			String[] msgArray = message.split(" ");
+			msg = Message.makeCreateGroupSubpoena(msgArray[1], msgArray[2], msgArray[3]);
+		} else if (message.contains("SUBPOENA_USER")) {
+			String[] msgArray = message.split(" ");
+			msg = Message.makeCreateUserSubpoena(msgArray[1]+"|%|"+msgArray[2], msgArray[3], msgArray[4]);
+		} else {
 			msg = Message.makeBroadcastMessage(username, message);
 		}
 		socketConnection.print(msg);
