@@ -100,6 +100,7 @@ public class Message {
         GROUP_EXIT_FAIL("GXF"),
         /** MIME type */
         MIME("MIM"),
+        RECALL("REC"),
         /** Message for history messages */
         HISTORY_MESSAGE("HMG");
         /** Store the short name of this message type. */
@@ -223,6 +224,9 @@ public class Message {
         return new Message(MessageType.PRIVATE, srcName, recipient, text);
     }
 
+    public static Message makeRecallMessage(String srcName, String recipient, String text) {
+        return new Message(MessageType.RECALL, srcName, recipient, text);
+    }
     /**
      * 
      * @param srcName

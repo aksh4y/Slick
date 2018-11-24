@@ -233,6 +233,9 @@ public class IMConnection {
 		} else if (message.contains("MIME")) {
 		    String[] params = message.split(" ");
             msg = Message.makeMIMEMessage(username, params[1], message.substring(6 + params[1].length()));
+		}else if (message.contains("RECALL")) {
+			String[] params = message.split(" ");
+			msg = Message.makeRecallMessage(username, params[2].toLowerCase(), params[1].toLowerCase());
 		}
 		else {
 			msg = Message.makeBroadcastMessage(username, message);
