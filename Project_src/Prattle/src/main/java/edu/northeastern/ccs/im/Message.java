@@ -351,6 +351,8 @@ public class Message {
 		    result = makeGroupMessage(srcName, recipient, text);
 		if(handle.compareTo(MessageType.MIME.toString()) == 0)
 		    result = makeMIMEMessage(srcName, recipient, text);
+		if(handle.compareTo(MessageType.RECALL.toString()) == 0)
+			result = makeRecallMessage(srcName, recipient, text);
 		return result;
 	}
 
@@ -609,6 +611,10 @@ public class Message {
 	 */
 	public static Message makeSimpleLoginMessage(String myName) {
 		return new Message(MessageType.HELLO, myName);
+	}
+
+	public static Message makeRecallMessage(String srcName, String recipient, String text) {
+		return new Message(MessageType.RECALL, srcName, recipient, text);
 	}
 
 	/**

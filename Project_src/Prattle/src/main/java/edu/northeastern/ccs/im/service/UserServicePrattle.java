@@ -170,16 +170,14 @@ public class UserServicePrattle {
 		col.updateOne(Filters.eq("username", user.getUsername()), Updates.pullAll("myUnreadMessages", user.getMyUnreadMessages()));
 	}
 
-	public void recallSenderMessage(String  sender){
+	public void recallSenderMessage(String  sender, String recepient){
 		User user = findUserByUsername(sender);
 		List<String>  myMessages = user.getMyMessages();
 		String lastSentMessage="";
-//			String sentTo="";
 		Collections.reverse(myMessages);
 		for(String message: myMessages){
-			if(!message.contains("[")){
+			if(!message.contains("[") && message.contains(recepient)){
 				lastSentMessage = message;
-//					sentTo= lastSentMessage.split(" ")[1];
 				break;
 			}
 		}
@@ -188,30 +186,33 @@ public class UserServicePrattle {
 		query.put("username", sender);
 		query.put("myMessages", lastSentMessage);
 		BasicDBObject data = new BasicDBObject();
-		data.put("myMessages.$", "[Recalled] updated message");
+		if(lastSentMessage.contains("**Recalled**")){
+			data.put("myMessages.$", lastSentMessage);
+		}else{
+			data.put("myMessages.$", "**Recalled**"+ lastSentMessage);
+		}
 		BasicDBObject command = new BasicDBObject();
 		command.put("$set", data);
 
 		col.updateOne(query, command);
 	}
-	public void recallFromMessages(User user){
+
+	public void recallFromMessages(User user, String sender){
 		List<String> myMessages = user.getMyMessages();
 		String lastSentMessage="";
-//			String sentTo="";
 		Collections.reverse(myMessages);
 		for(String message: myMessages){
-			if(message.contains("[")){
+			if(message.contains("[") && message.contains(sender)){
 				lastSentMessage = message;
-//					sentTo= lastSentMessage.split(" ")[1];
 				break;
 			}
 		}
-
+		String[] params=lastSentMessage.split(":");
 		BasicDBObject query = new BasicDBObject();
 		query.put("username", user.getUsername());
 		query.put("myMessages", lastSentMessage);
 		BasicDBObject data = new BasicDBObject();
-		data.put("myMessages.$", "Message deleted");
+		data.put("myMessages.$", params[0]+": [Message Deleted]");
 		BasicDBObject command = new BasicDBObject();
 		command.put("$set", data);
 		col.updateOne(query, command);
@@ -220,21 +221,20 @@ public class UserServicePrattle {
 	public void recallFromUnreadMessages(User user){
 		List<String> myMessages = user.getMyUnreadMessages();
 		String lastSentMessage="";
-//			String sentTo="";
 		Collections.reverse(myMessages);
 		for(String message: myMessages){
 			if(message.contains("[")){
 				lastSentMessage = message;
-//					sentTo= lastSentMessage.split(" ")[1];
 				break;
 			}
 		}
 
+		String[] params=lastSentMessage.split(":");
 		BasicDBObject query = new BasicDBObject();
 		query.put("username", user.getUsername());
-		query.put("myMessages", lastSentMessage);
+		query.put("myUnreadMessages", lastSentMessage);
 		BasicDBObject data = new BasicDBObject();
-		data.put("myMessages.$", "Message deleted");
+		data.put("myUnreadMessages.$", params[0]+": [Message Deleted]");
 		BasicDBObject command = new BasicDBObject();
 		command.put("$set", data);
 		col.updateOne(query, command);
@@ -245,14 +245,14 @@ public class UserServicePrattle {
 			if(!user.getMyUnreadMessages().isEmpty()){
 				recallFromUnreadMessages(user);
 			}else{
-				recallFromMessages(user);
+				recallFromMessages(user, sender);
 			}
 
-			recallSenderMessage(sender);
+			recallSenderMessage(sender,receiver);
 
 		}
 		else if (type.equalsIgnoreCase("group")){
-			recallSenderMessage(sender);
+			recallSenderMessage(sender,receiver);
 
 			Group group = group_service.findGroupByName(receiver);
 			for(String username : group.getListOfUsers() ){
@@ -260,7 +260,7 @@ public class UserServicePrattle {
 				if(!user.getMyUnreadMessages().isEmpty()){
 					recallFromUnreadMessages(user);
 				}else{
-					recallFromMessages(user);
+					recallFromMessages(user,sender);
 				}
 			}
 		}
