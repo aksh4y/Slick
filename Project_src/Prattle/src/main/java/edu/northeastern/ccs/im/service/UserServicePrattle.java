@@ -170,57 +170,99 @@ public class UserServicePrattle {
 		col.updateOne(Filters.eq("username", user.getUsername()), Updates.pullAll("myUnreadMessages", user.getMyUnreadMessages()));
 	}
 
+	public void recallSenderMessage(String  sender){
+		User user = findUserByUsername(sender);
+		List<String>  myMessages = user.getMyMessages();
+		String lastSentMessage="";
+//			String sentTo="";
+		Collections.reverse(myMessages);
+		for(String message: myMessages){
+			if(!message.contains("[")){
+				lastSentMessage = message;
+//					sentTo= lastSentMessage.split(" ")[1];
+				break;
+			}
+		}
+
+		BasicDBObject query = new BasicDBObject();
+		query.put("username", sender);
+		query.put("myMessages", lastSentMessage);
+		BasicDBObject data = new BasicDBObject();
+		data.put("myMessages.$", "[Recalled] updated message");
+		BasicDBObject command = new BasicDBObject();
+		command.put("$set", data);
+
+		col.updateOne(query, command);
+	}
+	public void recallFromMessages(User user){
+		List<String> myMessages = user.getMyMessages();
+		String lastSentMessage="";
+//			String sentTo="";
+		Collections.reverse(myMessages);
+		for(String message: myMessages){
+			if(message.contains("[")){
+				lastSentMessage = message;
+//					sentTo= lastSentMessage.split(" ")[1];
+				break;
+			}
+		}
+
+		BasicDBObject query = new BasicDBObject();
+		query.put("username", user.getUsername());
+		query.put("myMessages", lastSentMessage);
+		BasicDBObject data = new BasicDBObject();
+		data.put("myMessages.$", "Message deleted");
+		BasicDBObject command = new BasicDBObject();
+		command.put("$set", data);
+		col.updateOne(query, command);
+	}
+
+	public void recallFromUnreadMessages(User user){
+		List<String> myMessages = user.getMyUnreadMessages();
+		String lastSentMessage="";
+//			String sentTo="";
+		Collections.reverse(myMessages);
+		for(String message: myMessages){
+			if(message.contains("[")){
+				lastSentMessage = message;
+//					sentTo= lastSentMessage.split(" ")[1];
+				break;
+			}
+		}
+
+		BasicDBObject query = new BasicDBObject();
+		query.put("username", user.getUsername());
+		query.put("myMessages", lastSentMessage);
+		BasicDBObject data = new BasicDBObject();
+		data.put("myMessages.$", "Message deleted");
+		BasicDBObject command = new BasicDBObject();
+		command.put("$set", data);
+		col.updateOne(query, command);
+	}
 	public void getLastSentMessage(String type, String sender, String receiver) {
 		if(type.equalsIgnoreCase("user")){
 			User user = findUserByUsername(receiver);
-			List<String> myMessages = user.getMyMessages();
-			String lastSentMessage="";
-//			String sentTo="";
-			Collections.reverse(myMessages);
-			for(String message: myMessages){
-				if(message.contains("[")){
-					lastSentMessage = message;
-//					sentTo= lastSentMessage.split(" ")[1];
-					break;
-				}
+			if(!user.getMyUnreadMessages().isEmpty()){
+				recallFromUnreadMessages(user);
+			}else{
+				recallFromMessages(user);
 			}
 
-			BasicDBObject query = new BasicDBObject();
-			query.put("username", receiver);
-			query.put("myMessages", lastSentMessage);
-			BasicDBObject data = new BasicDBObject();
-			data.put("myMessages.$", "Message deleted");
-			BasicDBObject command = new BasicDBObject();
-			command.put("$set", data);
-			col.updateOne(query, command);
+			recallSenderMessage(sender);
 
-			user = findUserByUsername(sender);
-			myMessages = user.getMyMessages();
-			lastSentMessage="";
-//			String sentTo="";
-			Collections.reverse(myMessages);
-			for(String message: myMessages){
-				if(!message.contains("[")){
-					lastSentMessage = message;
-//					sentTo= lastSentMessage.split(" ")[1];
-					break;
+		}
+		else if (type.equalsIgnoreCase("group")){
+			recallSenderMessage(sender);
+
+			Group group = group_service.findGroupByName(receiver);
+			for(String username : group.getListOfUsers() ){
+				User user = findUserByUsername(username);
+				if(!user.getMyUnreadMessages().isEmpty()){
+					recallFromUnreadMessages(user);
+				}else{
+					recallFromMessages(user);
 				}
 			}
-
-			query = new BasicDBObject();
-			query.put("username", sender);
-			query.put("myMessages", lastSentMessage);
-			data = new BasicDBObject();
-			data.put("myMessages.$", "[Recalled] updated message");
-			command = new BasicDBObject();
-			command.put("$set", data);
-
-			col.updateOne(query, command);
-
-
-//			UpdateResult updateResult= col.updateOne(Filters.eq("username", username), Updates.("myMessages"));
-
-
 		}
 	}
 
