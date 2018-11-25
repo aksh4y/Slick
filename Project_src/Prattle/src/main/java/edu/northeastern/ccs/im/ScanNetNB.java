@@ -182,7 +182,7 @@ public class ScanNetNB {
 	                charBuffer.position(charBuffer.position() + 2);
 	                // Read in the second argument containing the message
 	                final String message = readArgument(charBuffer);
-				    newMsg = Message.makeMessage(handle, sender, reciever, message);
+	                newMsg = Message.makeMessage(handle, sender, reciever, message);
 				}
 				else {
 				    final String message = readArgument(charBuffer);
@@ -219,7 +219,6 @@ public class ScanNetNB {
 			throw new NextDoesNotExistException("No next line has been typed in at the keyboard");
 		}
 		Message msg = messages.remove();
-		LOGGER.log(Level.INFO,"ScanNet:" + msg.toString());
 		return msg;
 	}
 

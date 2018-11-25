@@ -68,7 +68,7 @@ public class PrintNetNB {
 	 */
 	public boolean print(Message msg) {
 		String str = msg.toString();
-		ByteBuffer wrapper = ByteBuffer.wrap(str.getBytes());
+		ByteBuffer wrapper = ByteBuffer.wrap(str.getBytes());        
 		int bytesWritten = 0;
 		int attemptsRemaining = MAXIMUM_TRIES_SENDING;
 		while (wrapper.hasRemaining() && (attemptsRemaining > 0)) {
@@ -77,6 +77,7 @@ public class PrintNetNB {
 				bytesWritten += channel.write(wrapper);
 			} catch (IOException e) {
 				// Show that this was unsuccessful
+			    LOGGER.log(Level.SEVERE, "Something went wrong.");
 				return false;
 			}
 		}

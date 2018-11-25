@@ -346,9 +346,7 @@ public class ClientRunnable implements Runnable {
                     else if (msg.isGroupMessage()) {
                         String groupName = msg.getMsgRecipient();
                         Group group = groupService.findGroupByName(groupName);
-                        if (group == null || !group.getListOfUsers().contains(msg.getName())) { // group does not exist
-                            // or user not part of
-                            // group
+                        if (group == null || !group.getListOfUsers().contains(msg.getName())) { // group does not exist or user not part of group
                             Message failMsg = Message.makeGroupNotExist();
                             this.enqueueMessage(failMsg);
                         } else {
@@ -356,9 +354,8 @@ public class ClientRunnable implements Runnable {
                             userService.addToMyMessages(user, m); // sender's copy
                             m = "[" + user.getUsername() + "@" + msg.getMsgRecipient() + "] " + msg.getText();
                             for (String recipient : group.getListOfUsers()) {
-                                //User r = userService.findUserByUsername(recipient);
-                                //userService.addToMyMessages(r, m); // receiver's copy
-                                Prattle.broadcastPrivateMessage(msg, recipient, m);
+                                if(recipient != name)   // don't re- send to sender
+                                    Prattle.broadcastPrivateMessage(msg, recipient, m);
                             }
                         }
                     }
@@ -366,9 +363,7 @@ public class ClientRunnable implements Runnable {
                     else if (msg.isMIME()) {
                         String m = "File Sent To " + msg.getMsgRecipient();
                         userService.addToMyMessages(user, m); // sender's copy
-                        //User recipient = userService.findUserByUsername(msg.getMsgRecipient());
                         m = "File Received From " + user.getUsername();
-                        //userService.addToMyMessages(recipient, m); // receiver's copy
                         Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient(), m);
                     }
                     // If it is create user message
