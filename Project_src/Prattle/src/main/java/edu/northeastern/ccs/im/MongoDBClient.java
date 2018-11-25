@@ -11,7 +11,9 @@ import com.mongodb.client.MongoDatabase;
 
 import edu.northeastern.ccs.im.MongoDB.Model.User;
 
+import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -26,7 +28,9 @@ public class MongoDBClient {
         GroupServicePrattle grpService = new GroupServicePrattle(db);
 //        cleanDB(db);
 //        clearUnreadMessages(db);
-        createSubpoena(db);
+//        createSubpoena(db);
+//        querySubpoena(db);
+        getActiveSubpoenas(db);
 
 //        userService.getLastSentMessage("user", "peter", "akshay");
 
@@ -40,10 +44,26 @@ public class MongoDBClient {
 
 
     }
+    public static void getActiveSubpoenas(MongoDatabase db){
+        SubpoenaServicePrattle subService = new SubpoenaServicePrattle(db);
+        List<Subpoena> s=subService.getActiveSubpoenas();
 
+    }
+
+    public static void querySubpoena(MongoDatabase db){
+        SubpoenaServicePrattle subService = new SubpoenaServicePrattle(db);
+        Subpoena s=subService.querySubpoenaById("5bfa1c590b5f9d231e0fa986");
+
+    }
     public static void createSubpoena (MongoDatabase db) throws JsonProcessingException{
         SubpoenaServicePrattle subService = new SubpoenaServicePrattle(db);
-        Subpoena s= subService.createSubpoena("peter","nipun","", Date.from(Instant.now()), Date.from(Instant.now()));
+//        new SimpleDateFormat("yyyy-MM-dd").format(
+        Subpoena s1= subService.createSubpoena("peter","nipun","",
+                LocalDate.of(2018,12,7),
+                LocalDate.of(2018,12,9));
+        Subpoena s2= subService.createSubpoena("peter","akshay","",
+                LocalDate.of(2018,11,9),
+                LocalDate.of(2018,12,9));
     }
     public static void clearUnreadMessages(MongoDatabase db) throws JsonProcessingException{
         UserServicePrattle userService = new UserServicePrattle(db);
