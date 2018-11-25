@@ -176,7 +176,7 @@ public class UserServicePrattle {
 		String lastSentMessage="";
 		Collections.reverse(myMessages);
 		for(String message: myMessages){
-			if(!message.contains("[") && message.contains(recepient)){
+			if(message.contains(recepient)){ //TODO bad check
 				lastSentMessage = message;
 				break;
 			}
@@ -255,7 +255,9 @@ public class UserServicePrattle {
 			recallSenderMessage(sender,receiver);
 
 			Group group = group_service.findGroupByName(receiver);
-			for(String username : group.getListOfUsers() ){
+			List<String> listOfUsers= group.getListOfUsers();
+			listOfUsers.remove(sender);
+			for(String username : listOfUsers ){
 				User user = findUserByUsername(username);
 				if(!user.getMyUnreadMessages().isEmpty()){
 					recallFromUnreadMessages(user);

@@ -27,11 +27,11 @@ public class SubpoenaServicePrattle {
     }
 
     public Subpoena createSubpoena(String username1, String username2, String groupName, Date fromDate, Date toDate) {
-
-        User user1 =  userService.findUserByUsername(username1);
-        User user2 =  userService.findUserByUsername(username2);
-        Group group = groupService.findGroupByName(groupName);
-        Subpoena subpoena = new Subpoena(user1,user2,group,fromDate,toDate);
+        //TODO send ID back, change to username
+//        User user1 =  userService.findUserByUsername(username1);
+//        User user2 =  userService.findUserByUsername(username2);
+//        Group group = groupService.findGroupByName(groupName);
+        Subpoena subpoena = new Subpoena(username1,username2,groupName,fromDate,toDate);
         insertSubpoena(subpoena);
         return subpoena;
     }
@@ -40,4 +40,6 @@ public class SubpoenaServicePrattle {
         String json =gson.toJson(subpoena);
         scol.insertOne(Document.parse(json));
     }
+
+    //TODO  methods 1.find based on ID login [return object] 2.check active subpoena [return object] 3.
 }
