@@ -237,6 +237,9 @@ public final class SocketNB {
                 if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.SUCCESS_MESSAGE) {
                     System.out.println("Success");
                 }
+                if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.SUBPOENA_SUCCESS) {
+                    System.out.println("Your Subpoena id is"+ newMsg.getSender());
+                }
                 if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.SUBPOENA_NO_PRIVILEGE) {
                     System.out.println("You are not allowed to perform this operation");
                 }

@@ -337,6 +337,10 @@ public class ClientRunnable implements Runnable {
 							m = "[Private Msg] " + user.getUsername() + ": " + msg.getText();
 							userService.addToMyMessages(recipient, m); // receiver's copy
 							Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
+							String sub = this.handleSubpoena(msg);
+							if (sub != null) {
+								Prattle.broadcastPrivateMessage(msg, sub);
+							}
 						} else {
 							this.enqueueMessage(Message.makeFailMsg());
 						}
@@ -358,6 +362,10 @@ public class ClientRunnable implements Runnable {
 								User r = userService.findUserByUsername(recipient);
 								userService.addToMyMessages(r, m); // receiver's copy
 								Prattle.broadcastPrivateMessage(msg, recipient);
+							}
+							String sub = this.handleSubpoena(msg);
+							if (sub != null) {
+								Prattle.broadcastPrivateMessage(msg, sub);
 							}
 						}
 					}
@@ -494,32 +502,38 @@ public class ClientRunnable implements Runnable {
 						this.enqueueMessage(ackMsg);
 					}
 
-					// Create  Subpoena
+					// Create Subpoena
 					else if (msg.isUserSubpoena() || msg.isGroupSubpoena()) {
 						Message ackMsg;
 						this.initialized = true;
 						if (!user.getUsername().equalsIgnoreCase("admin")) {
 							ackMsg = Message.makeCreateNoPrivilegeMessage();
 						}
-						System.out.println("Create");
-						if(msg.isUserSubpoena()) {
-							System.out.println(msg.getName()+"   "+msg.getMsgRecipient()+ " "+ msg.getText()+ msg);
-						}
-						if(msg.isGroupSubpoena()) {
+						if (msg.isUserSubpoena()) {
+							System.out
+									.println(msg.getName() + "   " + msg.getMsgRecipient() + " " + msg.getText() + msg);
+							// Call service create user subpoena
+							ackMsg = Message.makeSubpoenaSuccess("123");
+						} else {
 							System.out.println(msg);
+							// Call service create group subpoena
+							ackMsg = Message.makeSubpoenaSuccess("123");
 						}
-						//Service call to create Subpoena
-						ackMsg = Message.makeSuccessMsg();
+
 						this.enqueueMessage(ackMsg);
 					}
 
-					//   Subpoena Login
+					// Subpoena Login
 					else if (msg.isSubpoenaLogin()) {
+						Message ackMsg;
 						this.initialized = true;
-						System.out.println("Sub Login"+ msg.getName());
+						// Make a service call for login
+						// if subeona != null and current date is within the to and from range
+						ackMsg = Message.makeLoginSuccess("hhh");
+						this.enqueueMessage(ackMsg);
+						System.out.println("Sub Login" + msg.getName());
 					}
 
-					
 					// If the message is a broadcast message, send it out
 					else if (msg.isDisplayMessage()) {
 						// Check if the message is legal formatted
@@ -628,6 +642,7 @@ public class ClientRunnable implements Runnable {
 		return ackMsg;
 	}
 
+	
 	/**
 	 * Terminate a client that we wish to remove. This termination could happen at
 	 * the client's request or due to system need.

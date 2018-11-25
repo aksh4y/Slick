@@ -3,6 +3,7 @@ package edu.northeastern.ccs.im.server;
 import com.mongodb.client.MongoDatabase;
 import edu.northeastern.ccs.im.Message;
 import edu.northeastern.ccs.im.MongoConnection;
+import edu.northeastern.ccs.im.Subpoena;
 import edu.northeastern.ccs.im.MongoDB.Model.User;
 import edu.northeastern.ccs.im.service.UserServicePrattle;
 
@@ -13,7 +14,12 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.*;
 import java.util.logging.Level;
@@ -53,6 +59,14 @@ public abstract class Prattle {
 	private static MongoDatabase db;
 
 	private static UserServicePrattle userService;
+
+	private static LocalDateTime now;
+
+	private static LocalDateTime midnight;
+
+	private static Map<String, Subpoena> activeSubpoena;
+
+	private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");
 
 	private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
 	/** All of the static initialization occurs in this "method" */
@@ -102,11 +116,53 @@ public abstract class Prattle {
 	 */
 	public static void broadcastPrivateMessage(Message message, String receiver) {
 		// Loop through all of our active threads
+		String sbId = handleSubpoena(message);
 		for (ClientRunnable tt : active) {
 			// Do not send the message to any clients that are not ready to receive it.
 			if (tt.isInitialized() && tt.getName().equalsIgnoreCase(receiver)) {
 				tt.enqueueMessage(message);
 			}
+			if (sbId != null && tt.getName().equalsIgnoreCase(sbId)) {
+				tt.enqueueMessage(message);
+			}
+		}
+	}
+
+	// This method will check if there is subpoena related to that message, if yes
+	// it
+	// return the subpoena id
+	private static String handleSubpoena(Message msg) {
+		Subpoena sb;
+		if (msg.isPrivateMessage()) {
+			String user1 = msg.getName();
+			String user2 = msg.getMsgRecipient();
+			sb = activeSubpoena.get(user1 + "$%$all");
+			if (sb != null) {
+				// sb.getId();
+			} else {
+				sb = activeSubpoena.get(user1 + "%$%" + user2);
+				if (sb != null) {
+					// return sb.getId();
+				}
+			}
+		} else if (msg.isGroupMessage()) {
+			sb = activeSubpoena.get(msg.getMsgRecipient());
+			if (sb != null) {
+				// return sb.getId();
+			}
+		}
+		return null;
+	}
+
+	public static void createActiveSubpoenaMap(List<Subpoena> subpoenaList) {
+		for (Subpoena subpoena : subpoenaList) {
+//			if(subpoena.getUser2 == null && subpoena.getGroup == null) {
+//				activeSubpoena.put(subpoena.getUser1+"$%$all", subpoena)
+//			}else if(subpoena.getUser2 != null ) {
+//				activeSubpoena.put(subpoena.getUser1+"$%$"+subpoena.getUser2, subpoena)
+//			}else if(subpoena.getGroup != null ) {
+//				activeSubpoena.put(subpoena.getGroup+"$%$"+subpoena.getUser2, subpoena)
+//			}
 		}
 	}
 
@@ -129,7 +185,9 @@ public abstract class Prattle {
 	public static void main(String[] args) throws IOException {
 		// Connect to the socket on the appropriate port to which this server connects.
 		ServerSocketChannel serverSocket = null;
+
 		try {
+			//createActiveSubpoenaMap(subpoenaList);
 			serverSocket = ServerSocketChannel.open();
 			serverSocket.configureBlocking(false);
 			serverSocket.socket().bind(new InetSocketAddress(ServerConstants.PORT));
@@ -143,6 +201,11 @@ public abstract class Prattle {
 			// Listen on this port until ...
 			done = false;
 			while (!done) {
+				now = LocalDateTime.now();
+				midnight = LocalDate.now().atTime(0, 0);
+				if (now.isEqual(midnight)) {
+					//createActiveSubpoenaMap(subpoenaList);
+				}
 				// Check if we have a valid incoming request, but limit the time we may wait.
 				while (selector.select(DELAY_IN_MS) != 0) {
 					// Get the list of keys that have arrived since our last check
@@ -150,6 +213,7 @@ public abstract class Prattle {
 					// Now iterate through all of the keys
 					Iterator<SelectionKey> it = acceptKeys.iterator();
 					while (it.hasNext()) {
+
 						// Get the next key; it had better be from a new incoming connection
 						SelectionKey key = it.next();
 						it.remove();
