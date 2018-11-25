@@ -354,7 +354,7 @@ public class ClientRunnable implements Runnable {
                             userService.addToMyMessages(user, m); // sender's copy
                             m = "[" + user.getUsername() + "@" + msg.getMsgRecipient() + "] " + msg.getText();
                             for (String recipient : group.getListOfUsers()) {
-                                if(recipient != name)   // don't re- send to sender
+                                if(!recipient.equals(user.getUsername()))   // don't re- send to sender
                                     Prattle.broadcastPrivateMessage(msg, recipient, m);
                             }
                         }
