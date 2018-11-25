@@ -34,7 +34,17 @@ public class CommandLineMain {
      * @param args
      *            Command-line arguments which we ignore
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
+        HashSet<String> vulgar = new HashSet<>();
+        BufferedReader file = new BufferedReader(new FileReader("Pc.txt"));
+
+        String word = file.readLine();
+
+        while (word!=null){
+            vulgar.add(word);
+            word = file.readLine();
+        }
+
         IMConnection connect;
         do {
             // Prompt the user to type in a username.
@@ -73,7 +83,7 @@ public class CommandLineMain {
                                     + "\nCREATE_USER <username> <password>\tLOGIN_USER <username> <password>\n\nUPDATE_PASSWORD <current password> <new password>\tDELETE_USER <password>\n\n"
                                     + "PRIVATE <username> <message>\tBROADCAST <message>\tGROUP <group name> <message>\tMIME <username> <file path>\n\n"
                                     + "CREATE_GROUP <group name>\tJOIN_GROUP <group name>\tEXIT_GROUP <group name> \tDELETE_GROUP <group name>");
-                }else if (checkVulgar(line)){
+                }else if (checkVulgar(line, vulgar)){
                     System.out.println("Inappropriate Message");
                 }
                 else {
@@ -116,26 +126,11 @@ public class CommandLineMain {
 
     }
 
-    private static boolean checkVulgar(String line) {
-        try {
-            HashSet<String> vulgar = new HashSet<>();
-            BufferedReader file = new BufferedReader(new FileReader("Pc.txt"));
-
-            String word = file.readLine();
-
-            while (word!=null){
-                vulgar.add(word);
-                word = file.readLine();
+    private static boolean checkVulgar(String line, HashSet<String> vulgar) {
+        for (String  s: line.split(" ")) {
+            if(vulgar.contains(s)){
+                return true;
             }
-
-            for (String  s: line.split(" ")) {
-                if(vulgar.contains(s)){
-                    return true;
-                }
-            }
-            return false;
-        }catch (IOException e){
-            e.printStackTrace();
         }
         return false;
     }
