@@ -11,12 +11,9 @@ import com.mongodb.client.MongoDatabase;
 
 import edu.northeastern.ccs.im.MongoDB.Model.User;
 
-import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 
@@ -31,16 +28,6 @@ public class MongoDBClient {
 //        createSubpoena(db);
 //        querySubpoena(db);
         getActiveSubpoenas(db);
-
-//        userService.getLastSentMessage("user", "peter", "akshay");
-
-//        userService.getLastSentMessage("user","akshay");
-
-
-//        userService.addToMyMessages(user, "confirm last message");
-//        user = userService.findUserByUsername("peter");
-//        System.out.println(user.getMyMessages().get(user.getMyMessages().size()-1));
-
 
 
     }
@@ -57,7 +44,6 @@ public class MongoDBClient {
     }
     public static void createSubpoena (MongoDatabase db) throws JsonProcessingException{
         SubpoenaServicePrattle subService = new SubpoenaServicePrattle(db);
-//        new SimpleDateFormat("yyyy-MM-dd").format(
         Subpoena s1= subService.createSubpoena("peter","nipun","",
                 LocalDate.of(2018,12,7),
                 LocalDate.of(2018,12,9));

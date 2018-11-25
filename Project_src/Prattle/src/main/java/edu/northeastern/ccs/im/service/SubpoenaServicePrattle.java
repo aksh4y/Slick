@@ -2,43 +2,29 @@ package edu.northeastern.ccs.im.service;
 
 
 import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Filters;
-import edu.northeastern.ccs.im.MongoDB.Model.Group;
 import edu.northeastern.ccs.im.MongoDB.Model.Subpoena;
-import edu.northeastern.ccs.im.MongoDB.Model.User;
 
 import org.bson.Document;
 import com.google.gson.Gson;
 import org.bson.types.ObjectId;
 
-import javax.print.attribute.standard.MediaSize;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class SubpoenaServicePrattle {
     private MongoCollection<Document> scol;
-    private MongoDatabase db;
     private Gson gson;
-    private GroupServicePrattle groupService;
-    private UserServicePrattle userService;
 
     public SubpoenaServicePrattle(MongoDatabase db) {
-        this.db = db;
         scol = db.getCollection("Subpoenas");
         gson = new Gson();
-        userService = new UserServicePrattle(db);
-        groupService = new GroupServicePrattle(db);
     }
 
     public Subpoena createSubpoena(String username1, String username2, String groupName, LocalDate fromDate, LocalDate toDate) {
-        //TODO send ID back, change to username
         Subpoena subpoena = new Subpoena(username1,username2,groupName,fromDate,toDate);
         insertSubpoena(subpoena);
 
