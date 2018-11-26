@@ -11,10 +11,10 @@ import com.mongodb.client.MongoDatabase;
 
 import edu.northeastern.ccs.im.MongoDB.Model.User;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 
 public class MongoDBClient {
@@ -39,17 +39,21 @@ public class MongoDBClient {
 
     public static void querySubpoena(MongoDatabase db){
         SubpoenaServicePrattle subService = new SubpoenaServicePrattle(db);
-        Subpoena s=subService.querySubpoenaById("5bfa1c590b5f9d231e0fa986");
+        Subpoena s=subService.querySubpoenaById("5bfc64560b5f9d34cea6d313");
+
+        String id=subService.getIdOfSubpoena(s);
 
     }
     public static void createSubpoena (MongoDatabase db) throws JsonProcessingException{
         SubpoenaServicePrattle subService = new SubpoenaServicePrattle(db);
-        Subpoena s1= subService.createSubpoena("peter","nipun","",
+        Subpoena s1= subService.createSubpoena("peter","chetan","",
                 LocalDate.of(2018,12,7),
                 LocalDate.of(2018,12,9));
         Subpoena s2= subService.createSubpoena("peter","akshay","",
                 LocalDate.of(2018,11,9),
                 LocalDate.of(2018,12,9));
+
+
     }
     public static void clearUnreadMessages(MongoDatabase db) throws JsonProcessingException{
         UserServicePrattle userService = new UserServicePrattle(db);
