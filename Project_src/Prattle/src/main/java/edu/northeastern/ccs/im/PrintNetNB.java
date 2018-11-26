@@ -28,6 +28,7 @@ public class PrintNetNB {
 	/** Channel over which we will write out any messages. */
 	private final SocketChannel channel;
 	
+	/** Logger */
     private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
 
 	/**
