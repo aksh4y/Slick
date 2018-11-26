@@ -3,8 +3,9 @@ package edu.northeastern.ccs.im.server;
 import com.mongodb.client.MongoDatabase;
 import edu.northeastern.ccs.im.Message;
 import edu.northeastern.ccs.im.MongoConnection;
-import edu.northeastern.ccs.im.Subpoena;
+import edu.northeastern.ccs.im.MongoDB.Model.*;
 import edu.northeastern.ccs.im.MongoDB.Model.User;
+import edu.northeastern.ccs.im.service.SubpoenaServicePrattle;
 import edu.northeastern.ccs.im.service.UserServicePrattle;
 
 import java.io.IOException;
@@ -59,6 +60,8 @@ public abstract class Prattle {
 	private static MongoDatabase db;
 
 	private static UserServicePrattle userService;
+	
+	private static SubpoenaServicePrattle subpoenaService;
 
 	private static LocalDateTime now;
 
@@ -75,6 +78,7 @@ public abstract class Prattle {
 		active = new ConcurrentLinkedQueue<ClientRunnable>();
 		db = MongoConnection.createConnection();
 		userService = new UserServicePrattle(db);
+		subpoenaService = new SubpoenaServicePrattle(db);
 	}
 
 	/**
@@ -138,31 +142,32 @@ public abstract class Prattle {
 			String user2 = msg.getMsgRecipient();
 			sb = activeSubpoena.get(user1 + "$%$all");
 			if (sb != null) {
-				// sb.getId();
+//				 sb.get_id();
 			} else {
 				sb = activeSubpoena.get(user1 + "%$%" + user2);
 				if (sb != null) {
-					// return sb.getId();
+//					 return sb.get_id();
 				}
 			}
 		} else if (msg.isGroupMessage()) {
 			sb = activeSubpoena.get(msg.getMsgRecipient());
 			if (sb != null) {
-				// return sb.getId();
+//				 return sb.get_id();
 			}
 		}
 		return null;
 	}
 
-	public static void createActiveSubpoenaMap(List<Subpoena> subpoenaList) {
+	public static void createActiveSubpoenaMap() {
+		List<Subpoena> subpoenaList = subpoenaService.getActiveSubpoenas();
 		for (Subpoena subpoena : subpoenaList) {
-//			if(subpoena.getUser2 == null && subpoena.getGroup == null) {
-//				activeSubpoena.put(subpoena.getUser1+"$%$all", subpoena)
-//			}else if(subpoena.getUser2 != null ) {
-//				activeSubpoena.put(subpoena.getUser1+"$%$"+subpoena.getUser2, subpoena)
-//			}else if(subpoena.getGroup != null ) {
-//				activeSubpoena.put(subpoena.getGroup+"$%$"+subpoena.getUser2, subpoena)
-//			}
+			if(subpoena.getUser2() == null && subpoena.getGroup() == null) {
+				activeSubpoena.put(subpoena.getUser1()+"$%$all", subpoena);
+			}else if(subpoena.getUser2() != null ) {
+				activeSubpoena.put(subpoena.getUser1()+"$%$"+subpoena.getUser2(), subpoena);
+			}else if(subpoena.getGroup() != null ) {
+				activeSubpoena.put(subpoena.getGroup()+"$%$"+subpoena.getUser2(), subpoena);
+			}
 		}
 	}
 
@@ -187,7 +192,7 @@ public abstract class Prattle {
 		ServerSocketChannel serverSocket = null;
 
 		try {
-			//createActiveSubpoenaMap(subpoenaList);
+			createActiveSubpoenaMap();
 			serverSocket = ServerSocketChannel.open();
 			serverSocket.configureBlocking(false);
 			serverSocket.socket().bind(new InetSocketAddress(ServerConstants.PORT));
@@ -204,7 +209,7 @@ public abstract class Prattle {
 				now = LocalDateTime.now();
 				midnight = LocalDate.now().atTime(0, 0);
 				if (now.isEqual(midnight)) {
-					//createActiveSubpoenaMap(subpoenaList);
+					createActiveSubpoenaMap();
 				}
 				// Check if we have a valid incoming request, but limit the time we may wait.
 				while (selector.select(DELAY_IN_MS) != 0) {

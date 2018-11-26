@@ -2,6 +2,8 @@ package edu.northeastern.ccs.im.server;
 
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -21,8 +23,10 @@ import edu.northeastern.ccs.im.MongoConnection;
 import edu.northeastern.ccs.im.PrintNetNB;
 import edu.northeastern.ccs.im.ScanNetNB;
 import edu.northeastern.ccs.im.MongoDB.Model.Group;
+import edu.northeastern.ccs.im.MongoDB.Model.Subpoena;
 import edu.northeastern.ccs.im.MongoDB.Model.User;
 import edu.northeastern.ccs.im.service.GroupServicePrattle;
+import edu.northeastern.ccs.im.service.SubpoenaServicePrattle;
 import edu.northeastern.ccs.im.service.UserServicePrattle;
 
 /**
@@ -113,6 +117,8 @@ public class ClientRunnable implements Runnable {
 
 	private MongoDatabase db;
 
+	private SubpoenaServicePrattle subpoenaService;
+
 	private final static Logger LOGGER = Logger.getLogger(Logger.class.getName());
 
 	/**
@@ -131,6 +137,8 @@ public class ClientRunnable implements Runnable {
 		userService = new UserServicePrattle(db);
 
 		groupService = new GroupServicePrattle(db);
+
+		subpoenaService = new SubpoenaServicePrattle(db);
 		// Set up the SocketChannel over which we will communicate.
 		socket = client;
 		socket.configureBlocking(false);
@@ -337,10 +345,7 @@ public class ClientRunnable implements Runnable {
 							m = "[Private Msg] " + user.getUsername() + ": " + msg.getText();
 							userService.addToMyMessages(recipient, m); // receiver's copy
 							Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
-							String sub = this.handleSubpoena(msg);
-							if (sub != null) {
-								Prattle.broadcastPrivateMessage(msg, sub);
-							}
+
 						} else {
 							this.enqueueMessage(Message.makeFailMsg());
 						}
@@ -363,10 +368,7 @@ public class ClientRunnable implements Runnable {
 								userService.addToMyMessages(r, m); // receiver's copy
 								Prattle.broadcastPrivateMessage(msg, recipient);
 							}
-							String sub = this.handleSubpoena(msg);
-							if (sub != null) {
-								Prattle.broadcastPrivateMessage(msg, sub);
-							}
+
 						}
 					}
 					// Handle MIME messages
@@ -504,35 +506,45 @@ public class ClientRunnable implements Runnable {
 
 					// Create Subpoena
 					else if (msg.isUserSubpoena() || msg.isGroupSubpoena()) {
+						DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");
+						LocalDate fromDate = LocalDate.parse(msg.getMsgRecipient(), formatter);
+						LocalDate toDate = LocalDate.parse(msg.getText(), formatter);
 						Message ackMsg;
+						Subpoena sb;
 						this.initialized = true;
 						if (!user.getUsername().equalsIgnoreCase("admin")) {
 							ackMsg = Message.makeCreateNoPrivilegeMessage();
-						}
-						if (msg.isUserSubpoena()) {
-							System.out
-									.println(msg.getName() + "   " + msg.getMsgRecipient() + " " + msg.getText() + msg);
-							// Call service create user subpoena
-							ackMsg = Message.makeSubpoenaSuccess("123");
 						} else {
-							System.out.println(msg);
-							// Call service create group subpoena
-							ackMsg = Message.makeSubpoenaSuccess("123");
+							if (msg.isUserSubpoena()) {
+								String[] params = msg.getName().split("$%$");
+								if (params[1].equalsIgnoreCase("all")) {
+									sb = subpoenaService.createSubpoena(params[0], null, null, fromDate, toDate);
+								} else {
+									sb = subpoenaService.createSubpoena(params[0], params[1], null, fromDate, toDate);
+								}
+								ackMsg = Message.makeSubpoenaSuccess("22222");
+							} else {
+								sb = subpoenaService.createSubpoena(null, null, msg.getName(), fromDate, toDate);
+								ackMsg = Message.makeSubpoenaSuccess("22222");
+							}
+							Prattle.createActiveSubpoenaMap();
 						}
-
 						this.enqueueMessage(ackMsg);
 					}
 
 					// Subpoena Login
-					else if (msg.isSubpoenaLogin()) {
-						Message ackMsg;
-						this.initialized = true;
-						// Make a service call for login
-						// if subeona != null and current date is within the to and from range
-						ackMsg = Message.makeLoginSuccess("hhh");
-						this.enqueueMessage(ackMsg);
-						System.out.println("Sub Login" + msg.getName());
-					}
+					// else if (msg.isSubpoenaLogin()) {
+					// Message ackMsg;
+					// this.initialized = true;
+					// Subpoena sb = subpoenaService.querySubpoenaById(msg.getName());
+					// if(sb != null){
+					// ackMsg = Message.makeLoginSuccess(sb.get_id());
+					// } else {
+					// ackMsg = Message.makeFailMsg();
+					// }
+					// this.enqueueMessage(ackMsg);
+					//
+					// }
 
 					// If the message is a broadcast message, send it out
 					else if (msg.isDisplayMessage()) {
@@ -642,7 +654,6 @@ public class ClientRunnable implements Runnable {
 		return ackMsg;
 	}
 
-	
 	/**
 	 * Terminate a client that we wish to remove. This termination could happen at
 	 * the client's request or due to system need.
