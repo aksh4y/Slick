@@ -2,6 +2,8 @@ package edu.northeastern.ccs.im.server;
 
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -21,8 +23,10 @@ import edu.northeastern.ccs.im.MongoConnection;
 import edu.northeastern.ccs.im.PrintNetNB;
 import edu.northeastern.ccs.im.ScanNetNB;
 import edu.northeastern.ccs.im.MongoDB.Model.Group;
+import edu.northeastern.ccs.im.MongoDB.Model.Subpoena;
 import edu.northeastern.ccs.im.MongoDB.Model.User;
 import edu.northeastern.ccs.im.service.GroupServicePrattle;
+import edu.northeastern.ccs.im.service.SubpoenaServicePrattle;
 import edu.northeastern.ccs.im.service.UserServicePrattle;
 
 /**
@@ -112,9 +116,10 @@ public class ClientRunnable implements Runnable {
 	private User user;
 
 	private MongoDatabase db;
-	
-	private final static Logger LOGGER =
-            Logger.getLogger(Logger.class.getName());
+
+	private SubpoenaServicePrattle subpoenaService;
+
+	private final static Logger LOGGER = Logger.getLogger(Logger.class.getName());
 
 	/**
 	 * Create a new thread with which we will communicate with this single client.
@@ -132,6 +137,8 @@ public class ClientRunnable implements Runnable {
 		userService = new UserServicePrattle(db);
 
 		groupService = new GroupServicePrattle(db);
+
+		subpoenaService = new SubpoenaServicePrattle(db);
 		// Set up the SocketChannel over which we will communicate.
 		socket = client;
 		socket.configureBlocking(false);
@@ -338,6 +345,7 @@ public class ClientRunnable implements Runnable {
 							m = "[Private Msg] " + user.getUsername() + ": " + msg.getText();
 							userService.addToMyMessages(recipient, m); // receiver's copy
 							Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
+
 						} else {
 							this.enqueueMessage(Message.makeFailMsg());
 						}
@@ -360,16 +368,17 @@ public class ClientRunnable implements Runnable {
 								userService.addToMyMessages(r, m); // receiver's copy
 								Prattle.broadcastPrivateMessage(msg, recipient);
 							}
+
 						}
 					}
 					// Handle MIME messages
 					else if (msg.isMIME()) {
-					    String m = "File Sent To " + msg.getMsgRecipient();
-                        userService.addToMyMessages(user, m); // sender's copy
-                        User recipient = userService.findUserByUsername(msg.getMsgRecipient());
-                        m = "File Received From " + user.getUsername();
-                        userService.addToMyMessages(recipient, m); // receiver's copy
-                        Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
+						String m = "File Sent To " + msg.getMsgRecipient();
+						userService.addToMyMessages(user, m); // sender's copy
+						User recipient = userService.findUserByUsername(msg.getMsgRecipient());
+						m = "File Received From " + user.getUsername();
+						userService.addToMyMessages(recipient, m); // receiver's copy
+						Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
 					}
 					// If it is create user message
 					else if (msg.isUserCreate()) {
@@ -497,7 +506,6 @@ public class ClientRunnable implements Runnable {
 					else if (msg.isRecallMessage()) {
 						Message ackMsg=null;
 						this.initialized = true;
-
 						if(msg.getText().equalsIgnoreCase("user")) {
 							userService.getLastSentMessage("user", user.getUsername(), msg.getMsgRecipient());
 							ackMsg = Message.makeSuccessMsg();
@@ -508,6 +516,47 @@ public class ClientRunnable implements Runnable {
 						}
 						this.enqueueMessage(ackMsg);
 					}
+					// Create Subpoena
+					else if (msg.isUserSubpoena() || msg.isGroupSubpoena()) {
+						DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");
+						LocalDate fromDate = LocalDate.parse(msg.getMsgRecipient(), formatter);
+						LocalDate toDate = LocalDate.parse(msg.getText(), formatter);
+						Message ackMsg;
+						Subpoena sb;
+						this.initialized = true;
+						if (!user.getUsername().equalsIgnoreCase("admin")) {
+							ackMsg = Message.makeCreateNoPrivilegeMessage();
+						} else {
+							if (msg.isUserSubpoena()) {
+								String[] params = msg.getName().split("$%$");
+								if (params[1].equalsIgnoreCase("all")) {
+									sb = subpoenaService.createSubpoena(params[0], null, null, fromDate, toDate);
+								} else {
+									sb = subpoenaService.createSubpoena(params[0], params[1], null, fromDate, toDate);
+								}
+								ackMsg = Message.makeSubpoenaSuccess("22222");
+							} else {
+								sb = subpoenaService.createSubpoena(null, null, msg.getName(), fromDate, toDate);
+								ackMsg = Message.makeSubpoenaSuccess("22222");
+							}
+							Prattle.createActiveSubpoenaMap();
+						}
+						this.enqueueMessage(ackMsg);
+					}
+
+					// Subpoena Login
+					// else if (msg.isSubpoenaLogin()) {
+					// Message ackMsg;
+					// this.initialized = true;
+					// Subpoena sb = subpoenaService.querySubpoenaById(msg.getName());
+					// if(sb != null){
+					// ackMsg = Message.makeLoginSuccess(sb.get_id());
+					// } else {
+					// ackMsg = Message.makeFailMsg();
+					// }
+					// this.enqueueMessage(ackMsg);
+					//
+					// }
 					// If the message is a broadcast message, send it out
 					else if (msg.isDisplayMessage()) {
 						// Check if the message is legal formatted
@@ -570,7 +619,7 @@ public class ClientRunnable implements Runnable {
 				terminate |= !keepAlive;
 			} catch (JsonProcessingException e) {
 				// TODO Auto-generated catch block
-				LOGGER.log(Level.SEVERE,e.toString());				
+				LOGGER.log(Level.SEVERE, e.toString());
 			} finally {
 				// When it is appropriate, terminate the current client.
 				if (terminate) {
@@ -627,7 +676,7 @@ public class ClientRunnable implements Runnable {
 			socket.close();
 		} catch (IOException e) {
 			// If we have an IOException, ignore the problem
-			LOGGER.log(Level.WARNING,e.toString());
+			LOGGER.log(Level.WARNING, e.toString());
 		} finally {
 			// Remove the client from our client listing.
 			Prattle.removeClient(this);
