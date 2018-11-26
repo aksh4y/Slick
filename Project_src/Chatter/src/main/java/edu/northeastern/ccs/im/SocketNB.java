@@ -10,6 +10,12 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import com.github.seratch.jslack.Slack;
+import com.github.seratch.jslack.api.webhook.Payload;
+import com.github.seratch.jslack.api.webhook.WebhookResponse;
 
 /**
  * This class resembles the traditional Socket, but is designed to be used by my
@@ -49,6 +55,9 @@ public final class SocketNB {
     private static final String CHARSET_NAME = "us-ascii";
 
     private static final int MAX_WAIT_DELAY = 100;
+
+    /** Slack WebHook URL */
+    private static final String SLACK_URL = "https://hooks.slack.com/services/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";
 
     private Selector selector;
 
@@ -193,6 +202,18 @@ public final class SocketNB {
                 }
                 if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.LOGIN_FAIL) {
                     System.out.println("Username/Password is wrong");
+                    Payload payload = Payload.builder()
+                            .channel("#cs5500-team-203-f18")
+                            .username("Slick Bot")
+                            .iconEmoji(":ghost:")
+                            .text("Invalid Login Attempt @ Slick")
+                            .build();
+
+                    Slack slack = Slack.getInstance();
+                    WebhookResponse response = slack.send(SLACK_URL, payload);
+                    if(!response.getMessage().equalsIgnoreCase("OK"))
+                        Logger.getLogger(SocketNB.class.getSimpleName()).log(Level.SEVERE, "Slack integration failed!");
+                    Logger.getLogger(SocketNB.class.getSimpleName()).log(Level.SEVERE, "Invalid Login Attempt @ Slick");
                 }
                 if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.LOGIN_SUCCESS) {
                     System.out.println("Login Successful");

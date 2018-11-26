@@ -1,5 +1,8 @@
 package edu.northeastern.ccs.im.server;
 
+import com.github.seratch.jslack.Slack;
+import com.github.seratch.jslack.api.webhook.Payload;
+import com.github.seratch.jslack.api.webhook.WebhookResponse;
 import com.mongodb.client.MongoDatabase;
 import edu.northeastern.ccs.im.Message;
 import edu.northeastern.ccs.im.MongoConnection;
@@ -55,6 +58,10 @@ public abstract class Prattle {
     private static UserServicePrattle userService;
 
     private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
+    
+    /** Slack WebHook URL */
+    private static final String SLACK_URL = "https://hooks.slack.com/services/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";
+
     /** All of the static initialization occurs in this "method" */
     static {
         // Create the new queue of active threads.
@@ -72,20 +79,24 @@ public abstract class Prattle {
      */
     public static void broadcastMessage(Message message) {
         // Loop through all of our active threads
+        User sender = userService.findUserByUsername(message.getName());
+        String senderIP = null;
+        String msg = null;
         for (ClientRunnable tt : active) {
+            if (tt.isInitialized() && tt.getName().equalsIgnoreCase(sender.getUsername())) {
+                senderIP = tt.getIP();
+                msg = tt.getIP() + " [BROADCASTED] " + message.getText();
+            }
+        }
+        if(senderIP == null || msg == null)
+            return;
+        userService.addToMyMessages(sender, msg);
+        for (ClientRunnable tt : active) { // receiver's copy
             // Do not send the message to any clients that are not ready to receive it.
-            if (tt.isInitialized()) {
+            if (tt.isInitialized() && !tt.getName().equalsIgnoreCase(message.getName())) {
                 User u = userService.findUserByUsername(tt.getName());
-                try {
-                    String msg;
-                    if (u.getUsername().equalsIgnoreCase(message.getName()))
-                        msg = "[BROADCASTED] " + message.getText();
-                    else
-                        msg = "[BROADCAST] " + message.getName() + ": " + message.getText();
-                    userService.addToMyMessages(u, msg);
-                } catch (Exception e) {
-                    LOGGER.log(Level.WARNING, e.toString());
-                } // sender's copy
+                msg = senderIP + " [BROADCAST] " + message.getName() + ": " + message.getText() + " " + tt.getIP();
+                userService.addToMyMessages(u, msg);
                 tt.enqueueMessage(message);
             }
         }
@@ -138,6 +149,8 @@ public abstract class Prattle {
     @SuppressWarnings("unchecked")
     public static void main(String[] args) throws IOException {
         // Connect to the socket on the appropriate port to which this server connects.
+        if(args.length > 0 && args[0].equals("-l")) // Dynamic toggle logging
+            Logger.getLogger("").setLevel(Level.OFF);
         ServerSocketChannel serverSocket = null;
         try {
             serverSocket = ServerSocketChannel.open();
@@ -175,8 +188,8 @@ public abstract class Prattle {
                             if (socket != null) {
                                 ClientRunnable tt = new ClientRunnable(socket);
                                 // Add the thread to the queue of active threads
+                                tt.setIP(socket.getRemoteAddress().toString());
                                 active.add(tt);
-                                //System.out.println(socket.getRemoteAddress().toString());
                                 // Have the client executed by our pool of threads.
                                 @SuppressWarnings("rawtypes")
                                 ScheduledFuture clientFuture = threadPool.scheduleAtFixedRate(tt, CLIENT_CHECK_DELAY,
@@ -184,15 +197,31 @@ public abstract class Prattle {
                                 tt.setFuture(clientFuture);
                             }
                         } catch (AssertionError ae) {
-                            System.err.println("Caught Assertion: " + ae.toString());
+                            LOGGER.log(Level.WARNING, "Caught Assetion: " + ae.toString(), ae);
                         } catch (Exception e) {
-                            System.err.println("Caught Exception: " + e.toString());
+                            LOGGER.log(Level.WARNING, "Caught Exception: " + e.toString(), e);
                         }
                     }
                 }
             }
         } catch (Exception e) {
-            System.err.println("Exception while trying to open socket: " + e.toString());
+            LOGGER.log(Level.SEVERE, "Exception while trying to open socket: " + e.toString(), e);
+            Payload payload = Payload.builder()
+                    .channel("#cs5500-team-203-f18")
+                    .username("Slick Bot")
+                    .iconEmoji(":man-facepalming:")
+                    .text("Something went wrong during socket connection @ Slick")
+                    .build();
+
+            Slack slack = Slack.getInstance();
+            WebhookResponse response = null;
+            try {
+                response = slack.send(SLACK_URL, payload);
+            } catch (IOException e1) {
+                LOGGER.log(Level.SEVERE, "Slack integration failed!");
+            }
+            if(!response.getMessage().equalsIgnoreCase("OK"))
+                LOGGER.log(Level.SEVERE, "Slack integration failed!");
         } finally {
             if (serverSocket != null)
                 serverSocket.close();
@@ -228,6 +257,7 @@ public abstract class Prattle {
         // can remove it.
         if (!active.remove(dead)) {
             System.out.println("Could not find a thread that I tried to remove!\n");
+            LOGGER.log(Level.SEVERE,"Could not find the thread expected to be removed");
         }
     }
 }

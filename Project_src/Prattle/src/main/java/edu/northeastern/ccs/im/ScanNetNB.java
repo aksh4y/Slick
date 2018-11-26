@@ -13,6 +13,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.github.seratch.jslack.Slack;
+import com.github.seratch.jslack.api.webhook.Payload;
+import com.github.seratch.jslack.api.webhook.WebhookResponse;
+
 /**
  * This class is similar to the java.util.Scanner class, but this class's
  * methods return immediately and does not wait for network input (it is
@@ -50,6 +54,9 @@ public class ScanNetNB {
 	private static final Logger LOGGER =
             Logger.getLogger(Logger.class.getName());
 	
+	/** Slack WebHook URL */
+    private static final String SLACK_URL = "https://hooks.slack.com/services/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";
+	
 	/**
 	 * Creates a new instance of this class. Since, by definition, this class takes
 	 * in input from the network, we need to supply the non-blocking Socket instance
@@ -71,10 +78,27 @@ public class ScanNetNB {
 			// Register our channel to receive alerts to complete the connection
 			key = channel.register(selector, SelectionKey.OP_READ);
 		} catch (IOException e) {
-			// For the moment we are going to simply cover up that there was a problem.
-			LOGGER.log(Level.WARNING,e.toString());
-			assert false;
-		}
+		    // Log this exception
+			LOGGER.log(Level.SEVERE,e.toString());
+			 Payload payload = Payload.builder()
+                     .channel("#cs5500-team-203-f18")
+                     .username("Slick Bot")
+                     .iconEmoji(":man-facepalming:")
+                     .text("Something went wrong during data transfer @ Slick")
+                     .build();
+
+             Slack slack = Slack.getInstance();
+             WebhookResponse response = null;
+             try {
+                 response = slack.send(SLACK_URL, payload);
+             } catch (IOException e1) {
+                 LOGGER.log(Level.SEVERE, "Slack integration failed!");
+             }
+             if(!response.getMessage().equalsIgnoreCase("OK"))
+                 LOGGER.log(Level.SEVERE, "Slack integration failed!");
+             LOGGER.log(Level.SEVERE, "Something went wrong during data transfer @ Slick");
+             assert false;
+         }
 	}
 
 	/**
@@ -197,7 +221,23 @@ public class ScanNetNB {
 			// Move all of the remaining data to the start of the buffer.
 			buff.compact();
 		} catch (IOException ioe) {
-			// For the moment, we will cover up this exception and hope it never occurs.
+		    Payload payload = Payload.builder()
+                    .channel("#cs5500-team-203-f18")
+                    .username("Slick Bot")
+                    .iconEmoji(":man-facepalming:")
+                    .text("Something went wrong during reading a message @ Slick")
+                    .build();
+
+            Slack slack = Slack.getInstance();
+            WebhookResponse response = null;
+            try {
+                response = slack.send(SLACK_URL, payload);
+            } catch (IOException e1) {
+                LOGGER.log(Level.SEVERE, "Slack integration failed!");
+            }
+            if(!response.getMessage().equalsIgnoreCase("OK"))
+                LOGGER.log(Level.SEVERE, "Slack integration failed!");
+            LOGGER.log(Level.SEVERE, "Something went wrong during reading a message @ Slick");
 			assert false;
 		}
 		// Do we now have any messages?

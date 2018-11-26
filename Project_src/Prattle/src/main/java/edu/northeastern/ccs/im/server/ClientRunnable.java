@@ -40,6 +40,14 @@ import edu.northeastern.ccs.im.service.UserServicePrattle;
  * 
  * @version 1.3
  */
+/**
+ * @author Akshay
+ *
+ */
+/**
+ * @author Akshay
+ *
+ */
 public class ClientRunnable implements Runnable {
     /**
      * Number of milliseconds that special responses are delayed before being sent.
@@ -89,6 +97,9 @@ public class ClientRunnable implements Runnable {
 
     /** Name that the client used when connecting to the server. */
     private String name;
+    
+    /** IP of the client **/
+    private String ip;
 
     /**
      * Whether this client has been initialized, set its user name, and is ready to
@@ -234,7 +245,7 @@ public class ClientRunnable implements Runnable {
      * @return True if we sent the message successfully; false otherwise.
      */
     private boolean sendMessage(Message message) {
-        System.out.println("\t" + message);
+        LOGGER.log(Level.INFO, "" + message);
         return output.print(message);
     }
 
@@ -592,6 +603,23 @@ public class ClientRunnable implements Runnable {
      */
     public void setFuture(ScheduledFuture<ClientRunnable> future) {
         runnableMe = future;
+    }
+    
+    
+
+    /**
+     * @return the IP of this client
+     */
+    public String getIP() {
+        return ip;
+    }
+
+    /**
+     * set the IP of this client
+     * @param ip
+     */
+    public void setIP(String ip) {
+        this.ip = ip;
     }
 
     private Message addUserToGroup(String groupName) throws JsonProcessingException {
