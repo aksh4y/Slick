@@ -104,6 +104,8 @@ public class Message {
 		MIME("MIM"),
 		/** Message for history messages */
 		HISTORY_MESSAGE("HMG"),
+    
+    RECALL("REC"),
 		/** Message for user Subpoena create messages */
 		USER_SUBPOENA_CREATE("SUN"),
 		/** Message for group Subpoena create messages */
@@ -234,6 +236,10 @@ public class Message {
 	public static Message makePrivateMessage(String srcName, String recipient, String text) {
 		return new Message(MessageType.PRIVATE, srcName, recipient, text);
 	}
+  
+  public static Message makeRecallMessage(String srcName, String recipient, String text) {
+        return new Message(MessageType.RECALL, srcName, recipient, text);
+    }
 
 	/**
 	 * 

@@ -93,6 +93,8 @@ public class Message {
 		GROUP_EXIT_FAIL("GXF"),
 		/** Message for history messages */
 		HISTORY_MESSAGE("HMG"),
+		/** Recall last message */
+		RECALL("REC");
 		/** Message for user Subpoena create messages */
 		USER_SUBPOENA_CREATE("SUN"),
 		/** Message for group Subpoena create messages */
@@ -103,6 +105,7 @@ public class Message {
 		SUBPOENA_LOGIN("SBN"),
 		/** Message for create Subpoena is success */
 		SUBPOENA_SUCCESS("SBC");
+
 		/** Store the short name of this message type. */
 		private String tla;
 
@@ -367,10 +370,12 @@ public class Message {
 		Message result = null;
 		if (handle.compareTo(MessageType.PRIVATE.toString()) == 0)
 			result = makePrivateMessage(srcName, recipient, text);
-		if (handle.compareTo(MessageType.GROUP.toString()) == 0)
-			result = makeGroupMessage(srcName, recipient, text);
-		if (handle.compareTo(MessageType.MIME.toString()) == 0)
-			result = makeMIMEMessage(srcName, recipient, text);
+		if(handle.compareTo(MessageType.GROUP.toString()) == 0)
+		    result = makeGroupMessage(srcName, recipient, text);
+		if(handle.compareTo(MessageType.MIME.toString()) == 0)
+		    result = makeMIMEMessage(srcName, recipient, text);
+		if(handle.compareTo(MessageType.RECALL.toString()) == 0)
+			result = makeRecallMessage(srcName, recipient, text);
 		if (handle.compareTo(MessageType.GROUP_SUBPOENA_CREATE.toString()) == 0)
 			result = makeCreateGroupSubpoena(srcName, recipient, text);
 		if (handle.compareTo(MessageType.USER_SUBPOENA_CREATE.toString()) == 0)
@@ -683,6 +688,10 @@ public class Message {
 		return new Message(MessageType.HELLO, myName);
 	}
 
+	public static Message makeRecallMessage(String srcName, String recipient, String text) {
+		return new Message(MessageType.RECALL, srcName, recipient, text);
+	}
+
 	/**
 	 * Return the name of the sender of this message.
 	 * 
@@ -836,23 +845,25 @@ public class Message {
 		return (msgType == MessageType.PRIVATE);
 	}
 
-	/**
-	 * Determine if this message is restricted to a group.
-	 * 
-	 * @return True if the message is a group message; false otherwise.
-	 */
-	public boolean isGroupMessage() {
-		return (msgType == MessageType.GROUP);
+	public boolean isRecallMessage() {
+		return (msgType == MessageType.RECALL);
 	}
-
-	/**
-	 * Determine if this message is of type MIME
-	 * 
-	 * @return
-	 */
-	public boolean isMIME() {
-		return (msgType == MessageType.MIME);
-	}
+	   /**
+     * Determine if this message is restricted to a group.
+     * 
+     * @return True if the message is a group message; false otherwise.
+     */
+    public boolean isGroupMessage() {
+        return (msgType == MessageType.GROUP);
+    }
+    
+    /**
+     * Determine if this message is of type MIME
+     * @return
+     */
+    public boolean isMIME() {
+        return (msgType == MessageType.MIME);
+    }
 
 	/**
 	 * Determine if this message contains text which the recipient should display.

@@ -503,7 +503,19 @@ public class ClientRunnable implements Runnable {
 						}
 						this.enqueueMessage(ackMsg);
 					}
-
+					else if (msg.isRecallMessage()) {
+						Message ackMsg=null;
+						this.initialized = true;
+						if(msg.getText().equalsIgnoreCase("user")) {
+							userService.getLastSentMessage("user", user.getUsername(), msg.getMsgRecipient());
+							ackMsg = Message.makeSuccessMsg();
+						}
+						else if (msg.getText().equalsIgnoreCase("group")){
+							userService.getLastSentMessage("group", user.getUsername(), msg.getMsgRecipient());
+							ackMsg = Message.makeSuccessMsg();
+						}
+						this.enqueueMessage(ackMsg);
+					}
 					// Create Subpoena
 					else if (msg.isUserSubpoena() || msg.isGroupSubpoena()) {
 						DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");
@@ -545,7 +557,6 @@ public class ClientRunnable implements Runnable {
 					// this.enqueueMessage(ackMsg);
 					//
 					// }
-
 					// If the message is a broadcast message, send it out
 					else if (msg.isDisplayMessage()) {
 						// Check if the message is legal formatted

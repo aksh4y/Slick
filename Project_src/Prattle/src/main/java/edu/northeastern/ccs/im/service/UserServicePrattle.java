@@ -1,5 +1,7 @@
 package edu.northeastern.ccs.im.service;
 
+import com.mongodb.BasicDBObject;
+import edu.northeastern.ccs.im.Message;
 import edu.northeastern.ccs.im.MongoDB.Model.Group;
 import edu.northeastern.ccs.im.MongoDB.Model.User;
 
@@ -17,6 +19,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import org.mindrot.jbcrypt.BCrypt;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -154,10 +158,157 @@ public class UserServicePrattle {
 		return (updateResult.getModifiedCount()==1);
 	}
 
-
 	public void addToMyMessages(User user, String message){
 		col.updateOne(Filters.eq("username", user.getUsername()), Updates.addToSet("myMessages", message));
 	}
+
+
+	public void addToUnreadMessages(User user, String message){
+		col.updateOne(Filters.eq("username", user.getUsername()), Updates.addToSet("myUnreadMessages", message));
+	}
+	public void clearUnreadMessages(User user){
+		user = findUserByUsername(user.getUsername());
+		col.updateOne(Filters.eq("username", user.getUsername()), Updates.pushEach("myMessages", user.getMyUnreadMessages()));
+		col.updateOne(Filters.eq("username", user.getUsername()), Updates.pullAll("myUnreadMessages", user.getMyUnreadMessages()));
+	}
+	public List<String> getMessages(String type, String name){
+		List<String> listOfMessages = new ArrayList<String>();
+		if(type.equalsIgnoreCase("sender")){
+			listOfMessages= getMessagesbySender(name);
+		}
+		else if (type.equalsIgnoreCase("receiver")){
+			listOfMessages= getMessagesbyReceiver(name);
+		}
+
+		return listOfMessages;
+	}
+
+	public List<String> getMessagesbySender(String name){
+		List<String> listOfMessages = new ArrayList<String>();
+		User user = findUserByUsername(name);
+		for(String message: user.getMyMessages()){
+
+			if(message.contains("PRIVATE") || message.contains("["+name)){
+				listOfMessages.add(message);
+			}
+		}
+		return listOfMessages;
+	}
+
+	public List<String>  getMessagesbyReceiver(String name){
+		List<String> listOfMessages = new ArrayList<String>();
+		User user = findUserByUsername(name);
+		for(String message: user.getMyMessages()){
+
+			if(message.contains("PRIVATE") || message.contains("["+name)){
+				listOfMessages.add(message);
+			}
+		}
+		return listOfMessages;
+	}
+
+	public void recallSenderMessage(String  sender, String recepient){
+		User user = findUserByUsername(sender);
+		List<String>  myMessages = user.getMyMessages();
+		String lastSentMessage="";
+		Collections.reverse(myMessages);
+		for(String message: myMessages){
+			if(message.contains(recepient)){ //TODO bad check
+				lastSentMessage = message;
+				break;
+			}
+		}
+
+		BasicDBObject query = new BasicDBObject();
+		query.put("username", sender);
+		query.put("myMessages", lastSentMessage);
+		BasicDBObject data = new BasicDBObject();
+		if(lastSentMessage.contains("**Recalled**")){
+			data.put("myMessages.$", lastSentMessage);
+		}else{
+			data.put("myMessages.$", "**Recalled**"+ lastSentMessage);
+		}
+		BasicDBObject command = new BasicDBObject();
+		command.put("$set", data);
+
+		col.updateOne(query, command);
+	}
+
+	public void recallFromMessages(User user, String sender){
+		List<String> myMessages = user.getMyMessages();
+		String lastSentMessage="";
+		Collections.reverse(myMessages);
+		for(String message: myMessages){
+			if(message.contains("[") && message.contains(sender)){
+				lastSentMessage = message;
+				break;
+			}
+		}
+		String[] params=lastSentMessage.split(":");
+		BasicDBObject query = new BasicDBObject();
+		query.put("username", user.getUsername());
+		query.put("myMessages", lastSentMessage);
+		BasicDBObject data = new BasicDBObject();
+		data.put("myMessages.$", params[0]+": [Message Deleted]");
+		BasicDBObject command = new BasicDBObject();
+		command.put("$set", data);
+		col.updateOne(query, command);
+	}
+
+	public void recallFromUnreadMessages(User user){
+		List<String> myMessages = user.getMyUnreadMessages();
+		String lastSentMessage="";
+		Collections.reverse(myMessages);
+		for(String message: myMessages){
+			if(message.contains("[")){
+				lastSentMessage = message;
+				break;
+			}
+		}
+
+		String[] params=lastSentMessage.split(":");
+		BasicDBObject query = new BasicDBObject();
+		query.put("username", user.getUsername());
+		query.put("myUnreadMessages", lastSentMessage);
+		BasicDBObject data = new BasicDBObject();
+		data.put("myUnreadMessages.$", params[0]+": [Message Deleted]");
+		BasicDBObject command = new BasicDBObject();
+		command.put("$set", data);
+		col.updateOne(query, command);
+	}
+	public void getLastSentMessage(String type, String sender, String receiver) {
+		if(type.equalsIgnoreCase("user")){
+			User user = findUserByUsername(receiver);
+			if(!user.getMyUnreadMessages().isEmpty()){
+				recallFromUnreadMessages(user);
+			}else{
+				recallFromMessages(user, sender);
+			}
+
+			recallSenderMessage(sender,receiver);
+
+		}
+		else if (type.equalsIgnoreCase("group")){
+			recallSenderMessage(sender,receiver);
+
+			Group group = group_service.findGroupByName(receiver);
+			List<String> listOfUsers= group.getListOfUsers();
+			listOfUsers.remove(sender);
+			for(String username : listOfUsers ){
+				User user = findUserByUsername(username);
+				if(!user.getMyUnreadMessages().isEmpty()){
+					recallFromUnreadMessages(user);
+				}else{
+					recallFromMessages(user,sender);
+				}
+			}
+		}
+	}
+
+
+
+
+
 
 	public static String hashPassword(String password_plaintext) {
 		String salt = BCrypt.gensalt(workload);
@@ -183,4 +334,7 @@ public class UserServicePrattle {
 		return(password_verified);
 	}
 
+	public void clearUserTable(){
+		col.deleteMany(new Document());
+	}
 }

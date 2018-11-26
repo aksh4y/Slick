@@ -231,8 +231,11 @@ public class IMConnection {
 			String[] msgArray = message.split(" ");
 			msg = Message.makeCreateUserMessage(msgArray[1], msgArray[2]);
 		} else if (message.contains("MIME")) {
+		    String[] params = message.split(" ");
+            msg = Message.makeMIMEMessage(username, params[1], message.substring(6 + params[1].length()));
+		}else if (message.contains("RECALL")) {
 			String[] params = message.split(" ");
-			msg = Message.makeMIMEMessage(username, params[1], message.substring(6 + params[1].length()));
+			msg = Message.makeRecallMessage(username, params[2].toLowerCase(), params[1].toLowerCase());
 		} else if (message.contains("SUBPOENA_GROUP")) {
 			String[] msgArray = message.split(" ");
 			msg = Message.makeCreateGroupSubpoena(msgArray[1], msgArray[2], msgArray[3]);
