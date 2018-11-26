@@ -59,6 +59,9 @@ public final class SocketNB {
     /** Slack WebHook URL */
     private static final String SLACK_URL = "https://hooks.slack.com/services/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";
 
+    /** Logger */
+    private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
+    
     private Selector selector;
 
     private SelectionKey key;
@@ -212,8 +215,8 @@ public final class SocketNB {
                     Slack slack = Slack.getInstance();
                     WebhookResponse response = slack.send(SLACK_URL, payload);
                     if(!response.getMessage().equalsIgnoreCase("OK"))
-                        Logger.getLogger(SocketNB.class.getSimpleName()).log(Level.SEVERE, "Slack integration failed!");
-                    Logger.getLogger(SocketNB.class.getSimpleName()).log(Level.SEVERE, "Invalid Login Attempt @ Slick");
+                        LOGGER.log(Level.SEVERE, "Slack integration failed!");
+                    LOGGER.log(Level.SEVERE, "Invalid Login Attempt @ Slick");
                 }
                 if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.LOGIN_SUCCESS) {
                     System.out.println("Login Successful");
