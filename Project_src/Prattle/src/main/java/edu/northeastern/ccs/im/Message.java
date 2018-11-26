@@ -94,7 +94,7 @@ public class Message {
 		/** Message for history messages */
 		HISTORY_MESSAGE("HMG"),
 		/** Recall last message */
-		RECALL("REC");
+		RECALL("REC"),
 		/** Message for user Subpoena create messages */
 		USER_SUBPOENA_CREATE("SUN"),
 		/** Message for group Subpoena create messages */
