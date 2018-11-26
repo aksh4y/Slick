@@ -1,6 +1,7 @@
 package edu.northeastern.ccs.im.service;
 
 import com.mongodb.BasicDBObject;
+import edu.northeastern.ccs.im.Message;
 import edu.northeastern.ccs.im.MongoDB.Model.Group;
 import edu.northeastern.ccs.im.MongoDB.Model.User;
 
@@ -18,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import org.mindrot.jbcrypt.BCrypt;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -168,6 +170,41 @@ public class UserServicePrattle {
 		user = findUserByUsername(user.getUsername());
 		col.updateOne(Filters.eq("username", user.getUsername()), Updates.pushEach("myMessages", user.getMyUnreadMessages()));
 		col.updateOne(Filters.eq("username", user.getUsername()), Updates.pullAll("myUnreadMessages", user.getMyUnreadMessages()));
+	}
+	public List<String> getMessages(String type, String name){
+		List<String> listOfMessages = new ArrayList<String>();
+		if(type.equalsIgnoreCase("sender")){
+			listOfMessages= getMessagesbySender(name);
+		}
+		else if (type.equalsIgnoreCase("receiver")){
+			listOfMessages= getMessagesbyReceiver(name);
+		}
+
+		return listOfMessages;
+	}
+
+	public List<String> getMessagesbySender(String name){
+		List<String> listOfMessages = new ArrayList<String>();
+		User user = findUserByUsername(name);
+		for(String message: user.getMyMessages()){
+
+			if(message.contains("PRIVATE") || message.contains("["+name)){
+				listOfMessages.add(message);
+			}
+		}
+		return listOfMessages;
+	}
+
+	public List<String>  getMessagesbyReceiver(String name){
+		List<String> listOfMessages = new ArrayList<String>();
+		User user = findUserByUsername(name);
+		for(String message: user.getMyMessages()){
+
+			if(message.contains("PRIVATE") || message.contains("["+name)){
+				listOfMessages.add(message);
+			}
+		}
+		return listOfMessages;
 	}
 
 	public void recallSenderMessage(String  sender, String recepient){
