@@ -57,6 +57,7 @@ public abstract class Prattle {
 
     private static UserServicePrattle userService;
 
+    /** Logger */
     private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
     
     /** Slack WebHook URL */
