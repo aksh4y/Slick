@@ -11,11 +11,10 @@ import com.mongodb.client.MongoDatabase;
 
 import edu.northeastern.ccs.im.MongoDB.Model.User;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.*;
 
 
 public class MongoDBClient {
@@ -26,24 +25,35 @@ public class MongoDBClient {
         GroupServicePrattle grpService = new GroupServicePrattle(db);
 //        cleanDB(db);
 //        clearUnreadMessages(db);
-        createSubpoena(db);
-
-//        userService.getLastSentMessage("user", "peter", "akshay");
-
-//        userService.getLastSentMessage("user","akshay");
-
-
-//        userService.addToMyMessages(user, "confirm last message");
-//        user = userService.findUserByUsername("peter");
-//        System.out.println(user.getMyMessages().get(user.getMyMessages().size()-1));
-
+//        createSubpoena(db);
+//        querySubpoena(db);
+        getActiveSubpoenas(db);
 
 
     }
+    public static void getActiveSubpoenas(MongoDatabase db){
+        SubpoenaServicePrattle subService = new SubpoenaServicePrattle(db);
+        List<Subpoena> s=subService.getActiveSubpoenas();
 
+    }
+
+    public static void querySubpoena(MongoDatabase db){
+        SubpoenaServicePrattle subService = new SubpoenaServicePrattle(db);
+        Subpoena s=subService.querySubpoenaById("5bfc64560b5f9d34cea6d313");
+
+        String id=subService.getIdOfSubpoena(s);
+
+    }
     public static void createSubpoena (MongoDatabase db) throws JsonProcessingException{
         SubpoenaServicePrattle subService = new SubpoenaServicePrattle(db);
-        Subpoena s= subService.createSubpoena("peter","nipun","", Date.from(Instant.now()), Date.from(Instant.now()));
+        Subpoena s1= subService.createSubpoena("peter","chetan","",
+                LocalDate.of(2018,12,7),
+                LocalDate.of(2018,12,9));
+        Subpoena s2= subService.createSubpoena("peter","akshay","",
+                LocalDate.of(2018,11,9),
+                LocalDate.of(2018,12,9));
+
+
     }
     public static void clearUnreadMessages(MongoDatabase db) throws JsonProcessingException{
         UserServicePrattle userService = new UserServicePrattle(db);

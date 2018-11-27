@@ -1,5 +1,7 @@
 package edu.northeastern.ccs.im;
 
+import edu.northeastern.ccs.im.Message.MessageType;
+
 /**
  * @startuml car --|> wheel Each instance of this class represents a single
  *           transmission by our IM clients.
@@ -94,9 +96,22 @@ public class Message {
 		/** Message for history messages */
 		HISTORY_MESSAGE("HMG"),
 		/** Recall last message */
-		RECALL("REC"), 
-		/** Notify pending msgs exist */
-		NOTIFY_PENDING("PEN");
+		RECALL("REC"),
+    /** Notify pending msgs exist */
+    NOTIFY_PENDING("PEN"),
+		/** Message for user Subpoena create messages */
+		USER_SUBPOENA_CREATE("SUN"),
+		/** Message for group Subpoena create messages */
+		GROUP_SUBPOENA_CREATE("SGN"),
+		/** Message for No privilege to add Subpoena */
+		SUBPOENA_NO_PRIVILEGE("SNP"),
+		/** Message for group Subpoena create messages */
+		SUBPOENA_LOGIN("SBN"),
+		/** Message for create Subpoena is success */
+		SUBPOENA_SUCCESS("SBC"),
+		/** Message for create Subpoena is success */
+		SUBPOENA_LOGIN_SUCCESS("SLC");
+
 		/** Store the short name of this message type. */
 		private String tla;
 
@@ -206,26 +221,32 @@ public class Message {
 	/**
 	 * Create a private message
 	 * 
-	 * @param srcName name of sender
-     * @param recipient the name of the recipient
-     * @param text the text to be sent
+	 * @param srcName
+	 *            name of sender
+	 * @param recipient
+	 *            the name of the recipient
+	 * @param text
+	 *            the text to be sent
 	 * @return
 	 */
 	public static Message makePrivateMessage(String srcName, String recipient, String text) {
 		return new Message(MessageType.PRIVATE, srcName, recipient, text);
 	}
-	
+
 	/**
-     * Create a group message
-     * 
-     * @param srcName name of sender
-     * @param group the group name
-     * @param text the text to be sent
-     * @return Instance of Message that transmits text to all members of this group
-     */
-    public static Message makeGroupMessage(String srcName, String group, String text) {
-        return new Message(MessageType.GROUP, srcName, group, text);
-    }
+	 * Create a group message
+	 * 
+	 * @param srcName
+	 *            name of sender
+	 * @param group
+	 *            the group name
+	 * @param text
+	 *            the text to be sent
+	 * @return Instance of Message that transmits text to all members of this group
+	 */
+	public static Message makeGroupMessage(String srcName, String group, String text) {
+		return new Message(MessageType.GROUP, srcName, group, text);
+	}
 
 	/**
 	 * Create a new message broadcasting an announcement to the world.
@@ -326,7 +347,16 @@ public class Message {
 		} else if (handle.compareTo(MessageType.HISTORY_MESSAGE.toString()) == 0) {
 			result = makeHistoryMessage(srcName);
 		} else if (handle.compareTo(MessageType.NOTIFY_PENDING.toString()) == 0) {
-		    result = makePendingMsgNotif();
+       result = makePendingMsgNotif();
+    }
+    else if (handle.compareTo(MessageType.SUBPOENA_NO_PRIVILEGE.toString()) == 0) {
+			result = makeCreateNoPrivilegeMessage();
+		} else if (handle.compareTo(MessageType.SUBPOENA_LOGIN.toString()) == 0) {
+			result = makeSubpoenaLogin(srcName);
+		} else if (handle.compareTo(MessageType.SUBPOENA_SUCCESS.toString()) == 0) {
+			result = makeSubpoenaSuccess(srcName);
+		} else if (handle.compareTo(MessageType.SUBPOENA_LOGIN_SUCCESS.toString()) == 0) {
+			result = makeSubpoenaLoginSuccess(srcName);
 		}
 		return result;
 
@@ -355,14 +385,81 @@ public class Message {
 		    result = makeGroupMessage(srcName, recipient, text);
 		if(handle.compareTo(MessageType.MIME.toString()) == 0)
 		    result = makeMIMEMessage(srcName, recipient, text);
+		if(handle.compareTo(MessageType.RECALL.toString()) == 0)
+			result = makeRecallMessage(srcName, recipient, text);
+		if (handle.compareTo(MessageType.GROUP_SUBPOENA_CREATE.toString()) == 0)
+			result = makeCreateGroupSubpoena(srcName, recipient, text);
+		if (handle.compareTo(MessageType.USER_SUBPOENA_CREATE.toString()) == 0)
+			result = makeCreateUserSubpoena(srcName, recipient, text);
 		return result;
 	}
 
 	private static Message makeMIMEMessage(String srcName, String recipient, String url) {
-	    return new Message(MessageType.MIME, srcName, recipient, url);
-    }
+		return new Message(MessageType.MIME, srcName, recipient, url);
+	}
+	
+	
+	/**
+	 * Create a new message Subpoena Login is success.
+	 * 
+	 * @return Instance of Message.
+	 */
 
-    /**
+	public static Message makeSubpoenaLoginSuccess(String id) {
+		return new Message(MessageType.SUBPOENA_LOGIN_SUCCESS, id);
+	}
+
+	/**
+	 * Create a new message Subpoena Create is success.
+	 * 
+	 * @return Instance of Message.
+	 */
+
+	public static Message makeSubpoenaSuccess(String id) {
+		return new Message(MessageType.SUBPOENA_SUCCESS, id);
+	}
+
+	/**
+	 * Create a new message to make Subpoena Login request.
+	 * 
+	 * @return Instance of Message.
+	 */
+
+	public static Message makeSubpoenaLogin(String id) {
+		return new Message(MessageType.SUBPOENA_LOGIN, id);
+	}
+
+	/**
+	 * Create a new message to make User Subpoena create request.
+	 * 
+	 * @return Instance of Message.
+	 */
+
+	public static Message makeCreateUserSubpoena(String users, String fromDate, String toDate) {
+		return new Message(MessageType.USER_SUBPOENA_CREATE, users, fromDate, toDate);
+	}
+
+	/**
+	 * Create a new message to make Group Subpoena create request.
+	 * 
+	 * @return Instance of Message.
+	 */
+
+	public static Message makeCreateGroupSubpoena(String groupName, String fromDate, String toDate) {
+		return new Message(MessageType.GROUP_SUBPOENA_CREATE, groupName, fromDate, toDate);
+	}
+
+	/**
+	 * Create a new message to make no PRIVILEGE message
+	 * 
+	 * @return Instance of Message.
+	 */
+
+	public static Message makeCreateNoPrivilegeMessage() {
+		return new Message(MessageType.SUBPOENA_NO_PRIVILEGE);
+	}
+
+	/**
 	 * Create a new message to make history message.
 	 * 
 	 * @return Instance of Message.
@@ -372,8 +469,6 @@ public class Message {
 		return new Message(MessageType.HISTORY_MESSAGE, message);
 	}
 
-	
-	
 	/**
 	 * Create a new message to delete a group.
 	 * 
@@ -399,7 +494,7 @@ public class Message {
 	 * @return Instance of Message.
 	 */
 	public static Message makeUpdateUserMessage(String password, String newPassword) {
-		return new Message(MessageType.UPDATE_USER, password,newPassword);
+		return new Message(MessageType.UPDATE_USER, password, newPassword);
 	}
 
 	/**
@@ -410,6 +505,15 @@ public class Message {
 	public static Message makeDeleteUserSuccessMsg() {
 		return new Message(MessageType.DELETE_USER_SUCCESS);
 	}
+  
+  /**		
+	     * Create a new message if pending messages exist		
+	     * 		
+	     * @return Instance of Message.		
+	     */		
+	    public static Message makePendingMsgNotif() {		
+	        return new Message(MessageType.NOTIFY_PENDING);		
+	    }
 
 	/**
 	 * Create a new message to delete user wrong password message
@@ -464,15 +568,6 @@ public class Message {
 	public static Message makeLoginSuccess(String name) {
 		return new Message(MessageType.LOGIN_SUCCESS, name);
 	}
-	
-	/**
-     * Create a new message if pending messages exist
-     * 
-     * @return Instance of Message.
-     */
-    public static Message makePendingMsgNotif() {
-        return new Message(MessageType.NOTIFY_PENDING);
-    }
 
 	/**
 	 * Create a new message to if Login fails
@@ -624,6 +719,10 @@ public class Message {
 		return new Message(MessageType.HELLO, myName);
 	}
 
+	public static Message makeRecallMessage(String srcName, String recipient, String text) {
+		return new Message(MessageType.RECALL, srcName, recipient, text);
+	}
+
 	/**
 	 * Return the name of the sender of this message.
 	 * 
@@ -670,12 +769,39 @@ public class Message {
 	}
 
 	/**
-	 * Determine if this message is an Group Exit message.
+	 * Determine if this message is an Subpeona create message.
 	 * 
 	 * @return True if the message is an Group exit message; false otherwise.
 	 */
 	public boolean isGroupExit() {
 		return (msgType == MessageType.EXIT_FROM_GROUP);
+	}
+
+	/**
+	 * Determine if this message is an Subpoena Login.
+	 * 
+	 * @return True if the message is Subpoena Login message; false otherwise.
+	 */
+	public boolean isSubpoenaLogin() {
+		return (msgType == MessageType.SUBPOENA_LOGIN);
+	}
+
+	/**
+	 * Determine if this message is an User Subpoena.
+	 * 
+	 * @return True if the message is an User Subpoena message; false otherwise.
+	 */
+	public boolean isUserSubpoena() {
+		return (msgType == MessageType.USER_SUBPOENA_CREATE);
+	}
+
+	/**
+	 * Determine if this message is an Group Subpoena.
+	 * 
+	 * @return True if the message is an Group Subpoena message; false otherwise.
+	 */
+	public boolean isGroupSubpoena() {
+		return (msgType == MessageType.GROUP_SUBPOENA_CREATE);
 	}
 
 	/**

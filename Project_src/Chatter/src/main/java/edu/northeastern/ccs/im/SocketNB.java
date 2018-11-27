@@ -32,110 +32,110 @@ import com.github.seratch.jslack.api.webhook.WebhookResponse;
  * @version 1.3
  */
 public final class SocketNB {
-    /** Name of the server to which we will connect. */
-    private String hostname;
+	/** Name of the server to which we will connect. */
+	private String hostname;
 
-    /** Port number on which the IM server operates. */
-    private int imPort;
+	/** Port number on which the IM server operates. */
+	private int imPort;
 
-    /**
-     * This class merely acts as a wrapper for Java's SocketChannel class; this is
-     * the actual instance of SocketChannel.
-     */
-    private SocketChannel channel;
+	/**
+	 * This class merely acts as a wrapper for Java's SocketChannel class; this is
+	 * the actual instance of SocketChannel.
+	 */
+	private SocketChannel channel;
 
-    private static final int BUFFER_SIZE = 64 * 1024;
+	private static final int BUFFER_SIZE = 64 * 1024;
 
-    private static final int DECIMAL_RADIX = 10;
+	private static final int DECIMAL_RADIX = 10;
 
-    private static final int HANDLE_LENGTH = 3;
+	private static final int HANDLE_LENGTH = 3;
 
-    private static final int MIN_MESSAGE_LENGTH = 7;
+	private static final int MIN_MESSAGE_LENGTH = 7;
 
-    private static final String CHARSET_NAME = "us-ascii";
+	private static final String CHARSET_NAME = "us-ascii";
 
-    private static final int MAX_WAIT_DELAY = 100;
+	private static final int MAX_WAIT_DELAY = 100;
 
-    /** Slack WebHook URL */
-    private static final String SLACK_URL = "https://hooks.slack.com/services/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";
+  /** Slack WebHook URL */
+  private static final String SLACK_URL = "https://hooks.slack.com/services/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";
 
-    /** Logger */
-    private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
+  /** Logger */
+  private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
     
-    private Selector selector;
+  private Selector selector;
 
-    private SelectionKey key;
+	private SelectionKey key;
 
-    private ByteBuffer buff;
+	private ByteBuffer buff;
 
-    /**
-     * Creates a new network connection that connects to the specified port number
-     * on the named host.
-     * 
-     * @param host
-     *            Hostname of the computer to which we are connecting
-     * @param port
-     *            Number of the port on the other computer which we use to connect
-     */
-    public SocketNB(String host, int port) {
-        hostname = host;
-        imPort = port;
-        // Allocate the buffer we will use to read data
-        buff = ByteBuffer.allocate(BUFFER_SIZE);
-    }
+	/**
+	 * Creates a new network connection that connects to the specified port number
+	 * on the named host.
+	 * 
+	 * @param host
+	 *            Hostname of the computer to which we are connecting
+	 * @param port
+	 *            Number of the port on the other computer which we use to connect
+	 */
+	public SocketNB(String host, int port) {
+		hostname = host;
+		imPort = port;
+		// Allocate the buffer we will use to read data
+		buff = ByteBuffer.allocate(BUFFER_SIZE);
+	}
 
-    /**
-     * <p>
-     * Closes this non-blocking socket.
-     * <p>
-     * Once a SocketNB has been closed, it is not available for further networking
-     * use (i.e. can't be reconnected or rebound). A new SocketNB needs to be
-     * created.
-     * 
-     * @throws IOException
-     *             Exception thrown when an I/O error occurs closing this socket.
-     */
-    private void close() throws IOException {
-        selector.close();
-        channel.close();
-    }
+	/**
+	 * <p>
+	 * Closes this non-blocking socket.
+	 * <p>
+	 * Once a SocketNB has been closed, it is not available for further networking
+	 * use (i.e. can't be reconnected or rebound). A new SocketNB needs to be
+	 * created.
+	 * 
+	 * @throws IOException
+	 *             Exception thrown when an I/O error occurs closing this socket.
+	 */
+	private void close() throws IOException {
+		selector.close();
+		channel.close();
+	}
 
-    /**
-     * Read in a new argument from the IM server.
-     * 
-     * @param charBuffer
-     *            Buffer holding text from over the network.
-     * @return String holding the next argument sent over the network.
-     */
-    private String readArgument(CharBuffer charBuffer) {
-        // Compute the current position in the buffer
-        int pos = charBuffer.position();
-        // Compute the length of this argument
-        int length = 0;
-        // Track the number of locations visited.
-        int seen = 0;
-        // Assert that this character is a digit
-        assert Character.isDigit(charBuffer.get(pos));
-        // Now read in the length of the first argument
-        while (Character.isDigit(charBuffer.get(pos))) {
-            // My quick-and-dirty numeric converter
-            length = length * DECIMAL_RADIX;
-            length += Character.digit(charBuffer.get(pos), DECIMAL_RADIX);
-            // Move to the next character
-            pos += 1;
-            seen += 1;
-        }
-        seen += 1;
-        if (length == 0) {
-            // Update our position
-            charBuffer.position(pos);
-            // If the length is 0, this argument is null
-            return null;
-        }
-        String retVal = charBuffer.subSequence(seen, length + seen).toString();
-        charBuffer.position(pos + length);
-        return retVal;
-    }
+	/**
+	 * Read in a new argument from the IM server.
+	 * 
+	 * @param charBuffer
+	 *            Buffer holding text from over the network.
+	 * @return String holding the next argument sent over the network.
+	 */
+	private String readArgument(CharBuffer charBuffer) {
+		// Compute the current position in the buffer
+		int pos = charBuffer.position();
+		// Compute the length of this argument
+		int length = 0;
+		// Track the number of locations visited.
+		int seen = 0;
+		// Assert that this character is a digit
+		assert Character.isDigit(charBuffer.get(pos));
+		// Now read in the length of the first argument
+		while (Character.isDigit(charBuffer.get(pos))) {
+			// My quick-and-dirty numeric converter
+			length = length * DECIMAL_RADIX;
+			length += Character.digit(charBuffer.get(pos), DECIMAL_RADIX);
+			// Move to the next character
+			pos += 1;
+			seen += 1;
+		}
+		seen += 1;
+		if (length == 0) {
+			// Update our position
+			charBuffer.position(pos);
+			// If the length is 0, this argument is null
+			return null;
+		}
+		String retVal = charBuffer.subSequence(seen, length + seen).toString();
+		charBuffer.position(pos + length);
+		return retVal;
+	}
 
     /**
      * This method will block while it waits to enqueue 1 (or more) messages sent
@@ -268,97 +268,106 @@ public final class SocketNB {
                 if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.NOTIFY_PENDING) {
                     System.out.println("\u001B[33m--------YOU HAVE UNREAD MESSAGES--------\u001B[0m");
                 }
+                if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.SUBPOENA_SUCCESS) {
+					        System.out.println("Your Subpoena id is: " + newMsg.getSender());
+				      }
+				      if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.SUBPOENA_NO_PRIVILEGE) {
+					      System.out.println("You are not allowed to perform this operation");
+				      }
+				      if (newMsg.isSubpoenaLoginSuccess()) {
+					      MessagePrinter.printMessage("Subpoena Channel Login Success");
+				      }
 
-                // Now pass this message on to the system.
-                messages.add(newMsg);
+				// Now pass this message on to the system.
+				messages.add(newMsg);
 
-                // And move the position to the start of the next character
-                start = charBuffer.position() + 1;
-            }
-            // Check if we did any work.
-            if (start != 0) {
-                // Move any read messages out of the buffer so that we can add
-                // to the end.
-                buff.position(start);
-                // Move all of the remaining data to the start of the buffer.
-                buff.compact();
-                // Close down the connection once we quit
-                if (quitter) {
-                    close();
-                }
-            }
-        } catch (IOException ioe) {
-            // For the moment, we will cover up this exception and hope it never
-            // occurs.
-            assert false;
-        }
-    }
+				// And move the position to the start of the next character
+				start = charBuffer.position() + 1;
+			}
+			// Check if we did any work.
+			if (start != 0) {
+				// Move any read messages out of the buffer so that we can add
+				// to the end.
+				buff.position(start);
+				// Move all of the remaining data to the start of the buffer.
+				buff.compact();
+				// Close down the connection once we quit
+				if (quitter) {
+					close();
+				}
+			}
+		} catch (IOException ioe) {
+			// For the moment, we will cover up this exception and hope it never
+			// occurs.
+			assert false;
+		}
+	}
 
-    // Check if the socket is currently open.
-    protected boolean isConnected() {
-        if (channel == null) {
-            return false;
-        } else {
-            return channel.isOpen();
-        }
-    }
+	// Check if the socket is currently open.
+	protected boolean isConnected() {
+		if (channel == null) {
+			return false;
+		} else {
+			return channel.isOpen();
+		}
+	}
 
-    /**
-     * Send a Message over the network. This method performs its actions by printing
-     * the given Message over the SocketNB instance with which the SendIM was
-     * instantiated.
-     * 
-     * @param msg
-     *            Message to be sent out over the network.
-     */
-    protected void print(Message msg) {
-        if (!isConnected()) {
-            throw new IllegalOperationException("Cannot send a message when we are not connected!");
-        }
-        String str = msg.toString();
-        ByteBuffer wrapper = ByteBuffer.wrap(str.getBytes());
-        int bytesWritten = 0;
-        while (bytesWritten != str.length()) {
-            try {
-                bytesWritten += channel.write(wrapper);
-            } catch (IOException e) {
-                // May want to do something here, but now will simply cover the
-                // issue up
-                assert false;
-            }
-        }
-    }
+	/**
+	 * Send a Message over the network. This method performs its actions by printing
+	 * the given Message over the SocketNB instance with which the SendIM was
+	 * instantiated.
+	 * 
+	 * @param msg
+	 *            Message to be sent out over the network.
+	 */
+	protected void print(Message msg) {
+		if (!isConnected()) {
+			throw new IllegalOperationException("Cannot send a message when we are not connected!");
+		}
+		String str = msg.toString();
+		ByteBuffer wrapper = ByteBuffer.wrap(str.getBytes());
+		int bytesWritten = 0;
+		while (bytesWritten != str.length()) {
+			try {
+				bytesWritten += channel.write(wrapper);
+			} catch (IOException e) {
+				// May want to do something here, but now will simply cover the
+				// issue up
+				assert false;
+			}
+		}
+	}
 
-    protected void startIMConnection() throws IOException {
-        // Open a new channel
-        channel = SocketChannel.open();
-        // Make this channel a non-blocking channel
-        channel.configureBlocking(false);
-        // Connect the channel to the remote port
-        channel.connect(new InetSocketAddress(hostname, imPort));
-        // Open the selector to handle our non-blocking I/O
-        Selector regSelector = Selector.open();
-        // Register our channel to receive alerts to complete the connection
-        SelectionKey regKey = channel.register(regSelector, SelectionKey.OP_CONNECT);
-        // Do nothing but wait until we have a response.
-        regSelector.select(0);
-        assert regKey.isConnectable();
-        // Try and complete creating this connection
-        if (!channel.finishConnect()) {
-            throw new IOException("Error, something went wrong and I was unable to finish making this connection");
-        }
-        // We are done, close this selector.
-        regSelector.close();
+	protected void startIMConnection() throws IOException {
+		// Open a new channel
+		channel = SocketChannel.open();
+		// Make this channel a non-blocking channel
+		channel.configureBlocking(false);
+		// Connect the channel to the remote port
+		channel.connect(new InetSocketAddress(hostname, imPort));
+		// Open the selector to handle our non-blocking I/O
+		Selector regSelector = Selector.open();
+		// Register our channel to receive alerts to complete the connection
+		SelectionKey regKey = channel.register(regSelector, SelectionKey.OP_CONNECT);
+		// Do nothing but wait until we have a response.
+		regSelector.select(0);
+		assert regKey.isConnectable();
+		// Try and complete creating this connection
+		if (!channel.finishConnect()) {
+			throw new IOException("Error, something went wrong and I was unable to finish making this connection");
+		}
+		// We are done, close this selector.
+		regSelector.close();
 
-        try {
-            // Open the selector to handle our non-blocking I/O
-            selector = Selector.open();
-            // Register our channel to receive alerts to complete the connection
-            key = channel.register(selector, SelectionKey.OP_READ);
-        } catch (IOException e) {
-            // For the moment we are going to simply cover up that there was a
-            // problem.
-            assert false;
-        }
-    }
+		try {
+			// Open the selector to handle our non-blocking I/O
+			selector = Selector.open();
+			// Register our channel to receive alerts to complete the connection
+			key = channel.register(selector, SelectionKey.OP_READ);
+		} catch (IOException e) {
+			// For the moment we are going to simply cover up that there was a
+			// problem.
+			assert false;
+		}
+	}
 }

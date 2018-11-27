@@ -6,7 +6,9 @@ import com.github.seratch.jslack.api.webhook.WebhookResponse;
 import com.mongodb.client.MongoDatabase;
 import edu.northeastern.ccs.im.Message;
 import edu.northeastern.ccs.im.MongoConnection;
+import edu.northeastern.ccs.im.MongoDB.Model.*;
 import edu.northeastern.ccs.im.MongoDB.Model.User;
+import edu.northeastern.ccs.im.service.SubpoenaServicePrattle;
 import edu.northeastern.ccs.im.service.UserServicePrattle;
 
 import java.io.IOException;
@@ -16,7 +18,13 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.*;
 import java.util.logging.Level;
@@ -38,48 +46,59 @@ import java.util.logging.Logger;
  */
 
 public abstract class Prattle {
+	/** Amount of time we should wait for a signal to arrive. */
+	private static final int DELAY_IN_MS = 50;
 
-    /** Amount of time we should wait for a signal to arrive. */
-    private static final int DELAY_IN_MS = 50;
+	/** Number of threads available in our thread pool. */
+	private static final int THREAD_POOL_SIZE = 20;
 
-    /** Number of threads available in our thread pool. */
-    private static final int THREAD_POOL_SIZE = 20;
+	/** Delay between times the thread pool runs the client check. */
+	private static final int CLIENT_CHECK_DELAY = 200;
 
-    /** Delay between times the thread pool runs the client check. */
-    private static final int CLIENT_CHECK_DELAY = 200;
+	/** Collection of threads that are currently being used. */
+	private static ConcurrentLinkedQueue<ClientRunnable> active;
 
-    /** Collection of threads that are currently being used. */
-    private static ConcurrentLinkedQueue<ClientRunnable> active;
+	private static boolean done;
 
-    private static boolean done;
+	private static MongoDatabase db;
 
-    private static MongoDatabase db;
+	private static UserServicePrattle userService;
 
-    private static UserServicePrattle userService;
+	private static SubpoenaServicePrattle subpoenaService;
 
-    /** Logger */
-    private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
+	private static LocalDateTime now;
+
+	private static LocalDateTime midnight;
+
+	private static Map<String, Subpoena> activeSubpoena;
+
+	private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");
+
+  /** Logger */
+  private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
     
-    /** Slack WebHook URL */
-    private static final String SLACK_URL = "https://hooks.slack.com/services/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";
+  /** Slack WebHook URL */
+  private static final String SLACK_URL = "https://hooks.slack.com/services/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";
+	/** All of the static initialization occurs in this "method" */
+	static {
+		// Create the new queue of active threads.
+		active = new ConcurrentLinkedQueue<ClientRunnable>();
+		activeSubpoena = new HashMap<>();
+		db = MongoConnection.createConnection();
+		userService = new UserServicePrattle(db);
+		subpoenaService = new SubpoenaServicePrattle(db);
+		createActiveSubpoenaMap();
+	}
 
-    /** All of the static initialization occurs in this "method" */
-    static {
-        // Create the new queue of active threads.
-        active = new ConcurrentLinkedQueue<ClientRunnable>();
-        db = MongoConnection.createConnection();
-        userService = new UserServicePrattle(db);
-    }
-
-    /**
-     * Broadcast a given message to all the other IM clients currently on the
-     * system. This message _will_ be sent to the client who originally sent it.
-     * 
-     * @param message
-     *            Message that the client sent.
-     */
-    public static void broadcastMessage(Message message) {
-        // Loop through all of our active threads
+	/**
+	 * Broadcast a given message to all the other IM clients currently on the
+	 * system. This message _will_ be sent to the client who originally sent it.
+	 * 
+	 * @param message
+	 *            Message that the client sent.
+	 */
+	public static void broadcastMessage(Message message) {
+		// Loop through all of our active threads
         User sender = userService.findUserByUsername(message.getName());
         String senderIP = null;
         String msg = null;
@@ -103,112 +122,157 @@ public abstract class Prattle {
                 tt.enqueueMessage(message);
             }
         }
+	}
+
+	/**
+	 * Broadcast a given private message to all the other given receiver handle
+	 * system.
+	 * 
+	 * @param message
+	 *            Message that the client sent.
+	 * @param receiver
+	 *            the receiver
+	 */
+	public static void broadcastPrivateMessage(Message message, String receiver, String msg) {
+    boolean activeReceiver = false;
+		// Loop through all of our active threads
+		String sbId = handleSubpoena(message);
+		for (ClientRunnable tt : active) {
+			// Do not send the message to any clients that are not ready to receive it.
+			if (tt.isInitialized() && tt.getName().equalsIgnoreCase(receiver)) {
+				tt.enqueueMessage(message);
+        activeReceiver = true;
+			}
+      if (tt.isInitialized() && sbId != null && tt.getName().equalsIgnoreCase(sbId)) {
+				tt.enqueueMessage(message);
+			}
     }
+    // Receiver's copy
+    User recipient = userService.findUserByUsername(receiver);
+    if(recipient != null) {
+       if(activeReceiver)
+           userService.addToMyMessages(recipient, msg); 
+       else
+           userService.addToUnreadMessages(recipient, msg); 
+      }     
+	}
 
-    /**
-     * Broadcast a given private message to all the other given receiver handle
-     * system.
-     * 
-     * @param message
-     *            Message that the client sent.
-     * @param receiver
-     *            the receiver
-     */
-    public static void broadcastPrivateMessage(Message message, String receiver, String msg) {
-        boolean activeReceiver = false;
-        // Loop through all of our active threads
-        for (ClientRunnable tt : active) {
-            // Do not send the message to any clients that are not ready to receive it.
-            if (tt.isInitialized() && tt.getName().equalsIgnoreCase(receiver)) {
-                tt.enqueueMessage(message);
-                activeReceiver = true;
+	// This method will check if there is subpoena related to that message, if yes
+	// it
+	// return the subpoena id
+	private static String handleSubpoena(Message msg) {
+		Subpoena sb;
+		if (msg.isPrivateMessage()) {
+			String user1 = msg.getName();
+			String user2 = msg.getMsgRecipient();
+			sb = activeSubpoena.get(user1 + "$%$all");
+			if (sb != null) {
+				sb.getId();
+			} else {
+				sb = activeSubpoena.get(user1 + "%$%" + user2);
+				if (sb != null) {
+					return sb.getId();
+				}
+			}
+		} else if (msg.isGroupMessage()) {
+			sb = activeSubpoena.get(msg.getMsgRecipient());
+			if (sb != null) {
+				return sb.getId();
+			}
+		}
+		return null;
+	}
+
+	public static void createActiveSubpoenaMap() {
+		List<Subpoena> subpoenaList = subpoenaService.getActiveSubpoenas();
+		for (Subpoena subpoena : subpoenaList) {
+			if (subpoena.getGroup() == "") {
+				activeSubpoena.put(subpoena.getUser1() + "$%$" + subpoena.getUser2(), subpoena);
+			} else {
+				activeSubpoena.put(subpoena.getGroup(), subpoena);
+			}
+		}
+	}
+
+	/**
+	 * Start up the threaded talk server. This class accepts incoming connections on
+	 * a specific port specified on the command-line. Whenever it receives a new
+	 * connection, it will spawn a thread to perform all of the I/O with that
+	 * client. This class relies on the server not receiving too many requests -- it
+	 * does not include any code to limit the number of extant threads.
+	 * 
+	 * @param args
+	 *            String arguments to the server from the command line. At present
+	 *            the only legal (and required) argument is the port on which this
+	 *            server should list.
+	 * @throws IOException
+	 *             Exception thrown if the server cannot connect to the port to
+	 *             which it is supposed to listen.
+	 */
+	@SuppressWarnings("unchecked")
+	public static void main(String[] args) throws IOException {
+		// Connect to the socket on the appropriate port to which this server connects.
+		ServerSocketChannel serverSocket = null;
+		try {
+			serverSocket = ServerSocketChannel.open();
+			serverSocket.configureBlocking(false);
+			serverSocket.socket().bind(new InetSocketAddress(ServerConstants.PORT));
+			// Create the Selector with which our channel is registered.
+			Selector selector = SelectorProvider.provider().openSelector();
+			// Register to receive any incoming connection messages.
+			serverSocket.register(selector, SelectionKey.OP_ACCEPT);
+
+			// Create our pool of threads on which we will execute.
+			ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(THREAD_POOL_SIZE);
+			// Listen on this port until ...
+			done = false;
+			while (!done) {
+				now = LocalDateTime.now();
+				midnight = LocalDate.now().atTime(0, 0);
+				if (now.isEqual(midnight)) {
+					createActiveSubpoenaMap();
+				}
+				// Check if we have a valid incoming request, but limit the time we may wait.
+				while (selector.select(DELAY_IN_MS) != 0) {
+					// Get the list of keys that have arrived since our last check
+					Set<SelectionKey> acceptKeys = selector.selectedKeys();
+					// Now iterate through all of the keys
+					Iterator<SelectionKey> it = acceptKeys.iterator();
+					while (it.hasNext()) {
+
+						// Get the next key; it had better be from a new incoming connection
+						SelectionKey key = it.next();
+						it.remove();
+						// Assert certain things I really hope is true
+						assert key.isAcceptable();
+						assert key.channel() == serverSocket;
+						// Create a new thread to handle the client for which we just received a
+						// request.
+						try {
+							// Accept the connection and create a new thread to handle this client.
+							SocketChannel socket = serverSocket.accept();
+							// Make sure we have a connection to work with.
+							if (socket != null) {
+								ClientRunnable tt = new ClientRunnable(socket);
+								// Add the thread to the queue of active threads
+                tt.setIP(socket.getRemoteAddress().toString());
+								active.add(tt);
+								// Have the client executed by our pool of threads.
+								@SuppressWarnings("rawtypes")
+								ScheduledFuture clientFuture = threadPool.scheduleAtFixedRate(tt, CLIENT_CHECK_DELAY,
+										CLIENT_CHECK_DELAY, TimeUnit.MILLISECONDS);
+								tt.setFuture(clientFuture);
+							}
+						} catch (AssertionError ae) {
+                LOGGER.log(Level.WARNING, "Caught Assetion: " + ae.toString(), ae);
+              } catch (Exception e) {
+                 LOGGER.log(Level.WARNING, "Caught Exception: " + e.toString(), e);
             }
-        }
-        // Receiver's copy
-        User recipient = userService.findUserByUsername(receiver);
-        if(recipient != null) {
-            if(activeReceiver)
-                userService.addToMyMessages(recipient, msg); 
-            else
-                userService.addToUnreadMessages(recipient, msg); 
-        }
-    }
-
-    /**
-     * Start up the threaded talk server. This class accepts incoming connections on
-     * a specific port specified on the command-line. Whenever it receives a new
-     * connection, it will spawn a thread to perform all of the I/O with that
-     * client. This class relies on the server not receiving too many requests -- it
-     * does not include any code to limit the number of extant threads.
-     * 
-     * @param args
-     *            String arguments to the server from the command line. At present
-     *            the only legal (and required) argument is the port on which this
-     *            server should list.
-     * @throws IOException
-     *             Exception thrown if the server cannot connect to the port to
-     *             which it is supposed to listen.
-     */
-    @SuppressWarnings("unchecked")
-    public static void main(String[] args) throws IOException {
-        // Connect to the socket on the appropriate port to which this server connects.
-        if(args.length > 0 && args[0].equals("-l")) // Dynamic toggle logging
-            Logger.getLogger("").setLevel(Level.OFF);
-        ServerSocketChannel serverSocket = null;
-        try {
-            serverSocket = ServerSocketChannel.open();
-            serverSocket.configureBlocking(false);
-            serverSocket.socket().bind(new InetSocketAddress(ServerConstants.PORT));
-            // Create the Selector with which our channel is registered.
-            Selector selector = SelectorProvider.provider().openSelector();
-            // Register to receive any incoming connection messages.
-            serverSocket.register(selector, SelectionKey.OP_ACCEPT);
-
-            // Create our pool of threads on which we will execute.
-            ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(THREAD_POOL_SIZE);
-            // Listen on this port until ...
-            done = false;
-            while (!done) {
-                // Check if we have a valid incoming request, but limit the time we may wait.
-                while (selector.select(DELAY_IN_MS) != 0) {
-                    // Get the list of keys that have arrived since our last check
-                    Set<SelectionKey> acceptKeys = selector.selectedKeys();
-                    // Now iterate through all of the keys
-                    Iterator<SelectionKey> it = acceptKeys.iterator();
-                    while (it.hasNext()) {
-                        // Get the next key; it had better be from a new incoming connection
-                        SelectionKey key = it.next();
-                        it.remove();
-                        // Assert certain things I really hope is true
-                        assert key.isAcceptable();
-                        assert key.channel() == serverSocket;
-                        // Create a new thread to handle the client for which we just received a
-                        // request.
-                        try {
-                            // Accept the connection and create a new thread to handle this client.
-                            SocketChannel socket = serverSocket.accept();
-                            // Make sure we have a connection to work with.
-                            if (socket != null) {
-                                ClientRunnable tt = new ClientRunnable(socket);
-                                // Add the thread to the queue of active threads
-                                tt.setIP(socket.getRemoteAddress().toString());
-                                active.add(tt);
-                                // Have the client executed by our pool of threads.
-                                @SuppressWarnings("rawtypes")
-                                ScheduledFuture clientFuture = threadPool.scheduleAtFixedRate(tt, CLIENT_CHECK_DELAY,
-                                        CLIENT_CHECK_DELAY, TimeUnit.MILLISECONDS);
-                                tt.setFuture(clientFuture);
-                            }
-                        } catch (AssertionError ae) {
-                            LOGGER.log(Level.WARNING, "Caught Assetion: " + ae.toString(), ae);
-                        } catch (Exception e) {
-                            LOGGER.log(Level.WARNING, "Caught Exception: " + e.toString(), e);
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Exception while trying to open socket: " + e.toString(), e);
+					}
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "Exception while trying to open socket: " + e.toString(), e);
             Payload payload = Payload.builder()
                     .channel("#cs5500-team-203-f18")
                     .username("Slick Bot")
@@ -225,42 +289,41 @@ public abstract class Prattle {
             }
             if(!response.getMessage().equalsIgnoreCase("OK"))
                 LOGGER.log(Level.SEVERE, "Slack integration failed!");
-        } finally {
-            if (serverSocket != null)
-                serverSocket.close();
-        }
-    }
+		} finally {
+			if (serverSocket != null)
+				serverSocket.close();
+		}
+	}
 
-    /**
-     * 
-     * @return the done flag
-     */
-    public static boolean isDone() {
-        return done;
-    }
+	/**
+	 * 
+	 * @return the done flag
+	 */
+	public static boolean isDone() {
+		return done;
+	}
 
-    /**
-     * Sets the done flag
-     * 
-     * @param done
-     */
-    public static void setDone(boolean done) {
-        Prattle.done = done;
-    }
+	/**
+	 * Sets the done flag
+	 * 
+	 * @param done
+	 */
+	public static void setDone(boolean done) {
+		Prattle.done = done;
+	}
 
-    /**
-     * Remove the given IM client from the list of active threads.
-     * 
-     * @param dead
-     *            Thread which had been handling all the I/O for a client who has
-     *            since quit.
-     */
-    public static void removeClient(ClientRunnable dead) {
-        // Test and see if the thread was in our list of active clients so that we
-        // can remove it.
-        if (!active.remove(dead)) {
-            System.out.println("Could not find a thread that I tried to remove!\n");
-            LOGGER.log(Level.SEVERE,"Could not find the thread expected to be removed");
-        }
-    }
+	/**
+	 * Remove the given IM client from the list of active threads.
+	 * 
+	 * @param dead
+	 *            Thread which had been handling all the I/O for a client who has
+	 *            since quit.
+	 */
+	public static void removeClient(ClientRunnable dead) {
+		// Test and see if the thread was in our list of active clients so that we
+		// can remove it.
+		if (!active.remove(dead)) {
+      LOGGER.log(Level.SEVERE,"Could not find the thread expected to be removed");
+		}
+	}
 }
