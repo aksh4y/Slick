@@ -58,9 +58,15 @@ public class SubpoenaServicePrattle {
     }
     public Subpoena querySubpoenaById(String id) {
         BasicDBObject query = new BasicDBObject();
-        query.put("_id", new ObjectId(id));
-        Document doc = scol.find(query).first();
-        return gson.fromJson(gson.toJson(doc), Subpoena.class);
+        try {
+            query.put("_id", new ObjectId(id));
+            Document doc = scol.find(query).first();
+            return gson.fromJson(gson.toJson(doc), Subpoena.class);
+        }catch(IllegalArgumentException e){
+            e.getStackTrace();
+            return null;
+        }
+
     }
     public List<Subpoena> getActiveSubpoenas() {
         List<Subpoena> listOfActiveSubpoenas = new ArrayList<Subpoena>();
