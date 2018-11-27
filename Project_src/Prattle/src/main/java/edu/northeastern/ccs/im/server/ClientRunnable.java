@@ -549,6 +549,7 @@ public class ClientRunnable implements Runnable {
 						if (sb != null) {
 							ackMsg = Message.makeSubpoenaLoginSuccess(msg.getName());
 							this.isSubpoena = true;
+							this.name = msg.getName();
 						} else {
 							ackMsg = Message.makeFailMsg();
 						}
