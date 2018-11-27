@@ -1,5 +1,7 @@
 package edu.northeastern.ccs.im;
 
+import edu.northeastern.ccs.im.Message.MessageType;
+
 /**
  * @startuml car --|> wheel Each instance of this class represents a single
  *           transmission by our IM clients.
@@ -104,7 +106,9 @@ public class Message {
 		/** Message for group Subpoena create messages */
 		SUBPOENA_LOGIN("SBN"),
 		/** Message for create Subpoena is success */
-		SUBPOENA_SUCCESS("SBC");
+		SUBPOENA_SUCCESS("SBC"),
+		/** Message for create Subpoena is success */
+		SUBPOENA_LOGIN_SUCCESS("SLC");
 
 		/** Store the short name of this message type. */
 		private String tla;
@@ -346,6 +350,8 @@ public class Message {
 			result = makeSubpoenaLogin(srcName);
 		} else if (handle.compareTo(MessageType.SUBPOENA_SUCCESS.toString()) == 0) {
 			result = makeSubpoenaSuccess(srcName);
+		} else if (handle.compareTo(MessageType.SUBPOENA_LOGIN_SUCCESS.toString()) == 0) {
+			result = makeSubpoenaLoginSuccess(srcName);
 		}
 		return result;
 
@@ -385,6 +391,17 @@ public class Message {
 
 	private static Message makeMIMEMessage(String srcName, String recipient, String url) {
 		return new Message(MessageType.MIME, srcName, recipient, url);
+	}
+	
+	
+	/**
+	 * Create a new message Subpoena Login is success.
+	 * 
+	 * @return Instance of Message.
+	 */
+
+	public static Message makeSubpoenaLoginSuccess(String id) {
+		return new Message(MessageType.SUBPOENA_LOGIN_SUCCESS, id);
 	}
 
 	/**

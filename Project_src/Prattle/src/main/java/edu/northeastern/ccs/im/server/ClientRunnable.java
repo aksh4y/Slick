@@ -93,6 +93,8 @@ public class ClientRunnable implements Runnable {
 
 	/** Name that the client used when connecting to the server. */
 	private String name;
+	
+	private Boolean isSubpoena = false;
 
 	/**
 	 * Whether this client has been initialized, set its user name, and is ready to
@@ -324,7 +326,8 @@ public class ClientRunnable implements Runnable {
 		// The client must be initialized before we can do anything else
 		if (!initialized) {
 			checkForInitialization();
-		} else {
+		}
+		else {
 			try {
 				// Client has already been initialized, so we should first check
 				// if there are any input
@@ -502,15 +505,13 @@ public class ClientRunnable implements Runnable {
 							}
 						}
 						this.enqueueMessage(ackMsg);
-					}
-					else if (msg.isRecallMessage()) {
-						Message ackMsg=null;
+					} else if (msg.isRecallMessage()) {
+						Message ackMsg = null;
 						this.initialized = true;
-						if(msg.getText().equalsIgnoreCase("user")) {
+						if (msg.getText().equalsIgnoreCase("user")) {
 							userService.getLastSentMessage("user", user.getUsername(), msg.getMsgRecipient());
 							ackMsg = Message.makeSuccessMsg();
-						}
-						else if (msg.getText().equalsIgnoreCase("group")){
+						} else if (msg.getText().equalsIgnoreCase("group")) {
 							userService.getLastSentMessage("group", user.getUsername(), msg.getMsgRecipient());
 							ackMsg = Message.makeSuccessMsg();
 						}
@@ -528,16 +529,12 @@ public class ClientRunnable implements Runnable {
 							ackMsg = Message.makeCreateNoPrivilegeMessage();
 						} else {
 							if (msg.isUserSubpoena()) {
-								String[] params = msg.getName().split("$%$");
-								if (params[1].equalsIgnoreCase("all")) {
-									sb = subpoenaService.createSubpoena(params[0], null, null, fromDate, toDate);
-								} else {
-									sb = subpoenaService.createSubpoena(params[0], params[1], null, fromDate, toDate);
-								}
-								ackMsg = Message.makeSubpoenaSuccess("22222");
+								String[] params = msg.getName().split("\\$\\%\\$");
+								sb = subpoenaService.createSubpoena(params[0], params[1], "", fromDate, toDate);
+								ackMsg = Message.makeSubpoenaSuccess(sb.getId());
 							} else {
-								sb = subpoenaService.createSubpoena(null, null, msg.getName(), fromDate, toDate);
-								ackMsg = Message.makeSubpoenaSuccess("22222");
+								sb = subpoenaService.createSubpoena("", "", msg.getName(), fromDate, toDate);
+								ackMsg = Message.makeSubpoenaSuccess(sb.getId());
 							}
 							Prattle.createActiveSubpoenaMap();
 						}
@@ -545,18 +542,18 @@ public class ClientRunnable implements Runnable {
 					}
 
 					// Subpoena Login
-					// else if (msg.isSubpoenaLogin()) {
-					// Message ackMsg;
-					// this.initialized = true;
-					// Subpoena sb = subpoenaService.querySubpoenaById(msg.getName());
-					// if(sb != null){
-					// ackMsg = Message.makeLoginSuccess(sb.get_id());
-					// } else {
-					// ackMsg = Message.makeFailMsg();
-					// }
-					// this.enqueueMessage(ackMsg);
-					//
-					// }
+					else if (msg.isSubpoenaLogin()) {
+						Message ackMsg;
+						this.initialized = true;
+						Subpoena sb = subpoenaService.querySubpoenaById(msg.getName());
+						if (sb != null) {
+							ackMsg = Message.makeSubpoenaLoginSuccess(msg.getName());
+							this.isSubpoena = true;
+						} else {
+							ackMsg = Message.makeFailMsg();
+						}
+						this.enqueueMessage(ackMsg);
+					}
 					// If the message is a broadcast message, send it out
 					else if (msg.isDisplayMessage()) {
 						// Check if the message is legal formatted

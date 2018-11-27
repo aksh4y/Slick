@@ -18,6 +18,7 @@ import java.nio.channels.spi.SelectorProvider;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +61,7 @@ public abstract class Prattle {
 	private static MongoDatabase db;
 
 	private static UserServicePrattle userService;
-	
+
 	private static SubpoenaServicePrattle subpoenaService;
 
 	private static LocalDateTime now;
@@ -76,9 +77,11 @@ public abstract class Prattle {
 	static {
 		// Create the new queue of active threads.
 		active = new ConcurrentLinkedQueue<ClientRunnable>();
+		activeSubpoena = new HashMap<>();
 		db = MongoConnection.createConnection();
 		userService = new UserServicePrattle(db);
 		subpoenaService = new SubpoenaServicePrattle(db);
+		createActiveSubpoenaMap();
 	}
 
 	/**
@@ -142,17 +145,17 @@ public abstract class Prattle {
 			String user2 = msg.getMsgRecipient();
 			sb = activeSubpoena.get(user1 + "$%$all");
 			if (sb != null) {
-//				 sb.get_id();
+				sb.getId();
 			} else {
 				sb = activeSubpoena.get(user1 + "%$%" + user2);
 				if (sb != null) {
-//					 return sb.get_id();
+					return sb.getId();
 				}
 			}
 		} else if (msg.isGroupMessage()) {
 			sb = activeSubpoena.get(msg.getMsgRecipient());
 			if (sb != null) {
-//				 return sb.get_id();
+				return sb.getId();
 			}
 		}
 		return null;
@@ -161,12 +164,10 @@ public abstract class Prattle {
 	public static void createActiveSubpoenaMap() {
 		List<Subpoena> subpoenaList = subpoenaService.getActiveSubpoenas();
 		for (Subpoena subpoena : subpoenaList) {
-			if(subpoena.getUser2() == null && subpoena.getGroup() == null) {
-				activeSubpoena.put(subpoena.getUser1()+"$%$all", subpoena);
-			}else if(subpoena.getUser2() != null ) {
-				activeSubpoena.put(subpoena.getUser1()+"$%$"+subpoena.getUser2(), subpoena);
-			}else if(subpoena.getGroup() != null ) {
-				activeSubpoena.put(subpoena.getGroup()+"$%$"+subpoena.getUser2(), subpoena);
+			if (subpoena.getGroup() == "") {
+				activeSubpoena.put(subpoena.getUser1() + "$%$" + subpoena.getUser2(), subpoena);
+			} else {
+				activeSubpoena.put(subpoena.getGroup(), subpoena);
 			}
 		}
 	}
@@ -190,9 +191,7 @@ public abstract class Prattle {
 	public static void main(String[] args) throws IOException {
 		// Connect to the socket on the appropriate port to which this server connects.
 		ServerSocketChannel serverSocket = null;
-
 		try {
-			createActiveSubpoenaMap();
 			serverSocket = ServerSocketChannel.open();
 			serverSocket.configureBlocking(false);
 			serverSocket.socket().bind(new InetSocketAddress(ServerConstants.PORT));

@@ -104,8 +104,8 @@ public class Message {
 		MIME("MIM"),
 		/** Message for history messages */
 		HISTORY_MESSAGE("HMG"),
-    
-    RECALL("REC"),
+
+		RECALL("REC"),
 		/** Message for user Subpoena create messages */
 		USER_SUBPOENA_CREATE("SUN"),
 		/** Message for group Subpoena create messages */
@@ -115,7 +115,9 @@ public class Message {
 		/** Message for group Subpoena create messages */
 		SUBPOENA_LOGIN("SBN"),
 		/** Message for create Subpoena is success */
-		SUBPOENA_SUCCESS("SBC");
+		SUBPOENA_SUCCESS("SBC"),
+		/** Message for create Subpoena is success */
+		SUBPOENA_LOGIN_SUCCESS("SLC");
 		/** Store the short name of this message type. */
 		private String tla;
 
@@ -236,10 +238,10 @@ public class Message {
 	public static Message makePrivateMessage(String srcName, String recipient, String text) {
 		return new Message(MessageType.PRIVATE, srcName, recipient, text);
 	}
-  
-  public static Message makeRecallMessage(String srcName, String recipient, String text) {
-        return new Message(MessageType.RECALL, srcName, recipient, text);
-    }
+
+	public static Message makeRecallMessage(String srcName, String recipient, String text) {
+		return new Message(MessageType.RECALL, srcName, recipient, text);
+	}
 
 	/**
 	 * 
@@ -431,10 +433,22 @@ public class Message {
 			result = makeSubpoenaLogin(srcName);
 		} else if (handle.compareTo(MessageType.SUBPOENA_SUCCESS.toString()) == 0) {
 			result = makeSubpoenaSuccess(srcName);
+		} else if (handle.compareTo(MessageType.SUBPOENA_LOGIN_SUCCESS.toString()) == 0) {
+			result = makeSubpoenaLoginSuccess(srcName);
 		}
 		return result;
 	}
-	
+
+	/**
+	 * Create a new message Subpoena Login is success.
+	 * 
+	 * @return Instance of Message.
+	 */
+
+	public static Message makeSubpoenaLoginSuccess(String id) {
+		return new Message(MessageType.SUBPOENA_LOGIN_SUCCESS, id);
+	}
+
 	/**
 	 * Create a new message Subpoena Create is success.
 	 * 
@@ -835,6 +849,16 @@ public class Message {
 		return (msgType == MessageType.BROADCAST);
 	}
 
+	/**
+	 * Determine if this message is of type Subpoena login success.
+	 * 
+	 * @return True if the message is of type SUBPOENA_LOGIN_SUCCESS; false otherwise
+	 */
+	public boolean isSubpoenaLoginSuccess() {
+		return (msgType == MessageType.SUBPOENA_LOGIN_SUCCESS);
+	}
+
+	
 	/**
 	 * Determine if this message is of type login success.
 	 * 
