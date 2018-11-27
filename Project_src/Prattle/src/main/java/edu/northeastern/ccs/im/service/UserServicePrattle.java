@@ -255,12 +255,12 @@ public class UserServicePrattle {
 		col.updateOne(query, command);
 	}
 
-	public void recallFromUnreadMessages(User user){
+	public void recallFromUnreadMessages(User user, String sender){
 		List<String> myMessages = user.getMyUnreadMessages();
 		String lastSentMessage="";
 		Collections.reverse(myMessages);
 		for(String message: myMessages){
-			if(message.contains("[")){
+			if(message.contains("[") && message.contains(sender)){
 				lastSentMessage = message;
 				break;
 			}
@@ -280,7 +280,7 @@ public class UserServicePrattle {
 		if(type.equalsIgnoreCase("user")){
 			User user = findUserByUsername(receiver);
 			if(!user.getMyUnreadMessages().isEmpty()){
-				recallFromUnreadMessages(user);
+				recallFromUnreadMessages(user,sender);
 			}else{
 				recallFromMessages(user, sender);
 			}
@@ -297,7 +297,7 @@ public class UserServicePrattle {
 			for(String username : listOfUsers ){
 				User user = findUserByUsername(username);
 				if(!user.getMyUnreadMessages().isEmpty()){
-					recallFromUnreadMessages(user);
+					recallFromUnreadMessages(user,sender);
 				}else{
 					recallFromMessages(user,sender);
 				}
