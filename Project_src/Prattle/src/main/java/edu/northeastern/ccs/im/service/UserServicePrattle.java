@@ -171,36 +171,36 @@ public class UserServicePrattle {
 		col.updateOne(Filters.eq("username", user.getUsername()), Updates.pushEach("myMessages", user.getMyUnreadMessages()));
 		col.updateOne(Filters.eq("username", user.getUsername()), Updates.pullAll("myUnreadMessages", user.getMyUnreadMessages()));
 	}
-	public List<String> getMessages(String type, String name){
+	public List<String> getMessages(String type, String name, String username){
+		User user = findUserByUsername(username);
 		List<String> listOfMessages = new ArrayList<String>();
 		if(type.equalsIgnoreCase("sender")){
-			listOfMessages= getMessagesbySender(name);
+			listOfMessages= getMessagesbySender(name,user);
 		}
 		else if (type.equalsIgnoreCase("receiver")){
-			listOfMessages= getMessagesbyReceiver(name);
+			listOfMessages= getMessagesbyReceiver(name,user);
 		}
 
 		return listOfMessages;
 	}
 
-	public List<String> getMessagesbySender(String name){
+	public List<String> getMessagesbySender(String name, User user){
 		List<String> listOfMessages = new ArrayList<String>();
-		User user = findUserByUsername(name);
+//		User user = findUserByUsername(name);
 		for(String message: user.getMyMessages()){
-
-			if(message.contains("PRIVATE") || message.contains("["+name)){
+			if(message.contains("[Private Msg] "+name+":")){
 				listOfMessages.add(message);
 			}
 		}
 		return listOfMessages;
 	}
 
-	public List<String>  getMessagesbyReceiver(String name){
+	public List<String>  getMessagesbyReceiver(String name,User user){
 		List<String> listOfMessages = new ArrayList<String>();
-		User user = findUserByUsername(name);
+//		User user = findUserByUsername(name);
 		for(String message: user.getMyMessages()){
 
-			if(message.contains("PRIVATE") || message.contains("["+name)){
+			if(message.contains("PRIVATE "+name)){
 				listOfMessages.add(message);
 			}
 		}
@@ -304,10 +304,6 @@ public class UserServicePrattle {
 			}
 		}
 	}
-
-
-
-
 
 
 	public static String hashPassword(String password_plaintext) {

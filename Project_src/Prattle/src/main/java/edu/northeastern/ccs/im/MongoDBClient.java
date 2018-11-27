@@ -26,11 +26,19 @@ public class MongoDBClient {
 //        cleanDB(db);
 //        clearUnreadMessages(db);
 //        createSubpoena(db);
-//        querySubpoena(db);
-        getActiveSubpoenas(db);
+        querySubpoena(db);
+//        getActiveSubpoenas(db);
+//        getMessages(db);
 
 
     }
+    public static void getMessages(MongoDatabase db){
+        UserServicePrattle userService = new UserServicePrattle(db);
+//        List<String> messages=userService.getMessages("sender","peter","akshay");
+
+        List<String> messagesr=userService.getMessages("receiver","akshay","peter");
+    }
+
     public static void getActiveSubpoenas(MongoDatabase db){
         SubpoenaServicePrattle subService = new SubpoenaServicePrattle(db);
         List<Subpoena> s=subService.getActiveSubpoenas();
@@ -39,9 +47,9 @@ public class MongoDBClient {
 
     public static void querySubpoena(MongoDatabase db){
         SubpoenaServicePrattle subService = new SubpoenaServicePrattle(db);
-        Subpoena s=subService.querySubpoenaById("5bfc64560b5f9d34cea6d313");
+        Subpoena s=subService.querySubpoenaById("5bc64560b5f9d34cea6d313");
 
-        String id=subService.getIdOfSubpoena(s);
+//        String id=subService.getIdOfSubpoena(s);
 
     }
     public static void createSubpoena (MongoDatabase db) throws JsonProcessingException{
