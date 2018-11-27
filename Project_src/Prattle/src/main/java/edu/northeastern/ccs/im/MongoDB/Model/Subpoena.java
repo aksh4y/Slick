@@ -1,6 +1,5 @@
 package edu.northeastern.ccs.im.MongoDB.Model;
 
-
 import java.time.LocalDate;
 
 public class Subpoena {

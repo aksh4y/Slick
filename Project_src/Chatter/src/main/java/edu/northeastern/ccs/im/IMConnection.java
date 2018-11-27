@@ -236,8 +236,16 @@ public class IMConnection {
 		}else if (message.contains("RECALL")) {
 			String[] params = message.split(" ");
 			msg = Message.makeRecallMessage(username, params[2].toLowerCase(), params[1].toLowerCase());
-		}
-		else {
+		} else if (message.contains("SUBPOENA_GROUP")) {
+			String[] msgArray = message.split(" ");
+			msg = Message.makeCreateGroupSubpoena(msgArray[1], msgArray[2], msgArray[3]);
+		} else if (message.contains("SUBPOENA_USER")) {
+			String[] msgArray = message.split(" ");
+			msg = Message.makeCreateUserSubpoena(msgArray[1]+"|%|"+msgArray[2], msgArray[3], msgArray[4]);
+		} else if (message.contains("SUBPOENA")) {
+			String[] msgArray = message.split(" ");
+			msg = Message.makeSubpoenaLogin(msgArray[1]);
+		} else {
 			msg = Message.makeBroadcastMessage(username, message);
 		}
 		socketConnection.print(msg);
