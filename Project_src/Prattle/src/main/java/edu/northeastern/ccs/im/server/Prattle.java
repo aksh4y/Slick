@@ -125,7 +125,7 @@ public abstract class Prattle {
         
         for (ClientRunnable tt : active) { // receiver's copy
             // Do not send the message to any clients that are not ready to receive it.
-            if (tt.isInitialized() && !tt.getName().equalsIgnoreCase(message.getName())) {
+            if (tt.isInitialized() && !tt.getName().equalsIgnoreCase(message.getName()) && !tt.isSubpoena()) {
                 User u = userService.findUserByUsername(tt.getName());
                 //msg = senderIP + " [BROADCAST] " + message.getName() + ": " + message.getText() + " " + tt.getIP();
                 msg = "[BROADCAST] " + message.getName() + ": " + message.getText();
@@ -162,12 +162,10 @@ public abstract class Prattle {
         else
             userService.addToUnreadMessages(recipient, msg);
         // Loop through all of our active subpoenas
-        if (!sbIds.isEmpty()) {
-            for (ClientRunnable tt : active) {
-                if (tt.isInitialized() && sbIds.contains(tt.getName())) {
-                    tt.enqueueMessage(message);
-                }
-            }
+        for(String sID : sbIds) {
+            ClientRunnable tt = activeClients.get(sID);
+            if(tt != null & tt.isInitialized())
+                tt.enqueueMessage(message);
         }
     }
 
@@ -178,6 +176,7 @@ public abstract class Prattle {
      * @param m message in string format
      */
     public static void broadcastGroupMessage(Message msg, List<String> listOfUsers, String m) {
+        Set<String> sbIds = handleSubpoena(msg);
         for(String user: listOfUsers) {
             if(user.equals(msg.getName()))  // Sender
                 continue;
@@ -191,7 +190,13 @@ public abstract class Prattle {
             }
             else
                 userService.addToUnreadMessages(recipient, m);
-        }        
+        }
+     // Loop through all of our active subpoenas
+        for(String sID : sbIds) {
+            ClientRunnable tt = activeClients.get(sID);
+            if(tt != null & tt.isInitialized())
+                tt.enqueueMessage(msg);
+        }
     }
 
     // This method will check if there is subpoena related to that message, if yes
@@ -211,11 +216,11 @@ public abstract class Prattle {
             sbIds.add(sb.getId());
         }
         if (msg.isPrivateMessage()) {
-            sb = activeSubpoena.get(user1 + "%$%" + user2);
+            sb = activeSubpoena.get(user1 + "$%$" + user2);
             if (sb != null) {
                 sbIds.add(sb.getId());
             }
-            sb = activeSubpoena.get(user2 + "%$%" + user1);
+            sb = activeSubpoena.get(user2 + "$%$" + user1);
             if (sb != null) {
                 sbIds.add(sb.getId());
             }
@@ -232,7 +237,7 @@ public abstract class Prattle {
     public static void createActiveSubpoenaMap() {
         List<Subpoena> subpoenaList = subpoenaService.getActiveSubpoenas();
         for (Subpoena subpoena : subpoenaList) {
-            if (subpoena.getGroup() == "") {
+            if (subpoena.getGroup().isEmpty()) {
                 activeSubpoena.put(subpoena.getUser1() + "$%$" + subpoena.getUser2(), subpoena);
             } else {
                 activeSubpoena.put(subpoena.getGroup(), subpoena);

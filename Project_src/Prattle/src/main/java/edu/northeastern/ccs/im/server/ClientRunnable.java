@@ -100,7 +100,7 @@ public class ClientRunnable implements Runnable {
 
     @SuppressWarnings("unused")
     private boolean isSubpoena;
-
+   
     /**
      * Whether this client has been initialized, set its user name, and is ready to
      * receive messages.
@@ -302,6 +302,15 @@ public class ClientRunnable implements Runnable {
     public void setName(String name) {
         this.name = name;
     }
+    
+    /** 
+     * 
+     * @return true iff this client is a subpoena
+     */
+    public boolean isSubpoena() {
+        return isSubpoena;
+    }
+
 
     /**
      * Gets the name of the user for which this ClientRunnable was created.
@@ -549,6 +558,7 @@ public class ClientRunnable implements Runnable {
                             ackMsg = Message.makeSubpoenaLoginSuccess(msg.getName());
                             this.isSubpoena = true;
                             this.name = msg.getName();
+                            Prattle.addToActiveClients(name, this);
                         } else {
                             ackMsg = Message.makeFailMsg();
                         }
