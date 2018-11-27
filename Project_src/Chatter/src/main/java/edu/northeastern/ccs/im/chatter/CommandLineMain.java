@@ -1,8 +1,12 @@
 package edu.northeastern.ccs.im.chatter;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.Base64;
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
 import java.util.HashSet;
 
 import edu.northeastern.ccs.im.IMConnection;
@@ -124,8 +128,27 @@ public class CommandLineMain {
 		}
 		System.out.println("Program complete.");
 		System.exit(0);
-
-	}
+	}    
+  public static void decode(String url) {
+        url = url.substring(3);
+        byte[] imageBytes = Base64.getDecoder().decode(url);
+        BufferedImage img;
+        File outputfile = new File("image.png");
+        try {
+            img = ImageIO.read(new ByteArrayInputStream(imageBytes));
+            int num = 1;
+            while(outputfile.exists()) {
+                outputfile = new File("image" + num++ + ".png");
+            }
+            ImageIO.write(img, "png", outputfile);
+            img.flush();
+            //System.out.println("FILE RECEIVED " + outputfile.getName() + " FROM " + srcName);
+            
+        } catch (IOException e) {
+            //  Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
 
 	private static boolean checkVulgar(String line, HashSet<String> vulgar) {
 		for (String s : line.split(" ")) {

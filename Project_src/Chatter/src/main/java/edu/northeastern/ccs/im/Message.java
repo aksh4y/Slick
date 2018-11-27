@@ -104,7 +104,8 @@ public class Message {
 		MIME("MIM"),
 		/** Message for history messages */
 		HISTORY_MESSAGE("HMG"),
-
+/** Notify pending msgs exist */
+    NOTIFY_PENDING("PEN"),
 		RECALL("REC"),
 		/** Message for user Subpoena create messages */
 		USER_SUBPOENA_CREATE("SUN"),
@@ -427,7 +428,9 @@ public class Message {
 			result = makeUpdateUserMessage(srcName, text);
 		} else if (handle.compareTo(MessageType.HISTORY_MESSAGE.toString()) == 0) {
 			result = makeHistoryMessage(srcName);
-		} else if (handle.compareTo(MessageType.SUBPOENA_NO_PRIVILEGE.toString()) == 0) {
+		}else if (handle.compareTo(MessageType.NOTIFY_PENDING.toString()) == 0) {		
+      result = makePendingMsgNotif();		
+   } else if (handle.compareTo(MessageType.SUBPOENA_NO_PRIVILEGE.toString()) == 0) {
 			result = makeCreateNoPrivilegeMessage();
 		} else if (handle.compareTo(MessageType.SUBPOENA_LOGIN.toString()) == 0) {
 			result = makeSubpoenaLogin(srcName);
@@ -554,6 +557,15 @@ public class Message {
 	public static Message makeUserWrongPasswordMsg() {
 		return new Message(MessageType.USER_WRONG_PASSWORD);
 	}
+  
+  /**		
+  * Create a new message if pending messages exist		
+  * 		
+  * @return Instance of Message.		
+  */		
+  public static Message makePendingMsgNotif() {		
+    return new Message(MessageType.NOTIFY_PENDING);		
+  }
 
 	/**
 	 * Create a new message to send success message

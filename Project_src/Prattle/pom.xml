@@ -138,12 +138,10 @@
 			<artifactId>jbcrypt</artifactId>
 			<version>0.3m</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.jongo/jongo 
 		<dependency>
-			<groupId>org.jongo</groupId>
-			<artifactId>jongo</artifactId>
-			<version>1.4.0</version>
-		</dependency>-->
+			<groupId>com.github.seratch</groupId>
+			<artifactId>jslack</artifactId>
+			<version>1.1.6</version>
+		</dependency>
 	</dependencies>
-
 </project>

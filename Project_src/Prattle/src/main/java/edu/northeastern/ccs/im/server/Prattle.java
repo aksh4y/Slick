@@ -1,5 +1,8 @@
 package edu.northeastern.ccs.im.server;
 
+import com.github.seratch.jslack.Slack;
+import com.github.seratch.jslack.api.webhook.Payload;
+import com.github.seratch.jslack.api.webhook.WebhookResponse;
 import com.mongodb.client.MongoDatabase;
 import edu.northeastern.ccs.im.Message;
 import edu.northeastern.ccs.im.MongoConnection;
@@ -43,7 +46,6 @@ import java.util.logging.Logger;
  */
 
 public abstract class Prattle {
-
 	/** Amount of time we should wait for a signal to arrive. */
 	private static final int DELAY_IN_MS = 50;
 
@@ -72,7 +74,11 @@ public abstract class Prattle {
 
 	private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");
 
-	private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
+  /** Logger */
+  private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
+    
+  /** Slack WebHook URL */
+  private static final String SLACK_URL = "https://hooks.slack.com/services/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";
 	/** All of the static initialization occurs in this "method" */
 	static {
 		// Create the new queue of active threads.
@@ -93,23 +99,29 @@ public abstract class Prattle {
 	 */
 	public static void broadcastMessage(Message message) {
 		// Loop through all of our active threads
-		for (ClientRunnable tt : active) {
-			// Do not send the message to any clients that are not ready to receive it.
-			if (tt.isInitialized()) {
-				User u = userService.findUserByUsername(tt.getName());
-				try {
-					String msg;
-					if (u.getUsername().equalsIgnoreCase(message.getName()))
-						msg = "[BROADCASTED] " + message.getText();
-					else
-						msg = "[BROADCAST] " + message.getName() + ": " + message.getText();
-					userService.addToMyMessages(u, msg);
-				} catch (Exception e) {
-					LOGGER.log(Level.WARNING, e.toString());
-				} // sender's copy
-				tt.enqueueMessage(message);
-			}
-		}
+        User sender = userService.findUserByUsername(message.getName());
+        String senderIP = null;
+        String msg = null;
+        for (ClientRunnable tt : active) {
+            if (tt.isInitialized() && tt.getName().equalsIgnoreCase(sender.getUsername())) {
+                senderIP = tt.getIP();
+                //msg = tt.getIP() + " [BROADCASTED] " + message.getText();
+                msg = "[BROADCASTED] " + message.getText();
+            }
+        }
+        if(senderIP == null || msg == null)
+            return;
+        userService.addToMyMessages(sender, msg);
+        for (ClientRunnable tt : active) { // receiver's copy
+            // Do not send the message to any clients that are not ready to receive it.
+            if (tt.isInitialized() && !tt.getName().equalsIgnoreCase(message.getName())) {
+                User u = userService.findUserByUsername(tt.getName());
+                //msg = senderIP + " [BROADCAST] " + message.getName() + ": " + message.getText() + " " + tt.getIP();
+                msg = "[BROADCAST] " + message.getName() + ": " + message.getText();
+                userService.addToMyMessages(u, msg);
+                tt.enqueueMessage(message);
+            }
+        }
 	}
 
 	/**
@@ -121,18 +133,28 @@ public abstract class Prattle {
 	 * @param receiver
 	 *            the receiver
 	 */
-	public static void broadcastPrivateMessage(Message message, String receiver) {
+	public static void broadcastPrivateMessage(Message message, String receiver, String msg) {
+    boolean activeReceiver = false;
 		// Loop through all of our active threads
 		String sbId = handleSubpoena(message);
 		for (ClientRunnable tt : active) {
 			// Do not send the message to any clients that are not ready to receive it.
 			if (tt.isInitialized() && tt.getName().equalsIgnoreCase(receiver)) {
 				tt.enqueueMessage(message);
+        activeReceiver = true;
 			}
-			if (sbId != null && tt.getName().equalsIgnoreCase(sbId)) {
+      if (tt.isInitialized() && sbId != null && tt.getName().equalsIgnoreCase(sbId)) {
 				tt.enqueueMessage(message);
 			}
-		}
+    }
+    // Receiver's copy
+    User recipient = userService.findUserByUsername(receiver);
+    if(recipient != null) {
+       if(activeReceiver)
+           userService.addToMyMessages(recipient, msg); 
+       else
+           userService.addToUnreadMessages(recipient, msg); 
+      }     
 	}
 
 	// This method will check if there is subpoena related to that message, if yes
@@ -233,6 +255,7 @@ public abstract class Prattle {
 							if (socket != null) {
 								ClientRunnable tt = new ClientRunnable(socket);
 								// Add the thread to the queue of active threads
+                tt.setIP(socket.getRemoteAddress().toString());
 								active.add(tt);
 								// Have the client executed by our pool of threads.
 								@SuppressWarnings("rawtypes")
@@ -241,15 +264,31 @@ public abstract class Prattle {
 								tt.setFuture(clientFuture);
 							}
 						} catch (AssertionError ae) {
-							System.err.println("Caught Assertion: " + ae.toString());
-						} catch (Exception e) {
-							System.err.println("Caught Exception: " + e.toString());
-						}
+                LOGGER.log(Level.WARNING, "Caught Assetion: " + ae.toString(), ae);
+              } catch (Exception e) {
+                 LOGGER.log(Level.WARNING, "Caught Exception: " + e.toString(), e);
+            }
 					}
 				}
 			}
 		} catch (Exception e) {
-			System.err.println("Exception while trying to open socket: " + e.toString());
+			LOGGER.log(Level.SEVERE, "Exception while trying to open socket: " + e.toString(), e);
+            Payload payload = Payload.builder()
+                    .channel("#cs5500-team-203-f18")
+                    .username("Slick Bot")
+                    .iconEmoji(":man-facepalming:")
+                    .text("Something went wrong during socket connection @ Slick")
+                    .build();
+
+            Slack slack = Slack.getInstance();
+            WebhookResponse response = null;
+            try {
+                response = slack.send(SLACK_URL, payload);
+            } catch (IOException e1) {
+                LOGGER.log(Level.SEVERE, "Slack integration failed!");
+            }
+            if(!response.getMessage().equalsIgnoreCase("OK"))
+                LOGGER.log(Level.SEVERE, "Slack integration failed!");
 		} finally {
 			if (serverSocket != null)
 				serverSocket.close();
@@ -284,7 +323,7 @@ public abstract class Prattle {
 		// Test and see if the thread was in our list of active clients so that we
 		// can remove it.
 		if (!active.remove(dead)) {
-			System.out.println("Could not find a thread that I tried to remove!\n");
+      LOGGER.log(Level.SEVERE,"Could not find the thread expected to be removed");
 		}
 	}
 }

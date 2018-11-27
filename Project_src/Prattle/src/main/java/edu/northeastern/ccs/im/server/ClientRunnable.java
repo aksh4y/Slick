@@ -1,3 +1,4 @@
+
 package edu.northeastern.ccs.im.server;
 
 import java.io.IOException;
@@ -243,7 +244,7 @@ public class ClientRunnable implements Runnable {
 	 * @return True if we sent the message successfully; false otherwise.
 	 */
 	private boolean sendMessage(Message message) {
-		System.out.println("\t" + message);
+		LOGGER.log(Level.INFO, "" + message);
 		return output.print(message);
 	}
 
@@ -633,6 +634,21 @@ public class ClientRunnable implements Runnable {
 			terminateClient();
 		}
 	}
+  
+   /**
+     * @return the IP of this client
+     */
+    public String getIP() {
+        return ip;
+    }
+
+    /**
+     * set the IP of this client
+     * @param ip
+     */
+    public void setIP(String ip) {
+        this.ip = ip;
+    }
 
 	/**
 	 * Store the object used by this client runnable to control when it is scheduled

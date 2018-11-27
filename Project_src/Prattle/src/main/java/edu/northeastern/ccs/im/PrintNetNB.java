@@ -6,6 +6,10 @@ import java.nio.channels.SocketChannel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.github.seratch.jslack.Slack;
+import com.github.seratch.jslack.api.webhook.Payload;
+import com.github.seratch.jslack.api.webhook.WebhookResponse;
+
 /**
  * This class is similar to the java.io.PrintWriter class, but this class's
  * methods work with our non-blocking Socket classes. This class could easily be
@@ -24,12 +28,16 @@ public class PrintNetNB {
 	/** Channel over which we will write out any messages. */
 	private final SocketChannel channel;
 	
+	/** Logger */
     private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
 
 	/**
 	 * Number of times to try sending a message before we give up in frustration.
 	 */
 	private static final int MAXIMUM_TRIES_SENDING = 100;
+	
+	/** Slack WebHook URL */
+	private static final String SLACK_URL = "https://hooks.slack.com/services/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";
 
 	/**
 	 * Creates a new instance of this class. Since, by definition, this class sends
@@ -68,7 +76,7 @@ public class PrintNetNB {
 	 */
 	public boolean print(Message msg) {
 		String str = msg.toString();
-		ByteBuffer wrapper = ByteBuffer.wrap(str.getBytes());
+		ByteBuffer wrapper = ByteBuffer.wrap(str.getBytes());        
 		int bytesWritten = 0;
 		int attemptsRemaining = MAXIMUM_TRIES_SENDING;
 		while (wrapper.hasRemaining() && (attemptsRemaining > 0)) {
@@ -77,14 +85,48 @@ public class PrintNetNB {
 				bytesWritten += channel.write(wrapper);
 			} catch (IOException e) {
 				// Show that this was unsuccessful
+			    Payload payload = Payload.builder()
+                        .channel("#cs5500-team-203-f18")
+                        .username("Slick Bot")
+                        .iconEmoji(":man-facepalming:")
+                        .text("Something went wrong during data transfer @ Slick")
+                        .build();
+
+                Slack slack = Slack.getInstance();
+                WebhookResponse response = null;
+                try {
+                    response = slack.send(SLACK_URL, payload);
+                } catch (IOException e1) {
+                    LOGGER.log(Level.SEVERE, "Slack integration failed!");
+                }
+                if(!response.getMessage().equalsIgnoreCase("OK"))
+                    LOGGER.log(Level.SEVERE, "Slack integration failed!");
+                LOGGER.log(Level.SEVERE, "Something went wrong during data transfer @ Slick");
 				return false;
 			}
 		}
 		// Check to see if we were successful in our attempt to write the message
 		if (wrapper.hasRemaining()) {
 			LOGGER.log(Level.SEVERE, "Something went wrong: {0} out of {1} bytes -- dropping this user", new Object[]{bytesWritten, wrapper.limit()}); 
-			return false;
-		}
+			 Payload payload = Payload.builder()
+                     .channel("#cs5500-team-203-f18")
+                     .username("Slick Bot")
+                     .iconEmoji(":man-facepalming:")
+                     .text("Something went wrong during data transfer @ Slick")
+                     .build();
+
+             Slack slack = Slack.getInstance();
+             WebhookResponse response = null;
+             try {
+                 response = slack.send(SLACK_URL, payload);
+             } catch (IOException e1) {
+                 LOGGER.log(Level.SEVERE, "Slack integration failed!");
+             }
+             if(!response.getMessage().equalsIgnoreCase("OK"))
+                 LOGGER.log(Level.SEVERE, "Slack integration failed!");
+             LOGGER.log(Level.SEVERE, "Something went wrong during data transfer @ Slick");
+             return false;
+         }
 		return true;
 	}
 }

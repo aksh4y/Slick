@@ -10,6 +10,12 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import com.github.seratch.jslack.Slack;
+import com.github.seratch.jslack.api.webhook.Payload;
+import com.github.seratch.jslack.api.webhook.WebhookResponse;
 
 /**
  * This class resembles the traditional Socket, but is designed to be used by my
@@ -50,7 +56,13 @@ public final class SocketNB {
 
 	private static final int MAX_WAIT_DELAY = 100;
 
-	private Selector selector;
+  /** Slack WebHook URL */
+  private static final String SLACK_URL = "https://hooks.slack.com/services/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";
+
+  /** Logger */
+  private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
+    
+  private Selector selector;
 
 	private SelectionKey key;
 
@@ -125,130 +137,146 @@ public final class SocketNB {
 		return retVal;
 	}
 
-	/**
-	 * This method will block while it waits to enqueue 1 (or more) messages sent
-	 * from the server.
-	 * 
-	 * @param messages
-	 *            Queue to which the messages should be added.
-	 */
-	protected void enqueueMessages(List<Message> messages) {
-		boolean quitter = false;
-		try {
-			// Otherwise, check if we can read in at least one new message
-			if (selector.select(MAX_WAIT_DELAY) != 0) {
-				assert key.isReadable();
-				// Read in the next set of commands from the channel.
-				channel.read(buff);
-				selector.selectedKeys().remove(key);
-				buff.flip();
-			} else {
-				return;
-			}
-			// Create a decoder which will convert our traffic to something
-			// useful
-			Charset charset = Charset.forName(CHARSET_NAME);
-			CharsetDecoder decoder = charset.newDecoder();
-			// Convert the buffer to a format that we can actually use.
-			CharBuffer charBuffer = decoder.decode(buff);
-			// Start scanning the buffer for any and all messages.
-			int start = 0;
-			// Scan through the entire buffer; check that we have the minimum
-			// message size
-			while ((start + MIN_MESSAGE_LENGTH) <= charBuffer.limit()) {
-				// If this is not the first message, skip extra space.
-				if (start != 0) {
-					charBuffer.position(start);
-				}
-				// First read in the handle
-				final String handle = charBuffer.subSequence(0, HANDLE_LENGTH).toString();
-				// Skip past the handle
-				charBuffer.position(start + HANDLE_LENGTH + 1);
-				// Read the first argument containing the sender's name
-				final String sender = readArgument(charBuffer);
-				// Skip past the leading space
-				charBuffer.position(charBuffer.position() + 2);
-				// Read in the second argument containing the message
-				Message newMsg;
-				if (handle.equals("PRI") || handle.equals("GRP") || handle.equals("MIM")) {
-					// Read in the second argument containing the message
-					final String reciever = readArgument(charBuffer);
-					charBuffer.position(charBuffer.position() + 2);
-					// Read in the second argument containing the message
-					final String message = readArgument(charBuffer);
-					newMsg = Message.makeMessage(handle, sender, reciever, message);
-				} else {
-					final String message = readArgument(charBuffer);
-					newMsg = Message.makeMessage(handle, sender, message);
-				}
-				// messages.add(newMsg);
-				// final String message = readArgument(charBuffer);
-				// Add this message into our queue
-				// Message newMsg = Message.makeMessage(handle, sender, message);
-				// And move the position to the start of the next character
-				start = charBuffer.position() + 1;
-				// Check if this message is closing our connection
-				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.QUIT) {
-					quitter = true;
-				}
-				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.LOGIN_FAIL) {
-					System.out.println("Username/Password is wrong");
-				}
-				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.LOGIN_SUCCESS) {
-					System.out.println("Login Successful");
-				}
-				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.CREATE_FAIL) {
-					System.out.println("User cannot be created at this time, try again later");
-				}
-				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.CREATE_SUCCESS) {
-					System.out.println("User Created");
-				}
-				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.USER_EXIST) {
-					System.out.println("Userid Exists");
-				}
-				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.CREATE_FAIL) {
-					System.out.println("Group cannot be created at this time, try again later");
-				}
-				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.GROUP_CREATE_SUCCESS) {
-					System.out.println("Group Created");
-				}
-				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.GROUP_EXIST) {
-					System.out.println("Group name exists");
-				}
-				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.GROUP_ADD_FAIL) {
-					System.out.println("User cannot be added to this group");
-				}
-				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.GROUP_ADD_SUCCESS) {
-					System.out.println("Added to Group");
-				}
-				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.GROUP_NOT_EXIST) {
-					System.out.println("This group does not exist");
-				}
-				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.USER_WRONG_PASSWORD) {
-					System.out.println("Entered password is wrong");
-				}
-				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.DELETE_USER_SUCCESS) {
-					System.out.println("User has been deleted");
-					quitter = true;
-				}
-				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.FAIL_MESSAGE) {
-					System.out.println("Failed");
-				}
-				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.SUCCESS_MESSAGE) {
-					System.out.println("Success");
-				}
-				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.SUBPOENA_SUCCESS) {
-					System.out.println("Your Subpoena id is: " + newMsg.getSender());
-				}
-				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.SUBPOENA_NO_PRIVILEGE) {
-					System.out.println("You are not allowed to perform this operation");
-				}
-				if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.HISTORY_MESSAGE) {
-					MessagePrinter.printMessage(newMsg.getSender());
-				}
-				if (newMsg.isSubpoenaLoginSuccess()) {
-					MessagePrinter.printMessage("Subpoena Channel Login Success");
-				}
+    /**
+     * This method will block while it waits to enqueue 1 (or more) messages sent
+     * from the server.
+     * 
+     * @param messages
+     *            Queue to which the messages should be added.
+     */
+    protected void enqueueMessages(List<Message> messages) {
+        boolean quitter = false;
+        try {
+            // Otherwise, check if we can read in at least one new message
+            if (selector.select(MAX_WAIT_DELAY) != 0) {
+                assert key.isReadable();
+                // Read in the next set of commands from the channel.
+                channel.read(buff);
+                selector.selectedKeys().remove(key);
+                buff.flip();
+            } else {
+                return;
+            }
+            // Create a decoder which will convert our traffic to something
+            // useful
+            Charset charset = Charset.forName(CHARSET_NAME);
+            CharsetDecoder decoder = charset.newDecoder();
+            // Convert the buffer to a format that we can actually use.
+            CharBuffer charBuffer = decoder.decode(buff);
+            // Start scanning the buffer for any and all messages.
+            int start = 0;
+            // Scan through the entire buffer; check that we have the minimum
+            // message size
+            while ((start + MIN_MESSAGE_LENGTH) <= charBuffer.limit()) {
+                // If this is not the first message, skip extra space.
+                if (start != 0) {
+                    charBuffer.position(start);
+                }
+                // First read in the handle
+                final String handle = charBuffer.subSequence(0, HANDLE_LENGTH).toString();
+                // Skip past the handle
+                charBuffer.position(start + HANDLE_LENGTH + 1);
+                // Read the first argument containing the sender's name
+                final String sender = readArgument(charBuffer);
+                // Skip past the leading space
+                charBuffer.position(charBuffer.position() + 2);
+                // Read in the second argument containing the message
+                Message newMsg;
+                if (handle.equals("PRI") || handle.equals("GRP") || handle.equals("MIM")) {
+                    // Read in the second argument containing the message
+                    final String reciever = readArgument(charBuffer);
+                    charBuffer.position(charBuffer.position() + 2);
+                    // Read in the second argument containing the message
+                    final String message = readArgument(charBuffer);
+                    newMsg = Message.makeMessage(handle, sender, reciever, message);
+                } else {
+                    final String message = readArgument(charBuffer);
+                    newMsg = Message.makeMessage(handle, sender, message);
+                }
+                // messages.add(newMsg);
+                // final String message = readArgument(charBuffer);
+                // Add this message into our queue
+                // Message newMsg = Message.makeMessage(handle, sender, message);
+                // And move the position to the start of the next character
+                start = charBuffer.position() + 1;
+                // Check if this message is closing our connection
+                if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.QUIT) {
+                    quitter = true;
+                }
+                if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.LOGIN_FAIL) {
+                    System.out.println("Username/Password is wrong");
+                    Payload payload = Payload.builder()
+                            .channel("#cs5500-team-203-f18")
+                            .username("Slick Bot")
+                            .iconEmoji(":ghost:")
+                            .text("Invalid Login Attempt @ Slick")
+                            .build();
+
+                    Slack slack = Slack.getInstance();
+                    WebhookResponse response = slack.send(SLACK_URL, payload);
+                    if(!response.getMessage().equalsIgnoreCase("OK"))
+                        LOGGER.log(Level.SEVERE, "Slack integration failed!");
+                    LOGGER.log(Level.SEVERE, "Invalid Login Attempt @ Slick");
+                }
+                if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.LOGIN_SUCCESS) {
+                    System.out.println("Login Successful");
+                }
+                if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.CREATE_FAIL) {
+                    System.out.println("User cannot be created at this time, try again later");
+                }
+                if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.CREATE_SUCCESS) {
+                    System.out.println("User Created");
+                }
+                if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.USER_EXIST) {
+                    System.out.println("Userid Exists");
+                }
+                if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.CREATE_FAIL) {
+                    System.out.println("Group cannot be created at this time, try again later");
+                }
+                if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.GROUP_CREATE_SUCCESS) {
+                    System.out.println("Group Created");
+                }
+                if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.GROUP_EXIST) {
+                    System.out.println("Group name exists");
+                }
+                if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.GROUP_ADD_FAIL) {
+                    System.out.println("User cannot be added to this group");
+                }
+                if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.GROUP_ADD_SUCCESS) {
+                    System.out.println("Added to Group");
+                }
+                if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.GROUP_NOT_EXIST) {
+                    System.out.println("This group does not exist");
+                }
+                if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.USER_WRONG_PASSWORD) {
+                    System.out.println("Entered password is wrong");
+                }
+                if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.DELETE_USER_SUCCESS) {
+                    System.out.println("User has been deleted");
+                    quitter = true;
+                }
+                if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.FAIL_MESSAGE) {
+                    System.out.println("Failed");
+                }
+                if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.SUCCESS_MESSAGE) {
+                    System.out.println("Success");
+                }
+                if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.HISTORY_MESSAGE) {
+                    //System.out.println(newMsg.getSender());
+                    MessagePrinter.printMessage(newMsg.getSender());
+                }
+                if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.NOTIFY_PENDING) {
+                    System.out.println("\u001B[33m--------YOU HAVE UNREAD MESSAGES--------\u001B[0m");
+                }
+                if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.SUBPOENA_SUCCESS) {
+					        System.out.println("Your Subpoena id is: " + newMsg.getSender());
+				      }
+				      if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.SUBPOENA_NO_PRIVILEGE) {
+					      System.out.println("You are not allowed to perform this operation");
+				      }
+				      if (newMsg.isSubpoenaLoginSuccess()) {
+					      MessagePrinter.printMessage("Subpoena Channel Login Success");
+				      }
 
 				// Now pass this message on to the system.
 				messages.add(newMsg);
