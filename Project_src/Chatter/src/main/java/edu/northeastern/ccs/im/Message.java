@@ -437,7 +437,7 @@ public class Message {
 		} else if (handle.compareTo(MessageType.SUBPOENA_SUCCESS.toString()) == 0) {
 			result = makeSubpoenaSuccess(srcName);
 		} else if (handle.compareTo(MessageType.SUBPOENA_LOGIN_SUCCESS.toString()) == 0) {
-			result = makeSubpoenaLoginSuccess(srcName);
+			result = makeSubpoenaLoginSuccess();
 		}
 		return result;
 	}
@@ -448,8 +448,8 @@ public class Message {
 	 * @return Instance of Message.
 	 */
 
-	public static Message makeSubpoenaLoginSuccess(String id) {
-		return new Message(MessageType.SUBPOENA_LOGIN_SUCCESS, id);
+	public static Message makeSubpoenaLoginSuccess() {
+		return new Message(MessageType.SUBPOENA_LOGIN_SUCCESS);
 	}
 
 	/**

@@ -555,7 +555,7 @@ public class ClientRunnable implements Runnable {
                         this.initialized = true;
                         Subpoena sb = subpoenaService.querySubpoenaById(msg.getName());
                         if (sb != null) {
-                            ackMsg = Message.makeSubpoenaLoginSuccess(msg.getName());
+                            ackMsg = Message.makeSubpoenaLoginSuccess();
                             this.isSubpoena = true;
                             this.name = msg.getName();
                             Prattle.addToActiveClients(name, this);
