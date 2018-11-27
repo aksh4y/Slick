@@ -1,7 +1,7 @@
 {
 "server":[
  {
-   "DNS": "ec2-34-221-112-30.us-west-2.compute.amazonaws.com",
+   "DNS": "ec2-35-166-190-64.us-west-2.compute.amazonaws.com",
     "user":"ubuntu",
     "directory":"/home/ubuntu",
     "JARNAME": "prattle-0.0.1-SNAPSHOT-jar-with-dependencies.jar",
