@@ -1,3 +1,4 @@
+
 package edu.northeastern.ccs.im.server;
 
 import com.github.seratch.jslack.Slack;
@@ -22,6 +23,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -74,11 +76,11 @@ public abstract class Prattle {
 
 	private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");
 
-  /** Logger */
-  private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
-    
-  /** Slack WebHook URL */
-  private static final String SLACK_URL = "https://hooks.slack.com/services/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";
+	/** Logger */
+	private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
+
+	/** Slack WebHook URL */
+	private static final String SLACK_URL = "https://hooks.slack.com/services/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";
 	/** All of the static initialization occurs in this "method" */
 	static {
 		// Create the new queue of active threads.
@@ -98,30 +100,37 @@ public abstract class Prattle {
 	 *            Message that the client sent.
 	 */
 	public static void broadcastMessage(Message message) {
+		Set<String> sbIds = handleSubpoena(message);
 		// Loop through all of our active threads
-        User sender = userService.findUserByUsername(message.getName());
-        String senderIP = null;
-        String msg = null;
-        for (ClientRunnable tt : active) {
-            if (tt.isInitialized() && tt.getName().equalsIgnoreCase(sender.getUsername())) {
-                senderIP = tt.getIP();
-                //msg = tt.getIP() + " [BROADCASTED] " + message.getText();
-                msg = "[BROADCASTED] " + message.getText();
-            }
-        }
-        if(senderIP == null || msg == null)
-            return;
-        userService.addToMyMessages(sender, msg);
-        for (ClientRunnable tt : active) { // receiver's copy
-            // Do not send the message to any clients that are not ready to receive it.
-            if (tt.isInitialized() && !tt.getName().equalsIgnoreCase(message.getName())) {
-                User u = userService.findUserByUsername(tt.getName());
-                //msg = senderIP + " [BROADCAST] " + message.getName() + ": " + message.getText() + " " + tt.getIP();
-                msg = "[BROADCAST] " + message.getName() + ": " + message.getText();
-                userService.addToMyMessages(u, msg);
-                tt.enqueueMessage(message);
-            }
-        }
+		User sender = userService.findUserByUsername(message.getName());
+		String senderIP = null;
+		String msg = null;
+		for (ClientRunnable tt : active) {
+			if (tt.isInitialized() && tt.getName().equalsIgnoreCase(sender.getUsername())) {
+				senderIP = tt.getIP();
+				// msg = tt.getIP() + " [BROADCASTED] " + message.getText();
+				msg = "[BROADCASTED] " + message.getText();
+			}
+		}
+		if (senderIP == null || msg == null)
+			return;
+		userService.addToMyMessages(sender, msg);
+		for (ClientRunnable tt : active) { // receiver's copy
+			// Do not send the message to any clients that are not ready to receive it.
+			if (tt.isInitialized() && !tt.getName().equalsIgnoreCase(message.getName())) {
+				User u = userService.findUserByUsername(tt.getName());
+				// msg = senderIP + " [BROADCAST] " + message.getName() + ": " +
+				// message.getText() + " " + tt.getIP();
+				msg = "[BROADCAST] " + message.getName() + ": " + message.getText();
+				userService.addToMyMessages(u, msg);
+				tt.enqueueMessage(message);
+			}
+			if (!sbIds.isEmpty()) {
+				if (tt.isInitialized() && sbIds.contains(tt.getName())) {
+					tt.enqueueMessage(message);
+				}
+			}
+		}
 	}
 
 	/**
@@ -134,53 +143,64 @@ public abstract class Prattle {
 	 *            the receiver
 	 */
 	public static void broadcastPrivateMessage(Message message, String receiver, String msg) {
-    boolean activeReceiver = false;
+		boolean activeReceiver = false;
+		Set<String> sbIds = handleSubpoena(message);
 		// Loop through all of our active threads
-		String sbId = handleSubpoena(message);
 		for (ClientRunnable tt : active) {
 			// Do not send the message to any clients that are not ready to receive it.
 			if (tt.isInitialized() && tt.getName().equalsIgnoreCase(receiver)) {
 				tt.enqueueMessage(message);
-        activeReceiver = true;
+				activeReceiver = true;
 			}
-      if (tt.isInitialized() && sbId != null && tt.getName().equalsIgnoreCase(sbId)) {
-				tt.enqueueMessage(message);
+			if (!sbIds.isEmpty()) {
+				if (tt.isInitialized() && sbIds.contains(tt.getName())) {
+					tt.enqueueMessage(message);
+				}
 			}
-    }
-    // Receiver's copy
-    User recipient = userService.findUserByUsername(receiver);
-    if(recipient != null) {
-       if(activeReceiver)
-           userService.addToMyMessages(recipient, msg); 
-       else
-           userService.addToUnreadMessages(recipient, msg); 
-      }     
+		}
+		// Receiver's copy
+		User recipient = userService.findUserByUsername(receiver);
+		if (recipient != null) {
+			if (activeReceiver)
+				userService.addToMyMessages(recipient, msg);
+			else
+				userService.addToUnreadMessages(recipient, msg);
+		}
 	}
 
 	// This method will check if there is subpoena related to that message, if yes
 	// it
 	// return the subpoena id
-	private static String handleSubpoena(Message msg) {
+	private static Set<String> handleSubpoena(Message msg) {
 		Subpoena sb;
+		Set<String> sbIds = new HashSet();
+		String user1 = msg.getName();
+		String user2 = msg.getMsgRecipient();
+		sb = activeSubpoena.get(user1 + "$%$all");
+		if (sb != null) {
+			sbIds.add(sb.getId());
+		}
+		sb = activeSubpoena.get(user2 + "$%$all");
+		if (sb != null) {
+			sbIds.add(sb.getId());
+		}
 		if (msg.isPrivateMessage()) {
-			String user1 = msg.getName();
-			String user2 = msg.getMsgRecipient();
-			sb = activeSubpoena.get(user1 + "$%$all");
+			sb = activeSubpoena.get(user1 + "%$%" + user2);
 			if (sb != null) {
-				sb.getId();
-			} else {
-				sb = activeSubpoena.get(user1 + "%$%" + user2);
-				if (sb != null) {
-					return sb.getId();
-				}
+				sbIds.add(sb.getId());
 			}
-		} else if (msg.isGroupMessage()) {
-			sb = activeSubpoena.get(msg.getMsgRecipient());
+			sb = activeSubpoena.get(user2 + "%$%" + user1);
 			if (sb != null) {
-				return sb.getId();
+				sbIds.add(sb.getId());
 			}
 		}
-		return null;
+		if (msg.isGroupMessage()) {
+			sb = activeSubpoena.get(msg.getMsgRecipient());
+			if (sb != null) {
+				sbIds.add(sb.getId());
+			}
+		}
+		return sbIds;
 	}
 
 	public static void createActiveSubpoenaMap() {
@@ -255,7 +275,7 @@ public abstract class Prattle {
 							if (socket != null) {
 								ClientRunnable tt = new ClientRunnable(socket);
 								// Add the thread to the queue of active threads
-                tt.setIP(socket.getRemoteAddress().toString());
+								tt.setIP(socket.getRemoteAddress().toString());
 								active.add(tt);
 								// Have the client executed by our pool of threads.
 								@SuppressWarnings("rawtypes")
@@ -264,31 +284,28 @@ public abstract class Prattle {
 								tt.setFuture(clientFuture);
 							}
 						} catch (AssertionError ae) {
-                LOGGER.log(Level.WARNING, "Caught Assetion: " + ae.toString(), ae);
-              } catch (Exception e) {
-                 LOGGER.log(Level.WARNING, "Caught Exception: " + e.toString(), e);
-            }
+							LOGGER.log(Level.WARNING, "Caught Assetion: " + ae.toString(), ae);
+						} catch (Exception e) {
+							LOGGER.log(Level.WARNING, "Caught Exception: " + e.toString(), e);
+						}
 					}
 				}
 			}
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Exception while trying to open socket: " + e.toString(), e);
-            Payload payload = Payload.builder()
-                    .channel("#cs5500-team-203-f18")
-                    .username("Slick Bot")
-                    .iconEmoji(":man-facepalming:")
-                    .text("Something went wrong during socket connection @ Slick")
-                    .build();
+			Payload payload = Payload.builder().channel("#cs5500-team-203-f18").username("Slick Bot")
+					.iconEmoji(":man-facepalming:").text("Something went wrong during socket connection @ Slick")
+					.build();
 
-            Slack slack = Slack.getInstance();
-            WebhookResponse response = null;
-            try {
-                response = slack.send(SLACK_URL, payload);
-            } catch (IOException e1) {
-                LOGGER.log(Level.SEVERE, "Slack integration failed!");
-            }
-            if(!response.getMessage().equalsIgnoreCase("OK"))
-                LOGGER.log(Level.SEVERE, "Slack integration failed!");
+			Slack slack = Slack.getInstance();
+			WebhookResponse response = null;
+			try {
+				response = slack.send(SLACK_URL, payload);
+			} catch (IOException e1) {
+				LOGGER.log(Level.SEVERE, "Slack integration failed!");
+			}
+			if (!response.getMessage().equalsIgnoreCase("OK"))
+				LOGGER.log(Level.SEVERE, "Slack integration failed!");
 		} finally {
 			if (serverSocket != null)
 				serverSocket.close();
@@ -323,7 +340,7 @@ public abstract class Prattle {
 		// Test and see if the thread was in our list of active clients so that we
 		// can remove it.
 		if (!active.remove(dead)) {
-      LOGGER.log(Level.SEVERE,"Could not find the thread expected to be removed");
+			LOGGER.log(Level.SEVERE, "Could not find the thread expected to be removed");
 		}
 	}
 }

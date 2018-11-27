@@ -290,6 +290,15 @@ public class ClientRunnable implements Runnable {
 	public String getName() {
 		return name;
 	}
+	
+	/**
+	 * Get is this client runnable if for Subpoena
+	 * 
+	 * @return Returns isSubpoena
+	 */
+	public Boolean getIsSubpoena() {
+		return isSubpoena;
+	}
 
 	/**
 	 * Set the name of the user for which this ClientRunnable was created.
