@@ -86,7 +86,8 @@ public abstract class Prattle {
         for (ClientRunnable tt : active) {
             if (tt.isInitialized() && tt.getName().equalsIgnoreCase(sender.getUsername())) {
                 senderIP = tt.getIP();
-                msg = tt.getIP() + " [BROADCASTED] " + message.getText();
+                //msg = tt.getIP() + " [BROADCASTED] " + message.getText();
+                msg = "[BROADCASTED] " + message.getText();
             }
         }
         if(senderIP == null || msg == null)
@@ -96,7 +97,8 @@ public abstract class Prattle {
             // Do not send the message to any clients that are not ready to receive it.
             if (tt.isInitialized() && !tt.getName().equalsIgnoreCase(message.getName())) {
                 User u = userService.findUserByUsername(tt.getName());
-                msg = senderIP + " [BROADCAST] " + message.getName() + ": " + message.getText() + " " + tt.getIP();
+                //msg = senderIP + " [BROADCAST] " + message.getName() + ": " + message.getText() + " " + tt.getIP();
+                msg = "[BROADCAST] " + message.getName() + ": " + message.getText();
                 userService.addToMyMessages(u, msg);
                 tt.enqueueMessage(message);
             }
