@@ -95,6 +95,9 @@ public class ClientRunnable implements Runnable {
 	/** Name that the client used when connecting to the server. */
 	private String name;
 	
+	 /** IP of the client **/
+    private String ip;
+	
 	private Boolean isSubpoena = false;
 
 	/**
@@ -348,7 +351,7 @@ public class ClientRunnable implements Runnable {
 							User recipient = userService.findUserByUsername(msg.getMsgRecipient());
 							m = "[Private Msg] " + user.getUsername() + ": " + msg.getText();
 							userService.addToMyMessages(recipient, m); // receiver's copy
-							Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
+							Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient(), m);
 
 						} else {
 							this.enqueueMessage(Message.makeFailMsg());
@@ -370,7 +373,7 @@ public class ClientRunnable implements Runnable {
 							for (String recipient : group.getListOfUsers()) {
 								User r = userService.findUserByUsername(recipient);
 								userService.addToMyMessages(r, m); // receiver's copy
-								Prattle.broadcastPrivateMessage(msg, recipient);
+								Prattle.broadcastPrivateMessage(msg, recipient, m);
 							}
 
 						}
@@ -382,7 +385,7 @@ public class ClientRunnable implements Runnable {
 						User recipient = userService.findUserByUsername(msg.getMsgRecipient());
 						m = "File Received From " + user.getUsername();
 						userService.addToMyMessages(recipient, m); // receiver's copy
-						Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient());
+						Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient(), m);
 					}
 					// If it is create user message
 					else if (msg.isUserCreate()) {
@@ -420,20 +423,28 @@ public class ClientRunnable implements Runnable {
 
 					}
 					// If it is login user message
-					else if (msg.isUserLogin()) {
-						this.initialized = true;
-						user = userService.authenticateUser(msg.getName(), msg.getText());
-						if (user == null) {
-							this.enqueueMessage(Message.makeLoginFail());
-						} else {
-							name = user.getUsername();
-							this.enqueueMessage(Message.makeLoginSuccess(name));
-							List<String> messages = user.getMyMessages();
-							for (String text : messages) {
-								this.enqueueMessage(Message.makeHistoryMessage(text));
-							}
-						}
-					}
+                    else if (msg.isUserLogin()) {
+                        this.initialized = true;
+                        user = userService.authenticateUser(msg.getName(), msg.getText());
+                        if (user == null)
+                            this.enqueueMessage(Message.makeLoginFail());
+                        else {
+                            name = user.getUsername();
+                            this.enqueueMessage(Message.makeLoginSuccess(name));
+                            List<String> messages = user.getMyMessages();
+                            List<String> pendingMessages = user.getMyUnreadMessages();
+                            for (String text : messages) {
+                                this.enqueueMessage(Message.makeHistoryMessage(text));
+                            }
+                            if(!pendingMessages.isEmpty()) {
+                                this.enqueueMessage(Message.makePendingMsgNotif());
+                                for (String text : pendingMessages) {
+                                    this.enqueueMessage(Message.makeHistoryMessage(text));
+                                }
+                            }
+                            userService.clearUnreadMessages(user);
+                        }
+                    }
 					// If it is Adding user to group message
 					else if (msg.isAddToGroup()) {
 						this.enqueueMessage(this.addUserToGroup(msg.getName()));
@@ -541,7 +552,6 @@ public class ClientRunnable implements Runnable {
 						}
 						this.enqueueMessage(ackMsg);
 					}
-
 					// Subpoena Login
 					else if (msg.isSubpoenaLogin()) {
 						Message ackMsg;
