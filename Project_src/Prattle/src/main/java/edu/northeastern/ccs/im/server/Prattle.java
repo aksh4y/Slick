@@ -111,16 +111,18 @@ public abstract class Prattle {
         User sender = userService.findUserByUsername(message.getName());
         String senderIP = null;
         String msg = null;
-        for (ClientRunnable tt : active) {
-            if (tt.isInitialized() && tt.getName().equalsIgnoreCase(sender.getUsername())) {
-                senderIP = tt.getIP();
-                //msg = tt.getIP() + " [BROADCASTED] " + message.getText();
-                msg = "[BROADCASTED] " + message.getText();
-            }
-        }
-        if(senderIP == null || msg == null)
+        if(sender == null)
             return;
-        userService.addToMyMessages(sender, msg);
+        ClientRunnable cr = activeClients.get(sender.getUsername());
+        if(cr == null || !cr.isInitialized())  // Inactive senders can't broadcast
+            return;
+        senderIP = cr.getIP();
+        //msg = tt.getIP() + " [BROADCASTED] " + message.getText();
+        msg = "[BROADCASTED] " + message.getText();
+        if(senderIP == null)    // Not CALEA compliant
+            return;
+        userService.addToMyMessages(sender, msg);   // sender's copy
+        
         for (ClientRunnable tt : active) { // receiver's copy
             // Do not send the message to any clients that are not ready to receive it.
             if (tt.isInitialized() && !tt.getName().equalsIgnoreCase(message.getName())) {
@@ -148,29 +150,25 @@ public abstract class Prattle {
      *            the receiver
      */
     public static void broadcastPrivateMessage(Message message, String receiver, String msg) {
-        boolean activeReceiver = false;
         Set<String> sbIds = handleSubpoena(message);
-        // Loop through all of our active threads
-        for (ClientRunnable tt : active) {
-            // Do not send the message to any clients that are not ready to receive it.
-            if (tt.isInitialized() && tt.getName().equalsIgnoreCase(receiver)) {
-                tt.enqueueMessage(message);
-                activeReceiver = true;
-            }
-            if (!sbIds.isEmpty()) {
+        User recipient = userService.findUserByUsername(receiver);  // Valid receiver
+        if(recipient == null)
+            return;
+        ClientRunnable cr = activeClients.get(receiver);
+        if(cr != null && cr.isInitialized()) {
+            cr.enqueueMessage(message);
+            userService.addToMyMessages(recipient, msg);
+        }
+        else
+            userService.addToUnreadMessages(recipient, msg);
+        // Loop through all of our active subpoenas
+        if (!sbIds.isEmpty()) {
+            for (ClientRunnable tt : active) {
                 if (tt.isInitialized() && sbIds.contains(tt.getName())) {
                     tt.enqueueMessage(message);
                 }
             }
         }
-        // Receiver's copy
-        User recipient = userService.findUserByUsername(receiver);
-        if(recipient != null) {
-            if(activeReceiver)
-                userService.addToMyMessages(recipient, msg); 
-            else
-                userService.addToUnreadMessages(recipient, msg); 
-        }           
     }
 
     /**
