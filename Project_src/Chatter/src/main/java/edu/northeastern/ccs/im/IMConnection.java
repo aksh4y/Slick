@@ -242,6 +242,9 @@ public class IMConnection {
 		} else if (message.contains("RECALL")) {
 			String[] params = message.split(" ");
 			msg = Message.makeRecallMessage(username, params[2].toLowerCase(), params[1].toLowerCase());
+		} else if (message.contains("SEARCH")) {
+			String[] params = message.split(" ");
+			msg = Message.makeSearchMessage(username, params[2].toLowerCase(), params[1].toLowerCase());
 		} else if (message.contains("SUBPOENA")) {
 			String[] msgArray = message.split(" ");
 			msg = Message.makeSubpoenaLogin(msgArray[1]);

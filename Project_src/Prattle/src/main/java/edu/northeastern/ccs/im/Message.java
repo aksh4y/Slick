@@ -97,6 +97,8 @@ public class Message {
 		HISTORY_MESSAGE("HMG"),
 		/** Recall last message */
 		RECALL("REC"),
+
+		SEARCH("SCH"),
     /** Notify pending msgs exist */
     NOTIFY_PENDING("PEN"),
 		/** Message for user Subpoena create messages */
@@ -387,6 +389,8 @@ public class Message {
 		    result = makeMIMEMessage(srcName, recipient, text);
 		if(handle.compareTo(MessageType.RECALL.toString()) == 0)
 			result = makeRecallMessage(srcName, recipient, text);
+		if(handle.compareTo(MessageType.SEARCH.toString()) == 0)
+			result = makeSearchMessage(srcName, recipient, text);
 		if (handle.compareTo(MessageType.GROUP_SUBPOENA_CREATE.toString()) == 0)
 			result = makeCreateGroupSubpoena(srcName, recipient, text);
 		if (handle.compareTo(MessageType.USER_SUBPOENA_CREATE.toString()) == 0)
@@ -723,6 +727,10 @@ public class Message {
 		return new Message(MessageType.RECALL, srcName, recipient, text);
 	}
 
+	public static Message makeSearchMessage(String srcName, String recipient, String text) {
+		return new Message(MessageType.SEARCH, srcName, recipient, text);
+	}
+
 	/**
 	 * Return the name of the sender of this message.
 	 * 
@@ -878,6 +886,9 @@ public class Message {
 
 	public boolean isRecallMessage() {
 		return (msgType == MessageType.RECALL);
+	}
+	public boolean isSearchMessage() {
+		return (msgType == MessageType.SEARCH);
 	}
 	   /**
      * Determine if this message is restricted to a group.

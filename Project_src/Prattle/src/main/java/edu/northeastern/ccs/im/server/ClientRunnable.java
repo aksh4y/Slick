@@ -526,6 +526,14 @@ public class ClientRunnable implements Runnable {
 							ackMsg = Message.makeSuccessMsg();
 						}
 						this.enqueueMessage(ackMsg);
+					} else if (msg.isSearchMessage()) {
+						Message ackMsg = null;
+						this.initialized = true;
+						if (msg.getText().equalsIgnoreCase("sender")) {
+							userService.getMessages(msg.getText(), msg.getMsgRecipient(), msg.getName());
+							ackMsg = Message.makeSuccessMsg();
+						}
+						this.enqueueMessage(ackMsg);
 					}
 					// Create Subpoena
 					else if (msg.isUserSubpoena() || msg.isGroupSubpoena()) {

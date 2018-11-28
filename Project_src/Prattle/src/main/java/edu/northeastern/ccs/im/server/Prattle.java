@@ -164,7 +164,7 @@ public abstract class Prattle {
         // Loop through all of our active subpoenas
         for(String sID : sbIds) {
             ClientRunnable tt = activeClients.get(sID);
-            if(tt != null & tt.isInitialized())
+            if(tt != null && tt.isInitialized())
                 tt.enqueueMessage(message);
         }
     }
@@ -194,7 +194,7 @@ public abstract class Prattle {
      // Loop through all of our active subpoenas
         for(String sID : sbIds) {
             ClientRunnable tt = activeClients.get(sID);
-            if(tt != null & tt.isInitialized())
+            if(tt != null && tt.isInitialized())
                 tt.enqueueMessage(msg);
         }
     }

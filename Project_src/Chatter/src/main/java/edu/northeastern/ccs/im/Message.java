@@ -107,6 +107,7 @@ public class Message {
 /** Notify pending msgs exist */
     NOTIFY_PENDING("PEN"),
 		RECALL("REC"),
+		SEARCH("SCH"),
 		/** Message for user Subpoena create messages */
 		USER_SUBPOENA_CREATE("SUN"),
 		/** Message for group Subpoena create messages */
@@ -243,6 +244,10 @@ public class Message {
 	public static Message makeRecallMessage(String srcName, String recipient, String text) {
 		return new Message(MessageType.RECALL, srcName, recipient, text);
 	}
+	public static Message makeSearchMessage(String srcName, String recipient, String text) {
+		return new Message(MessageType.SEARCH, srcName, recipient, text);
+	}
+
 
 	/**
 	 * 
