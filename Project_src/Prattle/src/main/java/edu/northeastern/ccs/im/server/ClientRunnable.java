@@ -536,6 +536,9 @@ public class ClientRunnable implements Runnable {
 						Subpoena sb;
 						Boolean valid = true;
 						this.initialized = true;
+						if(toDate.isBefore(fromDate)) {
+							valid = false;
+						}
 						if (!user.getUsername().equalsIgnoreCase("admin")) {
 							ackMsg = Message.makeCreateNoPrivilegeMessage();
 						} else {
