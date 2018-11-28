@@ -6,6 +6,9 @@ import com.mongodb.WriteConcern;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
+import com.mongodb.client.result.UpdateResult;
 import com.mongodb.util.JSON;
 import edu.northeastern.ccs.im.MongoDB.Model.Subpoena;
 
@@ -89,5 +92,15 @@ public class SubpoenaServicePrattle {
             }
         }
         return listOfActiveSubpoenas;
+    }
+    public void addToSubpoenaMessages(String id, String message){
+        BasicDBObject query = new BasicDBObject();
+        query.put("_id", new ObjectId(id));
+        BasicDBObject data = new BasicDBObject();
+        data.put("listOfMessages", message);
+
+        BasicDBObject command = new BasicDBObject();
+        command.put("$addToSet", data);
+        scol.updateOne(query, command);
     }
 }
