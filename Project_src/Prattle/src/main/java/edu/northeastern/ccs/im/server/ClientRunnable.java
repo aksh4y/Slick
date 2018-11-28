@@ -525,14 +525,18 @@ public class ClientRunnable implements Runnable {
                         }
                         this.enqueueMessage(ackMsg);
                     } else if (msg.isSearchMessage()) {
-                        Message ackMsg = null;
-                        this.initialized = true;
-                        if (msg.getText().equalsIgnoreCase("sender")) {
-                            userService.getMessages(msg.getText(), msg.getMsgRecipient(), msg.getName());
-                            ackMsg = Message.makeSuccessMsg();
-                        }
-                        this.enqueueMessage(ackMsg);
-                    }
+
+						this.initialized = true;
+						List<String> messages = userService.getMessages(msg.getText(), msg.getMsgRecipient(),
+								msg.getName());
+						for (String text : messages) {
+							this.enqueueMessage(Message.makeHistoryMessage(text));
+						}
+						if (messages.isEmpty()) {
+							this.enqueueMessage(Message.makeFailMsg());
+						}
+
+					}
                     // Create Subpoena
                     else if (msg.isUserSubpoena() || msg.isGroupSubpoena()) {
                         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");
@@ -744,4 +748,5 @@ public class ClientRunnable implements Runnable {
             runnableMe.cancel(false);
         }
     }
+
 }
