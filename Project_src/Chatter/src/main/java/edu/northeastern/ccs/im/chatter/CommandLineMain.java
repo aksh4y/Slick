@@ -122,6 +122,9 @@ public class CommandLineMain {
 					if (message.isBroadcastMessage())
 						System.out.println(ANSI_RED + "[Broadcast] " + message.getSender() + ": " + message.getText()
 								+ ANSI_RESET);
+					else if (message.isPrivateMessage() && isSubpoena)
+						System.out.println(ANSI_RED + "[Private Msg] " + message.getSender()+ " -> "+ message.getMsgRecipient() + ": " + message.getText()
+								+ ANSI_RESET);
 					else if (message.isPrivateMessage())
 						System.out.println(ANSI_RED + "[Private Msg] " + message.getSender() + ": " + message.getText()
 								+ ANSI_RESET);
