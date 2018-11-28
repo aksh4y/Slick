@@ -1,6 +1,10 @@
 package edu.northeastern.ccs.im.MongoDB.Model;
 
+import edu.northeastern.ccs.im.Message;
+
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Subpoena {
 
@@ -18,6 +22,7 @@ public class Subpoena {
     private String group;
     private LocalDate startDate;
     private LocalDate endDate;
+    private List<Message> listOfMessages;
 
     public Subpoena(String user1,String user2, String group, LocalDate fromDate, LocalDate toDate){
         this.user1=user1;
@@ -25,6 +30,7 @@ public class Subpoena {
         this.group= group;
         this.startDate= fromDate;
         this.endDate= toDate;
+        this.listOfMessages = new ArrayList<Message>();
     }
     public String getUser1() {
         return user1;

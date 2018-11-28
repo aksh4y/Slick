@@ -30,9 +30,14 @@ public class MongoDBClient {
 //        recallMessage(db);
 //        getActiveSubpoenas(db);
 //        getMessages(db);
-        createUser(db);
+//        createUser(db);
+        addToSubpoenaMessages(db);
 
 
+    }
+    public static void addToSubpoenaMessages(MongoDatabase db) throws JsonProcessingException {
+        SubpoenaServicePrattle subService = new SubpoenaServicePrattle(db);
+        subService.addToSubpoenaMessages("5bfc64560b5f9d34cea6d314","added this message");
     }
     public static void createUser(MongoDatabase db) throws JsonProcessingException {
         UserServicePrattle userService = new UserServicePrattle(db);
