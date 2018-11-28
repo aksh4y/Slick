@@ -339,4 +339,33 @@ public class UserServicePrattle {
 		UpdateResult updateResult=col.updateOne(Filters.eq("username", username), Updates.set("parentalControl", !user.getParentalControl()));
 		return updateResult.getModifiedCount()==1;
 	}
+
+	public boolean updateMessage(String username, String oldMsg, String newMsg) {
+		User user = findUserByUsername(username);
+		if (user != null){
+			if(user.getMyUnreadMessages().contains(oldMsg)){
+				BasicDBObject query = new BasicDBObject();
+				query.put("username", username);
+				query.put("myUnreadMessages", oldMsg);
+				BasicDBObject data = new BasicDBObject();
+				data.put("myUnreadMessages.$", newMsg);
+				BasicDBObject command = new BasicDBObject();
+				command.put("$set", data);
+				UpdateResult updateResult = col.updateOne(query, command);
+				return updateResult.getModifiedCount()==1;
+
+			}else{
+				BasicDBObject query = new BasicDBObject();
+				query.put("username", username);
+				query.put("myMessages", oldMsg);
+				BasicDBObject data = new BasicDBObject();
+				data.put("myMessages.$", newMsg);
+				BasicDBObject command = new BasicDBObject();
+				command.put("$set", data);
+				UpdateResult updateResult = col.updateOne(query, command);
+				return updateResult.getModifiedCount()==1;
+			}
+		}
+		return false;
+	}
 }
