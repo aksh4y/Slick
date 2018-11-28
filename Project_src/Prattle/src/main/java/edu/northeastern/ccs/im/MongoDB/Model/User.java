@@ -20,6 +20,9 @@ public class User {
     private List<String> listOfGroups;
     private List<String> myMessages;
     private List<String> myUnreadMessages;
+    private Boolean parentalControl;
+
+
 
     /**
      *
@@ -32,6 +35,7 @@ public class User {
         this.listOfGroups = new ArrayList<>();
         this.myMessages = new ArrayList<>();
         this.myUnreadMessages = new ArrayList<>();
+        this.parentalControl=false;
     }
 
     /**
@@ -104,5 +108,13 @@ public class User {
 
     public void setMyUnreadMessages(List<String> myUnreadMessages) {
         this.myUnreadMessages = myUnreadMessages;
+    }
+
+    public Boolean getParentalControl() {
+        return parentalControl;
+    }
+
+    public void setParentalControl(Boolean parentalControl) {
+        this.parentalControl = parentalControl;
     }
 }

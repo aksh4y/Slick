@@ -333,4 +333,10 @@ public class UserServicePrattle {
 	public void clearUserTable(){
 		col.deleteMany(new Document());
 	}
+
+	public Boolean switchParentalControl(String username) {
+		User user = findUserByUsername(username);
+		UpdateResult updateResult=col.updateOne(Filters.eq("username", username), Updates.set("parentalControl", !user.getParentalControl()));
+		return updateResult.getModifiedCount()==1;
+	}
 }

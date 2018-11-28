@@ -26,11 +26,23 @@ public class MongoDBClient {
 //        cleanDB(db);
 //        clearUnreadMessages(db);
 //        createSubpoena(db);
-        querySubpoena(db);
+//        querySubpoena(db);
+//        recallMessage(db);
 //        getActiveSubpoenas(db);
 //        getMessages(db);
+        createUser(db);
 
 
+    }
+    public static void createUser(MongoDatabase db) throws JsonProcessingException {
+        UserServicePrattle userService = new UserServicePrattle(db);
+        userService.createUser("Daddy","cool");
+        userService.switchParentalControl("daddy");
+    }
+
+    public static void recallMessage(MongoDatabase db){
+        UserServicePrattle userService = new UserServicePrattle(db);
+        userService.getLastSentMessage("group", "receiver","messgroup");
     }
     public static void getMessages(MongoDatabase db){
         UserServicePrattle userService = new UserServicePrattle(db);
