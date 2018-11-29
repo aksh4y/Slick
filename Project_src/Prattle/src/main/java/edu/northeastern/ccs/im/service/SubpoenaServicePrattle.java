@@ -1,25 +1,22 @@
 package edu.northeastern.ccs.im.service;
 
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.bson.Document;
+import org.bson.types.ObjectId;
+
+import com.google.gson.Gson;
 import com.mongodb.BasicDBObject;
-import com.mongodb.WriteConcern;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.DeleteResult;
-import com.mongodb.client.result.UpdateResult;
-import com.mongodb.util.JSON;
+
 import edu.northeastern.ccs.im.MongoDB.Model.Subpoena;
-
-import org.bson.Document;
-import com.google.gson.Gson;
-import org.bson.types.ObjectId;
-
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
 public class SubpoenaServicePrattle {
     private MongoCollection<Document> scol;
