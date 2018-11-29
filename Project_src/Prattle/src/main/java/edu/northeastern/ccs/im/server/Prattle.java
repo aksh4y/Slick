@@ -117,7 +117,6 @@ public abstract class Prattle {
 		if (cr == null || !cr.isInitialized()) // Inactive senders can't broadcast
 			return;
 		senderIP = cr.getIP();
-		// msg = tt.getIP() + " [BROADCASTED] " + message.getText();
 		msg = "[BROADCASTED] " + message.getText();
 		if (senderIP == null) // Not CALEA compliant
 			return;
@@ -127,8 +126,6 @@ public abstract class Prattle {
 			// Do not send the message to any clients that are not ready to receive it.
 			if (tt.isInitialized() && !tt.getName().equalsIgnoreCase(message.getName()) && !tt.isSubpoena()) {
 				User u = userService.findUserByUsername(tt.getName());
-				// msg = senderIP + " [BROADCAST] " + message.getName() + ": " +
-				// message.getText() + " " + tt.getIP();
 				msg = "[BROADCAST] " + message.getName() + ": " + message.getText();
 				userService.addToMyMessages(u, msg);
 				tt.enqueueMessage(message);
@@ -150,7 +147,8 @@ public abstract class Prattle {
 	 * @param receiver
 	 *            the receiver
 	 */
-	public static void broadcastPrivateMessage(User sender, Message message, String receiver, String senderMsg, String receiverMsg) {
+	public static void broadcastPrivateMessage(User sender, Message message, String receiver, String senderMsg,
+			String receiverMsg) {
 		Set<String> sbIds = handleSubpoena(message);
 		User recipient = userService.findUserByUsername(receiver);
 		if (recipient == null) // Valid receiver
@@ -164,19 +162,24 @@ public abstract class Prattle {
 			newMsg = senderMsg.substring(0, senderMsg.length() - 9);
 			newMsg += " " + cr.getIP();
 			userService.addToMyMessages(sender, newMsg);
-			//userService.updateMessage(message.getName(), senderMsg, newMsg);
-
 		} else
 			userService.addToUnreadMessages(recipient, receiverMsg);
+
 		// Loop through all of our active subpoenas
 		for (String sID : sbIds) {
 			ClientRunnable tt = activeClients.get(sID);
 			String newMsg = receiverMsg.substring(0, receiverMsg.length() - 9);
-			newMsg += " " + cr.getIP();
-			if (tt != null && tt.isInitialized()) {
-				tt.enqueueMessage(Message.makeHistoryMessage(newMsg));
+			if (cr != null && cr.isInitialized()) {
+				newMsg += " ->" + receiver + " " + cr.getIP();
+				if (tt != null && tt.isInitialized()) {
+					tt.enqueueMessage(Message.makeHistoryMessage(newMsg));
+					subpoenaService.addToSubpoenaMessages(sID, newMsg);
+				}
+			} else {
+				newMsg += " ->" + receiver + " (Offline)";
+				subpoenaService.addToSubpoenaMessages(sID, newMsg);
 			}
-			subpoenaService.addToSubpoenaMessages(sID, newMsg);
+
 		}
 
 	}
@@ -191,7 +194,8 @@ public abstract class Prattle {
 	 * @param m
 	 *            message in string format
 	 */
-	public static void broadcastGroupMessage(User sender, Message msg, List<String> listOfUsers, String senderMsg, String receiverMsg) {
+	public static void broadcastGroupMessage(User sender, Message msg, List<String> listOfUsers, String senderMsg,
+			String receiverMsg) {
 		Set<String> sbIds = handleSubpoena(msg);
 		for (String user : listOfUsers) {
 			if (user.equals(msg.getName())) // Sender
