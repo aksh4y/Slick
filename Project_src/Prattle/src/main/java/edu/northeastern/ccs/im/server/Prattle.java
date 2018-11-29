@@ -150,7 +150,7 @@ public abstract class Prattle {
 	 * @param receiver
 	 *            the receiver
 	 */
-	public static void broadcastPrivateMessage(Message message, String receiver, String senderMsg, String receiverMsg) {
+	public static void broadcastPrivateMessage(User sender, Message message, String receiver, String senderMsg, String receiverMsg) {
 		Set<String> sbIds = handleSubpoena(message);
 		User recipient = userService.findUserByUsername(receiver);
 		if (recipient == null) // Valid receiver
@@ -158,19 +158,20 @@ public abstract class Prattle {
 		ClientRunnable cr = activeClients.get(receiver);
 		if (cr != null && cr.isInitialized()) {
 			cr.enqueueMessage(message);
-			String newMsg = receiverMsg.substring(0, receiverMsg.length() - 8);
+			String newMsg = receiverMsg.substring(0, receiverMsg.length() - 9);
 			newMsg += " " + cr.getIP();
 			userService.addToMyMessages(recipient, newMsg);
-			newMsg = senderMsg.substring(0, senderMsg.length() - 8);
+			newMsg = senderMsg.substring(0, senderMsg.length() - 9);
 			newMsg += " " + cr.getIP();
-			userService.updateMessage(message.getName(), senderMsg, newMsg);
+			userService.addToMyMessages(sender, newMsg);
+			//userService.updateMessage(message.getName(), senderMsg, newMsg);
 
 		} else
 			userService.addToUnreadMessages(recipient, receiverMsg);
 		// Loop through all of our active subpoenas
 		for (String sID : sbIds) {
 			ClientRunnable tt = activeClients.get(sID);
-			String newMsg = receiverMsg.substring(0, receiverMsg.length() - 8);
+			String newMsg = receiverMsg.substring(0, receiverMsg.length() - 9);
 			newMsg += " " + cr.getIP();
 			if (tt != null && tt.isInitialized()) {
 				tt.enqueueMessage(Message.makeHistoryMessage(newMsg));
@@ -190,7 +191,7 @@ public abstract class Prattle {
 	 * @param m
 	 *            message in string format
 	 */
-	public static void broadcastGroupMessage(Message msg, List<String> listOfUsers, String m) {
+	public static void broadcastGroupMessage(User sender, Message msg, List<String> listOfUsers, String senderMsg, String receiverMsg) {
 		Set<String> sbIds = handleSubpoena(msg);
 		for (String user : listOfUsers) {
 			if (user.equals(msg.getName())) // Sender
@@ -200,10 +201,17 @@ public abstract class Prattle {
 				continue;
 			ClientRunnable cr = activeClients.get(user);
 			if (cr != null && cr.isInitialized()) {
-				userService.addToMyMessages(recipient, m);
+			    String newMsg = receiverMsg.substring(0, receiverMsg.length() - 9);
+	            newMsg += " " + cr.getIP();
+	            userService.addToMyMessages(recipient, newMsg);    // recipient's copy
+	            newMsg = senderMsg.substring(0, senderMsg.length() - 9);
+	            newMsg += " " + cr.getIP();
+	            userService.addToMyMessages(sender, newMsg);   // sender's copy
 				cr.enqueueMessage(msg);
-			} else
-				userService.addToUnreadMessages(recipient, m);
+			} else {
+			    userService.addToMyMessages(sender, senderMsg);
+				userService.addToUnreadMessages(recipient, receiverMsg);
+			}
 		}
 		// Loop through all of our active subpoenas
 		for (String sID : sbIds) {

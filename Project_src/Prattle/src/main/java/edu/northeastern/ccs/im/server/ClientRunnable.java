@@ -3,7 +3,6 @@ package edu.northeastern.ccs.im.server;
 
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
-import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -12,7 +11,6 @@ import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledFuture;
 import java.util.logging.Level;
@@ -420,13 +418,11 @@ public class ClientRunnable implements Runnable {
 					// Handle Private Message
 					else if (msg.isPrivateMessage()) {
 						if (userService.findUserByUsername(msg.getMsgRecipient()) != null) {
-							String fillerIP = getRandomFiller();
-							String m = getIP() + " PRIVATE " + msg.getMsgRecipient() + " " + msg.getText() + " "
-									+ fillerIP;
-							userService.addToMyMessages(user, m); // sender's copy
-							String mg = getIP() + " [Private Msg] " + user.getUsername() + ": " + msg.getText() + " "
-									+ fillerIP;
-							Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient(), m, mg);
+							String m = getIP() + " PRIVATE " + msg.getMsgRecipient() + " " + msg.getText()
+									+ " /Offline";
+							String mg = getIP() + " [Private Msg] " + user.getUsername() + ": " + msg.getText()
+									+ " /Offline";
+							Prattle.broadcastPrivateMessage(user, msg, msg.getMsgRecipient(), m, mg);
 						} else {
 							this.enqueueMessage(Message.makeFailMsg());
 						}
@@ -440,18 +436,17 @@ public class ClientRunnable implements Runnable {
 							Message failMsg = Message.makeGroupNotExist();
 							this.enqueueMessage(failMsg);
 						} else {
-							String m = "GROUP " + msg.getMsgRecipient() + " " + msg.getText();
-							userService.addToMyMessages(user, m); // sender's copy
-							m = "[" + user.getUsername() + "@" + msg.getMsgRecipient() + "] " + msg.getText();
-							Prattle.broadcastGroupMessage(msg, group.getListOfUsers(), m);
+							String m = getIP() +  " GROUP " + msg.getMsgRecipient() + " " + msg.getText() + " /Offline";
+							//userService.addToMyMessages(user, m); // sender's copy
+							String mg = getIP() + " [" + user.getUsername() + "@" + msg.getMsgRecipient() + "] " + msg.getText() + " /Offline";
+							Prattle.broadcastGroupMessage(user, msg, group.getListOfUsers(), m, mg);
 						}
 					}
 					// Handle MIME messages
 					else if (msg.isMIME()) {
 						String m = "File Sent To " + msg.getMsgRecipient();
-						userService.addToMyMessages(user, m); // sender's copy
 						String mg = "File Received From " + user.getUsername();
-						Prattle.broadcastPrivateMessage(msg, msg.getMsgRecipient(), m, mg);
+						Prattle.broadcastPrivateMessage(user, msg, msg.getMsgRecipient(), m, mg);
 					}
 					// If it is create group message
 					else if (msg.isCreateGroup()) {
@@ -697,7 +692,7 @@ public class ClientRunnable implements Runnable {
 
 	// Update receiver's IP to his msg copy on receiver's side
 	private void updateReceiverIP(String text) {
-		String newMsg = text.substring(0, text.length() - 7);
+		String newMsg = text.substring(0, text.length() - 8);
 		newMsg += this.getIP();
 		userService.updateMessage(name, text, newMsg);
 	}
@@ -708,7 +703,7 @@ public class ClientRunnable implements Runnable {
 		msg += "PRIVATE " + name;
 		String sender = text.substring(text.indexOf("] ") + 2, text.indexOf(":", text.indexOf(":") + 1));
 		msg += text.substring(text.indexOf(":", text.indexOf(":") + 1) + 1);
-		String newMsg = msg.substring(0, msg.length() - 7) + this.getIP();
+		String newMsg = msg.substring(0, msg.length() - 8) + this.getIP();
 		userService.updateMessage(sender, msg, newMsg);
 	}
 
@@ -776,17 +771,4 @@ public class ClientRunnable implements Runnable {
 			runnableMe.cancel(false);
 		}
 	}
-
-	/**
-	 * Generate a random filler for receiver IP
-	 * 
-	 * @return the generated String
-	 */
-	public String getRandomFiller() {
-		byte[] array = new byte[7]; // length is bounded by 7
-		new Random().nextBytes(array);
-		String generatedString = new String(array, Charset.forName("UTF-8"));
-		return generatedString;
-	}
-
 }
