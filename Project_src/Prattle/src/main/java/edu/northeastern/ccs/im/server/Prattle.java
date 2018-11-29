@@ -122,7 +122,7 @@ public abstract class Prattle {
         if(senderIP == null)    // Not CALEA compliant
             return;
         userService.addToMyMessages(sender, msg);   // sender's copy
-        
+
         for (ClientRunnable tt : active) { // receiver's copy
             // Do not send the message to any clients that are not ready to receive it.
             if (tt.isInitialized() && !tt.getName().equalsIgnoreCase(message.getName()) && !tt.isSubpoena()) {
@@ -149,18 +149,23 @@ public abstract class Prattle {
      * @param receiver
      *            the receiver
      */
-    public static void broadcastPrivateMessage(Message message, String receiver, String msg) {
+    public static void broadcastPrivateMessage(Message message, String receiver, String senderMsg, String receiverMsg) {
         Set<String> sbIds = handleSubpoena(message);
-        User recipient = userService.findUserByUsername(receiver);  // Valid receiver
-        if(recipient == null)
+        User recipient = userService.findUserByUsername(receiver);
+        if(recipient == null)   // Valid receiver
             return;
         ClientRunnable cr = activeClients.get(receiver);
         if(cr != null && cr.isInitialized()) {
             cr.enqueueMessage(message);
-            userService.addToMyMessages(recipient, msg);
+            String newMsg = receiverMsg.substring(0, receiverMsg.length() - 8);
+            newMsg += " " + cr.getIP();
+            userService.addToMyMessages(recipient, newMsg);
+            newMsg = senderMsg.substring(0, senderMsg.length() - 8);
+            newMsg += " " + cr.getIP();
+            userService.updateMessage(message.getName(), senderMsg, newMsg);
         }
         else
-            userService.addToUnreadMessages(recipient, msg);
+            userService.addToUnreadMessages(recipient, receiverMsg);
         // Loop through all of our active subpoenas
         for(String sID : sbIds) {
             ClientRunnable tt = activeClients.get(sID);
@@ -191,7 +196,7 @@ public abstract class Prattle {
             else
                 userService.addToUnreadMessages(recipient, m);
         }
-     // Loop through all of our active subpoenas
+        // Loop through all of our active subpoenas
         for(String sID : sbIds) {
             ClientRunnable tt = activeClients.get(sID);
             if(tt != null && tt.isInitialized())
@@ -305,7 +310,12 @@ public abstract class Prattle {
                             if (socket != null) {
                                 ClientRunnable tt = new ClientRunnable(socket);
                                 // Add the thread to the queue of active threads
-                                tt.setIP(socket.getRemoteAddress().toString());
+                                String ip = socket.getRemoteAddress().toString();
+                                if(ip == null) {  // Not CALEA compliant
+                                    tt.enqueueMessage(Message.makeFailMsg());
+                                    return;
+                                }
+                                tt.setIP(ip);
                                 active.add(tt);
                                 activeClients.put(tt.getName(), tt);
                                 // Have the client executed by our pool of threads.
