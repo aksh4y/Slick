@@ -10,6 +10,10 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ *
+ * @author Chetan Mahale
+ */
 public class SubpoenaTest {
     @Test
     public void testSubpoenaObject(){
@@ -22,8 +26,9 @@ public class SubpoenaTest {
         subpoena.setId("1");
         assertEquals("1", subpoena.getId());
         List<String> list = new ArrayList<>();
+        list.add("A");
         subpoena.setListOfMessages(list);
-        assertEquals(0, subpoena.getListOfMessages().size());
+        assertEquals(1, subpoena.getListOfMessages().size());
         assertTrue(!subpoena.toString().isEmpty());
     }
 }

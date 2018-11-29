@@ -18,15 +18,32 @@ import com.mongodb.client.result.DeleteResult;
 
 import edu.northeastern.ccs.im.MongoDB.Model.Subpoena;
 
+/**
+ *
+ * @author Peter
+ */
 public class SubpoenaServicePrattle {
     private MongoCollection<Document> scol;
     private Gson gson;
 
+    /**
+     *
+     * @param db instance of the database
+     */
     public SubpoenaServicePrattle(MongoDatabase db) {
         scol = db.getCollection("Subpoenas");
         gson = new Gson();
     }
 
+    /**
+     *
+     * @param username1 name of the first person
+     * @param username2 name of the second person
+     * @param groupName name of the group
+     * @param fromDate start date
+     * @param toDate end date
+     * @return new subpoena after inserting it in the database
+     */
     public Subpoena createSubpoena(String username1, String username2, String groupName, LocalDate fromDate, LocalDate toDate) {
         Subpoena subpoena = new Subpoena(username1,username2,groupName,fromDate,toDate);
         insertSubpoena(subpoena);
@@ -35,11 +52,20 @@ public class SubpoenaServicePrattle {
         return subpoena;
     }
 
+    /**
+     *
+     * @param subpoena that has to be inserted in the db
+     */
     private void insertSubpoena(Subpoena subpoena) {
         String json =gson.toJson(subpoena);
         scol.insertOne(Document.parse(json));
     }
 
+    /**
+     *
+     * @param subpoena whose id is to be found
+     * @return id of the given subpoena
+     */
     public String getIdOfSubpoena(Subpoena subpoena){
         BasicDBObject query = new BasicDBObject();
         query.put("user1", subpoena.getUser1() );
@@ -57,6 +83,12 @@ public class SubpoenaServicePrattle {
         }
         return id;
     }
+
+    /**
+     *
+     * @param id id of the subpoena to be retrieved from the db
+     * @return the subpoena with given id
+     */
     public Subpoena querySubpoenaById(String id) {
         BasicDBObject query = new BasicDBObject();
         try {
@@ -69,6 +101,11 @@ public class SubpoenaServicePrattle {
         }
 
     }
+
+    /**
+     *
+     * @return list of active subpoenas
+     */
     public List<Subpoena> getActiveSubpoenas() {
         List<Subpoena> listOfActiveSubpoenas = new ArrayList<Subpoena>();
 //        BasicDBObject query = new BasicDBObject();
@@ -91,6 +128,12 @@ public class SubpoenaServicePrattle {
         }
         return listOfActiveSubpoenas;
     }
+
+    /**
+     *
+     * @param id or the subpoena
+     * @param message message to be added
+     */
     public void addToSubpoenaMessages(String id, String message){
         BasicDBObject query = new BasicDBObject();
         query.put("_id", new ObjectId(id));
@@ -101,6 +144,12 @@ public class SubpoenaServicePrattle {
         command.put("$addToSet", data);
         scol.updateOne(query, command);
     }
+
+    /**
+     *
+     * @param id id of the subpoena
+     * @return true if the subpoena was deleted
+     */
 
     public boolean deleteSubpoena(String id){
         DeleteResult deleteResult = scol.deleteOne(Filters.eq("_id",new ObjectId(id)));

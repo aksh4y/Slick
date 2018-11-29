@@ -6,6 +6,10 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ *
+ * @author Peter
+ */
 public class Subpoena {
 
     public String getId() {
