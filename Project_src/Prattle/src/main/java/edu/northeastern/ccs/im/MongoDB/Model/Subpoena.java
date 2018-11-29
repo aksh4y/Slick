@@ -22,7 +22,8 @@ public class Subpoena {
     private String group;
     private LocalDate startDate;
     private LocalDate endDate;
-    private List<Message> listOfMessages;
+
+    private List<String> listOfMessages;
 
     public Subpoena(String user1,String user2, String group, LocalDate fromDate, LocalDate toDate){
         this.user1=user1;
@@ -30,7 +31,7 @@ public class Subpoena {
         this.group= group;
         this.startDate= fromDate;
         this.endDate= toDate;
-        this.listOfMessages = new ArrayList<Message>();
+        this.listOfMessages = new ArrayList<>();
     }
     public String getUser1() {
         return user1;
@@ -52,4 +53,15 @@ public class Subpoena {
         return endDate;
     }
 
+    public List<String> getListOfMessages() {
+        return listOfMessages;
+    }
+
+    public void setListOfMessages(List<String> listOfMessages) {
+        this.listOfMessages = listOfMessages;
+    }
+    @Override
+    public String toString(){
+        return String.format("%s %s %s %s %s", this.user1, this.user2, this.group, this.startDate, this.endDate);
+    }
 }
