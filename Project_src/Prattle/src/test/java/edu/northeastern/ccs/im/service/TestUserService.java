@@ -18,6 +18,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 //import edu.northeastern.ccs.im.MongoDB.Model.User;
 
+/**
+ *
+ * @author Chetan Mahale
+ */
 public class TestUserService {
 
     MongoDatabase db = MongoConnection.createConnection();
@@ -78,7 +82,6 @@ public class TestUserService {
         assertEquals(true, userService.deleteUser("test1"));
         assertEquals(false, userService.updateUser(null, "new"));
         assertEquals(false, userService.deleteUser("testUserSubject"));
-
     }
 
     @Test
@@ -104,6 +107,12 @@ public class TestUserService {
 
     @Test
     public void deleteUserMoreTest() throws  JsonProcessingException{
+        if(userService.findUserByUsername("dUser")!=null){
+            assertTrue(userService.deleteUser("dUser"));
+        }
+        if(groupService.findGroupByName("dUserGroup")!=null){
+            groupService.deleteGroup("dUserGroup");
+        }
         User user = userService.createUser("dUser", "dUser");
         Group group = groupService.createGroup("dUserGroup");
         groupService.addUserToGroup(group,user);
@@ -114,6 +123,9 @@ public class TestUserService {
     }
     @Test
     public void addToMyMessages() throws  JsonProcessingException {
+        if(userService.findUserByUsername("dUser")!=null){
+            assertTrue(userService.deleteUser("dUser"));
+        }
         User user = userService.createUser("dUser", "dUser");
         assertEquals(0,user.getMyMessages().size());
         userService.addToMyMessages(user,"Hi! Test Message");
@@ -123,6 +135,9 @@ public class TestUserService {
     }
     @Test
     public void testAddToMyUnreadMessages() throws JsonProcessingException {
+        if(userService.findUserByUsername("newone")!=null){
+            assertTrue(userService.deleteUser("newone"));
+        }
         User user = userService.createUser("newone", "newpass");
         userService.addToUnreadMessages(user, "Hello");
         user = userService.findUserByUsername("newone");
@@ -134,59 +149,86 @@ public class TestUserService {
     }
 //    @Test
 //    public void testGetMessages(){
-//        List<String> smessages = userService.getMessages("sender", "Akshay");
-//        List<String> rmessages = userService.getMessages("receiver", "Akshay");
+//        List<String> smessages = userService.getMessages("sender", "Akshay", "Peter");
+//        List<String> rmessages = userService.getMessages("receiver", "Akshay", "Peter");
 //        System.out.println(smessages);
 //        System.out.println(rmessages);
 //    }
-//    @Test
+////    @Test
 //    public void testRecallMessages() throws JsonProcessingException {
-//        User sender = userService.createUser("sender", "senderpass");
-//        User receiver = userService.createUser("receiver", "receiverpass");
-//        userService.addToMyMessages(sender,"Private receiver hey");
-//        userService.addToMyMessages(sender,"Private receiver hey");
-//        userService.addToMyMessages(receiver,"[Private Msg] sender: hey");
-//        userService.addToUnreadMessages(receiver,"[Private Msg] sender: hey");
-//        receiver = userService.findUserByUsername("receiver");
-//        assertEquals(1, receiver.getMyMessages().size());
-//        assertEquals(1, receiver.getMyUnreadMessages().size());
-//        userService.recallFromMessages(receiver,"sender");
-//        userService.recallFromUnreadMessages(receiver);
-//        receiver = userService.findUserByUsername("receiver");
-//        assertEquals("[Private Msg] sender: [Message Deleted]", receiver.getMyMessages().get(0));
-//        assertEquals("[Private Msg] sender: [Message Deleted]", receiver.getMyUnreadMessages().get(0));
-//        userService.deleteUser("receiver");
-//        userService.deleteUser("sender");
+//        if(userService.findUserByUsername("newsender")!=null){
+//            assertTrue(userService.deleteUser("newseder"));
+//        }
+//        if(userService.findUserByUsername("newreceiver")!=null){
+//            assertTrue(userService.deleteUser("newreceiver"));
+//        }
+//        User newsender = userService.createUser("newsender", "newsenderpass");
+//        User newreceiver = userService.createUser("newreceiver", "newreceiverpass");
+//        userService.addToMyMessages(newsender,"Private newreceiver hey");
+//        userService.addToMyMessages(newsender,"Private newreceiver hey");
+//        userService.addToMyMessages(newreceiver,"[Private Msg] newsender: hey");
+//        userService.addToUnreadMessages(newreceiver,"[Private Msg] newsender: hey");
+//        newreceiver = userService.findUserByUsername("newreceiver");
+//        assertEquals(1, newreceiver.getMyMessages().size());
+//        assertEquals(1, newreceiver.getMyUnreadMessages().size());
+//        userService.recallFromMessages(newreceiver,"newsender");
+//        userService.recallFromUnreadMessages(newreceiver, "newsender");
+//        newreceiver = userService.findUserByUsername("newreceiver");
+//        assertEquals("[Private Msg] newsender: [Message Deleted]", newreceiver.getMyMessages().get(0));
+//        assertEquals("[Private Msg] newsender: [Message Deleted]", newreceiver.getMyUnreadMessages().get(0));
+//        userService.deleteUser("newreceiver");
+//        userService.deleteUser("newsender");
+////    }
+//    @Test
+//    public void testLastSentMessage() throws JsonProcessingException {
+//        if(userService.findUserByUsername("newsender")!=null){
+//            assertTrue(userService.deleteUser("newseder"));
+//        }
+//        if(userService.findUserByUsername("rec")!=null){
+//            assertTrue(userService.deleteUser("rec"));
+//        }
+//        User newsender = userService.createUser("newsender", "newsenderpass");
+//        User rec = userService.createUser("rec", "recpass");
+//        userService.addToMyMessages(newsender,"Private rec hey");
+//        userService.addToMyMessages(rec,"[Private Msg] newsender: hey");
+//        newsender = userService.findUserByUsername("newsender");
+//        rec = userService.findUserByUsername("rec");
+//        assertEquals(1, rec.getMyMessages().size());
+//        assertEquals(1, newsender.getMyMessages().size());
+//        userService.getLastSentMessage("user","newsender","rec");
+//        newsender = userService.findUserByUsername("newsender");
+//        rec = userService.findUserByUsername("rec");
+//        assertEquals("**Recalled**Private rec hey", newsender.getMyMessages().get(0));
+//        assertEquals("[Private Msg] newsender: [Message Deleted]",rec.getMyMessages().get(0));
+//        userService.addToMyMessages(newsender,"Private rec hey ya");
+//        userService.addToUnreadMessages(rec,"[Private Msg] newsender: hey ya");
+//        userService.getLastSentMessage("user","newsender","rec");
+//        newsender = userService.findUserByUsername("newsender");
+//        rec = userService.findUserByUsername("rec");
+//        assertEquals("**Recalled**Private rec hey ya", newsender.getMyMessages().get(1));
+//        assertEquals("[Private Msg] newsender: [Message Deleted]",rec.getMyUnreadMessages().get(0));
+//        userService.deleteUser("rec");
+//        userService.deleteUser("newsender");
 //    }
-    @Test
-    public void testLastSentMessage() throws JsonProcessingException {
-        User sender = userService.createUser("sender", "senderpass");
-        User rec = userService.createUser("rec", "recpass");
-        userService.addToMyMessages(sender,"Private rec hey");
-        userService.addToMyMessages(rec,"[Private Msg] sender: hey");
-        sender = userService.findUserByUsername("sender");
-        rec = userService.findUserByUsername("rec");
-        assertEquals(1, rec.getMyMessages().size());
-        assertEquals(1, sender.getMyMessages().size());
-        userService.getLastSentMessage("user","sender","rec");
-        sender = userService.findUserByUsername("sender");
-        rec = userService.findUserByUsername("rec");
-        assertEquals("**Recalled**Private rec hey", sender.getMyMessages().get(0));
-        assertEquals("[Private Msg] sender: [Message Deleted]",rec.getMyMessages().get(0));
-        userService.addToMyMessages(sender,"Private rec hey ya");
-        userService.addToUnreadMessages(rec,"[Private Msg] sender: hey ya");
-        userService.getLastSentMessage("user","sender","rec");
-        sender = userService.findUserByUsername("sender");
-        rec = userService.findUserByUsername("rec");
-        assertEquals("**Recalled**Private rec hey ya", sender.getMyMessages().get(1));
-        assertEquals("[Private Msg] sender: [Message Deleted]",rec.getMyUnreadMessages().get(0));
-        userService.deleteUser("rec");
-        userService.deleteUser("sender");
-    }
 //    @Test
 //    public void testLastGroupMessage() throws JsonProcessingException {
-//        User sender = userService.createUser("sender", "senderpass");
+//        if(userService.findUserByUsername("newsender")!=null){
+//            assertTrue(userService.deleteUser("newseder"));
+//        }
+//        if(userService.findUserByUsername("rec")!=null){
+//            assertTrue(userService.deleteUser("rec"));
+//        }
+//        if(groupService.findGroupByName("newgrouptest")!=null){
+//            assertTrue(groupService.deleteGroup("newgrouptest"));
+//        }
+//        User newsender = userService.createUser("newsender", "newsenderpass");
 //        User rec = userService.createUser("rec", "recpass");
-//        userService.addToMyMessages(sender,"[sender@sendergroup] hey");
+//        Group newgrouptest = groupService.createGroup("newgrouptest");
+//        newgrouptest.addUserTOGroup(newsender);
+//        groupService.addUserToGroup(newgrouptest, newsender);
+//        groupService.addUserToGroup(newgrouptest, rec);
+//        userService.addToMyMessages(newsender,"GROUP newgrouptest hey everyone");
+//        userService.addToMyMessages(rec, "[newsender@newgrouptest] hey everyone");
+//        userService.getLastSentMessage("group","newsender","newgrouptest");
 //    }
 }

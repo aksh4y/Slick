@@ -211,6 +211,21 @@ public class TestMessage {
 
         message = Message.makeMessage(Message.MessageType.GROUP_EXIST.toString(),SENDER,MY_MESSAGE);
         assertTrue(message.getMessageType().toString().equals(Message.MessageType.GROUP_EXIST.toString()));
+
+        message = Message.makeMessage(Message.MessageType.NOTIFY_PENDING.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.getMessageType().toString().equals(Message.MessageType.NOTIFY_PENDING.toString()));
+
+        message = Message.makeMessage(Message.MessageType.SUBPOENA_SUCCESS.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.getMessageType().toString().equals(Message.MessageType.SUBPOENA_SUCCESS.toString()));
+
+        message = Message.makeMessage(Message.MessageType.SUBPOENA_NO_PRIVILEGE.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.getMessageType().toString().equals(Message.MessageType.SUBPOENA_NO_PRIVILEGE.toString()));
+
+        message = Message.makeMessage(Message.MessageType.SUBPOENA_LOGIN.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.isSubpoenaLogin());
+
+        message = Message.makeMessage(Message.MessageType.SUBPOENA_LOGIN_SUCCESS.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.getMessageType().toString().equals(Message.MessageType.SUBPOENA_LOGIN_SUCCESS.toString()));
     }
 
     @Test
@@ -225,5 +240,15 @@ public class TestMessage {
         assertEquals(42, message.toString().length());
         message = message.makeMessage(Message.MessageType.GROUP.toString(),SENDER,"rec",MY_MESSAGE);
         assertTrue(message.getMessageType().toString().equals(Message.MessageType.GROUP.toString()));
+        message = message.makeMessage(Message.MessageType.MIME.toString(),SENDER,"rec",MY_MESSAGE);
+        assertTrue(message.isMIME());
+        message = message.makeMessage(Message.MessageType.RECALL.toString(),SENDER,"rec",MY_MESSAGE);
+        assertTrue(message.isRecallMessage());
+        message = message.makeMessage(Message.MessageType.SEARCH.toString(),SENDER,"rec",MY_MESSAGE);
+        assertTrue(message.isSearchMessage());
+        message = message.makeMessage(Message.MessageType.GROUP_SUBPOENA_CREATE.toString(),SENDER,"rec",MY_MESSAGE);
+        assertTrue(message.isGroupSubpoena());
+        message = message.makeMessage(Message.MessageType.USER_SUBPOENA_CREATE.toString(),SENDER,"rec",MY_MESSAGE);
+        assertTrue(message.isUserSubpoena());
     }
 }

@@ -158,19 +158,41 @@ public class UserServicePrattle {
 		return (updateResult.getModifiedCount()==1);
 	}
 
+	/**
+	 *
+	 * @param user user
+	 * @param message message to be added
+	 */
 	public void addToMyMessages(User user, String message){
 		col.updateOne(Filters.eq("username", user.getUsername()), Updates.addToSet("myMessages", message));
 	}
 
-
+	/**
+	 *
+	 * @param user user
+	 * @param message message to be added
+	 */
 	public void addToUnreadMessages(User user, String message){
 		col.updateOne(Filters.eq("username", user.getUsername()), Updates.addToSet("myUnreadMessages", message));
 	}
+
+	/**
+	 *
+	 * @param user user whose messages are to be cleared
+	 */
 	public void clearUnreadMessages(User user){
 		user = findUserByUsername(user.getUsername());
 		col.updateOne(Filters.eq("username", user.getUsername()), Updates.pushEach("myMessages", user.getMyUnreadMessages()));
 		col.updateOne(Filters.eq("username", user.getUsername()), Updates.pullAll("myUnreadMessages", user.getMyUnreadMessages()));
 	}
+
+	/**
+	 *
+	 * @param type type of the user
+	 * @param name name of the user
+	 * @param username username of the user
+	 * @return
+	 */
 	public List<String> getMessages(String type, String name, String username){
 		User user = findUserByUsername(username);
 		List<String> listOfMessages = new ArrayList<String>();
@@ -184,6 +206,12 @@ public class UserServicePrattle {
 		return listOfMessages;
 	}
 
+	/**
+	 *
+	 * @param name
+	 * @param user
+	 * @return
+	 */
 	public List<String> getMessagesbySender(String name, User user){
 		List<String> listOfMessages = new ArrayList<String>();
 //		User user = findUserByUsername(name);
