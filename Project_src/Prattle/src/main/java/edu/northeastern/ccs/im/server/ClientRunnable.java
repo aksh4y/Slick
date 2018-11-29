@@ -413,7 +413,7 @@ public class ClientRunnable implements Runnable {
 						} else {
 							this.enqueueMessage(Message.makeFailMsg());
 						}
-						this.enqueueMessage(ackMsg);
+
 					} else if (name.equalsIgnoreCase("DUMMYUSER")) {
 						this.enqueueMessage(Message.makeFailMsg());
 					}
