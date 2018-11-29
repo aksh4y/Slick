@@ -1,10 +1,14 @@
 package edu.northeastern.ccs.im.MongoDB.Model;
 
+import edu.northeastern.ccs.im.Message;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SubpoenaTest {
     @Test
@@ -17,5 +21,9 @@ public class SubpoenaTest {
         assertEquals(LocalDate.MAX,subpoena.getEndDate());
         subpoena.setId("1");
         assertEquals("1", subpoena.getId());
+        List<String> list = new ArrayList<>();
+        subpoena.setListOfMessages(list);
+        assertEquals(0, subpoena.getListOfMessages().size());
+        assertTrue(!subpoena.toString().isEmpty());
     }
 }
