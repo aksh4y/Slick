@@ -59,7 +59,11 @@ public class UserTest {
         List<String> messages = new ArrayList<>();
         messages.add("hi");
         messages.add("hello");
+        user.setParentalControl(true);
         user.setMyMessages(messages);
+        user.setMyUnreadMessages(messages);
+        assertEquals(2, user.getMyUnreadMessages().size());
         assertEquals(2, user.getMyMessages().size());
+        assertEquals(true, user.getParentalControl());
     }
 }
