@@ -436,9 +436,8 @@ public class ClientRunnable implements Runnable {
 							Message failMsg = Message.makeGroupNotExist();
 							this.enqueueMessage(failMsg);
 						} else {
-							String m = getIP() +  " GROUP " + msg.getMsgRecipient() + " " + msg.getText() + " /Offline";
-							//userService.addToMyMessages(user, m); // sender's copy
-							String mg = getIP() + " [" + user.getUsername() + "@" + msg.getMsgRecipient() + "] " + msg.getText() + " /Offline";
+							String m = getIP() +  " GROUP " + msg.getMsgRecipient() + " " + msg.getText();
+							String mg = getIP() + " [" + user.getUsername() + "@" + msg.getMsgRecipient() + "] " + msg.getText();
 							Prattle.broadcastGroupMessage(user, msg, group.getListOfUsers(), m, mg);
 						}
 					}

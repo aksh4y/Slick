@@ -201,16 +201,20 @@ public abstract class Prattle {
 				continue;
 			ClientRunnable cr = activeClients.get(user);
 			if (cr != null && cr.isInitialized()) {
-			    String newMsg = receiverMsg.substring(0, receiverMsg.length() - 9);
-	            newMsg += " " + cr.getIP();
+			    String newMsg = receiverMsg;
+	            newMsg += " -> " + user + " " + cr.getIP();
 	            userService.addToMyMessages(recipient, newMsg);    // recipient's copy
-	            newMsg = senderMsg.substring(0, senderMsg.length() - 9);
-	            newMsg += " " + cr.getIP();
+	            newMsg = senderMsg;
+	            newMsg += " -> " + user + " "  + cr.getIP();
 	            userService.addToMyMessages(sender, newMsg);   // sender's copy
 				cr.enqueueMessage(msg);
 			} else {
-			    userService.addToMyMessages(sender, senderMsg);
-				userService.addToUnreadMessages(recipient, receiverMsg);
+			    String newMsg = senderMsg;
+                newMsg += " -> " + user + " /Offline";
+			    userService.addToMyMessages(sender, newMsg);
+			    newMsg = receiverMsg;
+                newMsg += " -> " + user + " /Offline";
+				userService.addToUnreadMessages(recipient, newMsg);
 			}
 		}
 		// Loop through all of our active subpoenas
