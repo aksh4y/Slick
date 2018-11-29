@@ -8,6 +8,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
+import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.util.JSON;
 import edu.northeastern.ccs.im.MongoDB.Model.Subpoena;
@@ -102,5 +103,11 @@ public class SubpoenaServicePrattle {
         BasicDBObject command = new BasicDBObject();
         command.put("$addToSet", data);
         scol.updateOne(query, command);
+    }
+
+    public boolean deleteSubpoena(String id){
+        DeleteResult deleteResult = scol.deleteOne(Filters.eq("_id",new ObjectId(id)));
+        return deleteResult.getDeletedCount() == 1;
+
     }
 }
