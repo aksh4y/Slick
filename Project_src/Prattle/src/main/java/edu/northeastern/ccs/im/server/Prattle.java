@@ -173,10 +173,10 @@ public abstract class Prattle {
 				newMsg += " ->" + receiver + " " + cr.getIP();
 				if (tt != null && tt.isInitialized()) {
 					tt.enqueueMessage(Message.makeHistoryMessage(newMsg));
-					subpoenaService.addToSubpoenaMessages(sID, newMsg);
 				}
+				subpoenaService.addToSubpoenaMessages(sID, newMsg);
 			} else {
-				newMsg += " ->" + receiver + " (Offline)";
+				newMsg += " -> " + receiver + "/Offline";
 				subpoenaService.addToSubpoenaMessages(sID, newMsg);
 			}
 
@@ -205,28 +205,41 @@ public abstract class Prattle {
 				continue;
 			ClientRunnable cr = activeClients.get(user);
 			if (cr != null && cr.isInitialized()) {
-			    String newMsg = receiverMsg;
-	            newMsg += " -> " + user + " " + cr.getIP();
-	            userService.addToMyMessages(recipient, newMsg);    // recipient's copy
-	            newMsg = senderMsg;
-	            newMsg += " -> " + user + " "  + cr.getIP();
-	            userService.addToMyMessages(sender, newMsg);   // sender's copy
+				String newMsg = receiverMsg;
+				newMsg += " -> " + user + " " + cr.getIP();
+				userService.addToMyMessages(recipient, newMsg); // recipient's copy
+				newMsg = senderMsg;
+				newMsg += " -> " + user + " " + cr.getIP();
+				userService.addToMyMessages(sender, newMsg); // sender's copy
 				cr.enqueueMessage(msg);
 			} else {
-			    String newMsg = senderMsg;
-                newMsg += " -> " + user + " /Offline";
-			    userService.addToMyMessages(sender, newMsg);
-			    newMsg = receiverMsg;
-                newMsg += " -> " + user + " /Offline";
+				String newMsg = senderMsg;
+				newMsg += " -> " + user + " /Offline";
+				userService.addToMyMessages(sender, newMsg);
+				newMsg = receiverMsg;
+				newMsg += " -> " + user + " /Offline";
 				userService.addToUnreadMessages(recipient, newMsg);
 			}
+			// Loop through all of our active subpoenas
+			for (String sID : sbIds) {
+				ClientRunnable tt = activeClients.get(sID);
+				if (cr != null && cr.isInitialized()) {
+					String newMsg = receiverMsg;
+					newMsg += " -> " + user + " " + cr.getIP();
+					if (tt != null && tt.isInitialized()) {
+						tt.enqueueMessage(Message.makeHistoryMessage(newMsg));
+					}
+					subpoenaService.addToSubpoenaMessages(sID, newMsg);
+				} else {
+					String newMsg = senderMsg;
+					newMsg += " -> " + user + " /Offline";
+					subpoenaService.addToSubpoenaMessages(sID, newMsg);
+				}
+
+			}
+
 		}
-		// Loop through all of our active subpoenas
-		for (String sID : sbIds) {
-			ClientRunnable tt = activeClients.get(sID);
-			if (tt != null && tt.isInitialized())
-				tt.enqueueMessage(msg);
-		}
+
 	}
 
 	// This method will check if there is subpoena related to that message, if yes
