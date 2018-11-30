@@ -18,11 +18,15 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import com.mongodb.client.MongoDatabase;
+
 import edu.northeastern.ccs.im.Message;
+import edu.northeastern.ccs.im.MongoConnection;
 import edu.northeastern.ccs.im.PrattleRunabale;
 import edu.northeastern.ccs.im.ScanNetNB;
 import edu.northeastern.ccs.im.SocketNB;
 import edu.northeastern.ccs.im.MongoDB.Model.User;
+import edu.northeastern.ccs.im.service.SubpoenaServicePrattle;
 
 /**
  * Tests for ClientRunnable class
@@ -36,6 +40,9 @@ public class ClientRunnableTest {
 	ServerSocketChannel serverSocket;
 
 	static PrattleRunabale server;
+	MongoConnection mongoConnection = new MongoConnection();
+	private MongoDatabase db = mongoConnection.createConnection();
+	private SubpoenaServicePrattle subpoenaService = new SubpoenaServicePrattle(db);
 
 	@BeforeAll
 	public static void setUp() {
@@ -307,25 +314,23 @@ public class ClientRunnableTest {
 		Message groupMsg = Message.makeGroupMessage("crtest", "crGroupTest", "Hey hello group");
 		Message wrongGroupMsg = Message.makeGroupMessage("crtest1", "crGroupTest", "Hey hello group");
 		Message wrongGroupMsg2 = Message.makeGroupMessage("crtest", "crGroupTest22", "Hey hello group");
-		
-		
+
 		queue.add(correctCreateUserMessage);
 		client.run();
 		queue.add(correctCreateUserMessage);
 		client.run();
-		
+
 		queue.add(correctCreateUser2Message);
 		client.run();
 
-		
 		queue.add(privateMsg);
 		user = new User("crtest", "crtest");
 		client.run();
-		
+
 		queue.add(privateWrongMsg);
 		user = new User("crtest", "crtest");
 		client.run();
-		
+
 		queue.add(correctCreateGroupMessage);
 		user = new User("crtest", "crtest");
 		client.run();
@@ -337,15 +342,15 @@ public class ClientRunnableTest {
 		queue.add(groupMsg);
 		user = new User("crtest", "crtest");
 		client.run();
-		
+
 		queue.add(wrongGroupMsg);
 		user = new User("crtest", "crtest");
 		client.run();
-		
+
 		queue.add(wrongGroupMsg2);
 		user = new User("crtest", "crtest");
 		client.run();
-		
+
 		queue.add(correctLoginMessage);
 		client.run();
 
@@ -362,8 +367,8 @@ public class ClientRunnableTest {
 		queue.add(userAddToGroupMessage);
 		user = new User("crtest", "crtest");
 		client.run();
-		
-		//Exit Group
+
+		// Exit Group
 
 		queue.add(userExitWrongGroupMessage);
 		user = new User("crtest", "crtest");
@@ -374,7 +379,7 @@ public class ClientRunnableTest {
 		queue.add(userExitGroupMessage);
 		user = new User("crtest", "crtest");
 		client.run();
-		//Group Delete
+		// Group Delete
 		queue.add(groupDeleteMessage);
 		user = new User("crtest", "crtest");
 		client.run();
@@ -399,9 +404,10 @@ public class ClientRunnableTest {
 		queue.add(correctLoginMessage);
 		client.run();
 		
-		 assertTrue(client.isInitialized());
-		 queue.add(terminate);
-		 Assertions.assertThrows(NullPointerException.class, () -> {
+
+		assertTrue(client.isInitialized());
+		queue.add(terminate);
+		Assertions.assertThrows(NullPointerException.class, () -> {
 			client.run();
 		});
 
@@ -429,6 +435,18 @@ public class ClientRunnableTest {
 		client.enqueueMessage(msg);
 		assertTrue(userName.equalsIgnoreCase(client.getName()));
 		assertFalse(client.isInitialized());
+		
+		Method handleMsgsMethod = cls.getDeclaredMethod("handleMsgs", Message.class);
+		handleMsgsMethod.setAccessible(true);
+		Method handleOtherMsgsMethod = cls.getDeclaredMethod("handleOtherMsgs", Message.class);
+		handleOtherMsgsMethod.setAccessible(true);
+		
+		handleMsgsMethod.invoke(client, Message.makeLoginMessage("nipun", "test"));
+	    handleOtherMsgsMethod.invoke(client, Message.makeCreateGroupSubpoena("petergroup", "11-20-2019", "12-20-2019"));
+//		 handleMsgsMethod.invoke(client, Message.makeSubpoenaLogin(id));
+	    
+		handleMsgsMethod.invoke(client, Message.makeLoginMessage("admin", "test"));
+		handleOtherMsgsMethod.invoke(client, Message.makeCreateGroupSubpoena("petergroup", "11-20-2021", "12-20-2019"));
 	}
 
 	/*
@@ -447,4 +465,33 @@ public class ClientRunnableTest {
 		client = new ClientRunnable(sChannel);
 		assertEquals(0, client.getUserId());
 	}
+
+//	@Test
+//	public void testSubpoenaCreate() throws IOException, NoSuchMethodException, SecurityException,
+//			IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
+//		SocketNB socket = new SocketNB("127.0.0.1", 4545);
+//		SocketChannel sChannel;
+//		sChannel = socket.getSocket();
+//		client = new ClientRunnable(sChannel);
+//		Class cls = client.getClass();
+////		
+////		Field userField = cls.getDeclaredField("user");
+////		userField.setAccessible(true);
+////		User user = (User) userField.get(client);
+////		user= new User("admin", "test");
+//		
+////		Method handleMsgsMethod = cls.getDeclaredMethod("handleMsgs", Message.class);
+////		handleMsgsMethod.setAccessible(true);
+////		Method handleOtherMsgsMethod = cls.getDeclaredMethod("handleOtherMsgs", Message.class);
+////		handleOtherMsgsMethod.setAccessible(true);
+////		
+////		handleMsgsMethod.invoke(client, Message.makeLoginMessage("user", "test"));
+////	    handleOtherMsgsMethod.invoke(client, Message.makeCreateGroupSubpoena("petergroup", "11-20-2019", "12-20-2019"));
+//////		 handleMsgsMethod.invoke(client, Message.makeSubpoenaLogin(id));
+////	    subpoenaService.deleteSubpoena("5c01a467f8cd512d5cf835dc");
+////	    
+////		handleMsgsMethod.invoke(client, Message.makeLoginMessage("admin", "test"));
+////		handleOtherMsgsMethod.invoke(client, Message.makeCreateGroupSubpoena("petergroup", "11-20-2021", "12-20-2019"));
+//	}
+
 }
