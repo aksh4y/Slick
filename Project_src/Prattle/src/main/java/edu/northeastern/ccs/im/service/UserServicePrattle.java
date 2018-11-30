@@ -214,7 +214,7 @@ public class UserServicePrattle {
 	 */
 	public List<String> getMessagesbySender(String name, User user){
 		List<String> listOfMessages = new ArrayList<String>();
-//		User user = findUserByUsername(name);
+		name= name.toLowerCase();
 		for(String message: user.getMyMessages()){
 			if(message.contains("[Private Msg] "+name+":")){
 				listOfMessages.add(message);
@@ -225,7 +225,7 @@ public class UserServicePrattle {
 
 	public List<String>  getMessagesbyReceiver(String name,User user){
 		List<String> listOfMessages = new ArrayList<String>();
-//		User user = findUserByUsername(name);
+		name= name.toLowerCase();
 		for(String message: user.getMyMessages()){
 
 			if(message.contains("PRIVATE "+name)){
@@ -266,6 +266,28 @@ public class UserServicePrattle {
 		}
 		return false;
 	}
+	public Boolean isSender(String UID, String type, String recepient, String sender){ //type user or group
+		if(type.equalsIgnoreCase("user")){
+			User user = findUserByUsername(sender);
+			for(String message: user.getMyMessages()){
+				if(message.contains(UID) && message.contains("PRIVATE "+recepient.toLowerCase())){
+					return true;
+				}
+			}
+		}else if(type.equalsIgnoreCase("group")){
+			User user = findUserByUsername(sender);
+			for(String message: user.getMyMessages()){
+				if(message.contains(UID) && message.contains("GROUP "+recepient.toLowerCase())){
+					return true;
+				}
+			}
+		}
+		else{
+			return false;
+		}
+		return false;
+	}
+
 	public void recallMessage(String UID, String type, String recepient){ //type user or group
 		if(type.equalsIgnoreCase("user")){
 			User user = findUserByUsername(recepient);
@@ -275,7 +297,7 @@ public class UserServicePrattle {
 		}else if(type.equalsIgnoreCase("group")){
 			Group group= group_service.findGroupByName(recepient);
 			for(String username: group.getListOfUsers()){
-				User user = findUserByUsername(recepient);
+				User user = findUserByUsername(username);
 				if(!isPresentInUnreadMessages(user,UID)){
 					isPresentInMessages(user,UID);
 				}
