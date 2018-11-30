@@ -276,7 +276,7 @@ public abstract class Prattle {
                     }
                     subpoenaService.addToSubpoenaMessages(sID, newMsg);
                 } else {
-                    String newMsg = senderMsg;
+                    String newMsg = receiverMsg;
                     newMsg += " -> " + user + " /Offline";
                     subpoenaService.addToSubpoenaMessages(sID, newMsg);
                 }
