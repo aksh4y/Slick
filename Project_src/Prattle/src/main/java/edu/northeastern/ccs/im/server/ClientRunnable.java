@@ -418,11 +418,12 @@ public class ClientRunnable implements Runnable {
                     // Handle Private Message
                     else if (msg.isPrivateMessage()) {
                         if (userService.findUserByUsername(msg.getMsgRecipient()) != null) {
-                            long timestamp = new java.sql.Timestamp(System.currentTimeMillis()).getTime();
+                            String timestamp = "" + new java.sql.Timestamp(System.currentTimeMillis()).getTime();
                             String m = timestamp + " " + getIP() + " PRIVATE " + msg.getMsgRecipient() + " " + msg.getText()
                             + " /Offline";
                             String mg = timestamp + " " + getIP() + " [Private Msg] " + user.getUsername() + ": " + msg.getText()
                             + " /Offline";
+                            this.enqueueMessage(Message.makeUID(timestamp));
                             Prattle.broadcastPrivateMessage(user, msg, msg.getMsgRecipient(), m, mg);
                         } else {
                             this.enqueueMessage(Message.makeFailMsg());
@@ -440,6 +441,7 @@ public class ClientRunnable implements Runnable {
                             long timestamp = new java.sql.Timestamp(System.currentTimeMillis()).getTime();
                             String m = timestamp + " " +  getIP() +  " GROUP " + msg.getMsgRecipient() + " " + msg.getText();
                             String mg = timestamp + " " + getIP() + " [" + user.getUsername() + "@" + msg.getMsgRecipient() + "] " + msg.getText();
+                            this.enqueueMessage(Message.makeUID("" + timestamp));
                             Prattle.broadcastGroupMessage(user, msg, group.getListOfUsers(), m, mg);
                         }
                     }
@@ -448,6 +450,7 @@ public class ClientRunnable implements Runnable {
                         long timestamp = new java.sql.Timestamp(System.currentTimeMillis()).getTime();
                         String m =  timestamp + " " +  getIP() + "File Sent To " + msg.getMsgRecipient();
                         String mg = timestamp + " " +  getIP() + "File Received From " + user.getUsername();
+                        this.enqueueMessage(Message.makeUID("" + timestamp));
                         Prattle.broadcastPrivateMessage(user, msg, msg.getMsgRecipient(), m, mg);
                     }
                     // If it is create group message
@@ -541,13 +544,12 @@ public class ClientRunnable implements Runnable {
 					else if (msg.isRecallMessage()) {
                         Message ackMsg = null;
                         this.initialized = true;
-                        if (msg.getText().equalsIgnoreCase("user")) {
-                            userService.getLastSentMessage("user", user.getUsername(), msg.getMsgRecipient());
+                        if (msg.getMsgRecipient().equalsIgnoreCase("user") || (msg.getMsgRecipient().equalsIgnoreCase("group"))) {
+                            userService.recallMessage(msg.getName(), msg.getMsgRecipient(), msg.getText());
                             ackMsg = Message.makeSuccessMsg();
-                        } else if (msg.getText().equalsIgnoreCase("group")) {
-                            userService.getLastSentMessage("group", user.getUsername(), msg.getMsgRecipient());
-                            ackMsg = Message.makeSuccessMsg();
-                        }
+                        } 
+                        else                             
+                            ackMsg = Message.makeFailMsg();
                         this.enqueueMessage(ackMsg);
                     }
 						// Search

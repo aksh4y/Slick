@@ -87,11 +87,12 @@ public class ScanNetNB {
 			WebhookResponse response = null;
 			try {
 				response = slack.send(SLACK_URL, payload);
+				if (!response.getMessage().equalsIgnoreCase("OK"))
+	                LOGGER.log(Level.SEVERE, "Slack integration failed!");
 			} catch (IOException e1) {
 				LOGGER.log(Level.SEVERE, "Slack integration failed!");
 			}
-			if (!response.getMessage().equalsIgnoreCase("OK"))
-				LOGGER.log(Level.SEVERE, "Slack integration failed!");
+			
 			LOGGER.log(Level.SEVERE, "Something went wrong during data transfer @ Slick");
 			assert false;
 		}
@@ -200,7 +201,7 @@ public class ScanNetNB {
 				// Add this message into our queue
 				Message newMsg;
 				if (handle.equals("PRI") || handle.equals("GRP") || handle.equals("MIM") || handle.equals("SUN")
-						|| handle.equals("SGN") || handle.equals("SCH")){ // Private or Group
+						|| handle.equals("SGN") || handle.equals("SCH") || handle.equals("REC")){ // Private or Group
 					// Read in the second argument containing the message
 					final String reciever = readArgument(charBuffer);
 					charBuffer.position(charBuffer.position() + 2);
@@ -228,11 +229,11 @@ public class ScanNetNB {
 			WebhookResponse response = null;
 			try {
 				response = slack.send(SLACK_URL, payload);
+				if (!response.getMessage().equalsIgnoreCase("OK"))
+	                LOGGER.log(Level.SEVERE, "Slack integration failed!");
 			} catch (IOException e1) {
 				LOGGER.log(Level.SEVERE, "Slack integration failed!");
 			}
-			if (!response.getMessage().equalsIgnoreCase("OK"))
-				LOGGER.log(Level.SEVERE, "Slack integration failed!");
 			LOGGER.log(Level.SEVERE, "Something went wrong during reading a message @ Slick");
 			assert false;
 		}

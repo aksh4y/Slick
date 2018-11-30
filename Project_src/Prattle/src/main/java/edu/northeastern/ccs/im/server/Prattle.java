@@ -195,8 +195,10 @@ public abstract class Prattle {
         	if (recipient.getParentalControl()) {
     			receiverMsg = checkVulgar(receiverMsg);
     		}
-            userService.addToUnreadMessages(recipient, receiverMsg);}
-
+            userService.addToUnreadMessages(recipient, receiverMsg);
+            userService.addToMyMessages(sender, senderMsg);
+            
+        }
         // Loop through all of our active subpoenas
         for (String sID : sbIds) {
             ClientRunnable tt = activeClients.get(sID);

@@ -96,7 +96,8 @@ public class Message {
         HISTORY_MESSAGE("HMG"),
         /** Recall last message */
         RECALL("REC"),
-
+        /** Send back a UID on message sending */
+        UID("UID"),
         SEARCH("SCH"),
         /** Notify pending msgs exist */
         NOTIFY_PENDING("PEN"),
@@ -319,7 +320,14 @@ public class Message {
             result = makeCreateGroupMessage(srcName);
         } else if (handle.compareTo(MessageType.GROUP_CREATE_SUCCESS.toString()) == 0) {
             result = makeCreateGroupSuccess();
-        } else if (handle.compareTo(MessageType.GROUP_CREATE_FAIL.toString()) == 0) {
+        } else result = makeMessagePt2(handle, srcName, text);
+        return result;
+
+    }
+
+    private static Message makeMessagePt2(String handle, String srcName, String text) {
+        Message result = null;
+        if (handle.compareTo(MessageType.GROUP_CREATE_FAIL.toString()) == 0) {
             result = makeCreateGroupFail();
         } else if (handle.compareTo(MessageType.GROUP_EXIST.toString()) == 0) {
             result = makeGroupExist();
@@ -347,7 +355,13 @@ public class Message {
             result = makeFailMsg();
         } else if (handle.compareTo(MessageType.UPDATE_USER.toString()) == 0) {
             result = makeUpdateUserMessage(srcName, text);
-        } else if (handle.compareTo(MessageType.HISTORY_MESSAGE.toString()) == 0) {
+        } else result = makeMessagePt3(handle, srcName);
+        return result;
+    }
+
+    private static Message makeMessagePt3(String handle, String srcName) {
+        Message result = null;
+        if (handle.compareTo(MessageType.HISTORY_MESSAGE.toString()) == 0) {
             result = makeHistoryMessage(srcName);
         } else if (handle.compareTo(MessageType.NOTIFY_PENDING.toString()) == 0) {
             result = makePendingMsgNotif();
@@ -360,11 +374,13 @@ public class Message {
             result = makeSubpoenaSuccess(srcName);
         } else if (handle.compareTo(MessageType.SUBPOENA_LOGIN_SUCCESS.toString()) == 0) {
             result = makeSubpoenaLoginSuccess();
+
         } else if (handle.compareTo(MessageType.PARENTAL_CONTROL.toString()) == 0) {
 			result = makeParentalControlMessage(srcName);
-		}
+		} else if(handle.compareTo(MessageType.UID.toString()) == 0) {
+            result = makeUID(srcName);
+    }
         return result;
-
     }
 
     /**
@@ -736,8 +752,8 @@ public class Message {
         return new Message(MessageType.HELLO, myName);
     }
 
-    public static Message makeRecallMessage(String srcName, String recipient, String text) {
-        return new Message(MessageType.RECALL, srcName, recipient, text);
+    public static Message makeRecallMessage(String uid, String type, String name) {
+        return new Message(MessageType.RECALL, uid, type, name);
     }
 
     public static Message makeSearchMessage(String srcName, String recipient, String text) {
@@ -992,5 +1008,14 @@ public class Message {
             result += " " + NULL_OUTPUT.length() + " " + NULL_OUTPUT;
         }
         return result;
+    }
+
+    /**
+     * Create a new message to return UID of sent message
+     * 
+     * @return Instance of Message.
+     */
+    public static Message makeUID(String uid) {
+        return new Message(MessageType.UID, uid);
     }
 }

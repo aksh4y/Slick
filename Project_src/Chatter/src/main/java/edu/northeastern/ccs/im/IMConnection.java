@@ -241,7 +241,7 @@ public class IMConnection {
 			msg = Message.makeMIMEMessage(username, params[1], message.substring(6 + params[1].length()));
 		} else if (message.contains("RECALL")) {
 			String[] params = message.split(" ");
-			msg = Message.makeRecallMessage(username, params[2].toLowerCase(), params[1].toLowerCase());
+			msg = Message.makeRecallMessage(params[1].toLowerCase(), params[2].toLowerCase(), params[3].toLowerCase());
 		} else if (message.contains("SEARCH")) {
 			String[] params = message.split(" ");
 			msg = Message.makeSearchMessage(username, params[2].toLowerCase(), params[1].toLowerCase());
