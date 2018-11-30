@@ -250,9 +250,9 @@ public abstract class Prattle {
                     newMsg = senderMsg;
                     cr.enqueueMessage(msg);
                 }
+                newMsg = senderMsg;
                 newMsg += " -> " + user + " " + cr.getIP();
                 userService.addToMyMessages(sender, newMsg); // sender's copy
-                cr.enqueueMessage(msg);
             } else {
                 String newMsg = senderMsg;
                 newMsg += " -> " + user + " /Offline";
