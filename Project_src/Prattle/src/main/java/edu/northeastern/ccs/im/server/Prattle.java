@@ -225,10 +225,10 @@ public abstract class Prattle {
             newMsg += " " + cr.getIP();
             userService.addToMyMessages(sender, newMsg);
         } else {
-            if (recipient.getParentalControl()) {
+            if (recipient.getParentalControl())
                 userService.addToUnreadMessages(recipient, checkVulgar(receiverMsg));
-            }
-
+            else
+                userService.addToUnreadMessages(recipient, receiverMsg);
             userService.addToMyMessages(sender, senderMsg);
         }
         // Handle active subpoenas
