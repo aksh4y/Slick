@@ -147,13 +147,20 @@ public class TestUserService {
         assertEquals(0, user.getMyUnreadMessages().size());
         userService.deleteUser("newone");
     }
-//    @Test
-//    public void testGetMessages(){
-//        List<String> smessages = userService.getMessages("sender", "Akshay", "Peter");
-//        List<String> rmessages = userService.getMessages("receiver", "Akshay", "Peter");
-//        System.out.println(smessages);
-//        System.out.println(rmessages);
-//    }
+    @Test
+    public void testGetMessages() throws JsonProcessingException {
+        if (userService.findUserByUsername("newestr")!=null){
+            assertTrue(userService.deleteUser("newestr"));
+        }
+        User newestReceiver = userService.createUser("newestr","newestr");
+        userService.addToMyMessages(newestReceiver,"[Private Msg] newest: hey wassup");
+        userService.addToMyMessages(newestReceiver,"PRIVATE newest: all good man");
+        List<String> smessages = userService.getMessages("sender", "newest", "newestr");
+        List<String> rmessages = userService.getMessages("receiver", "newest", "newestr");
+        assertEquals("[Private Msg] newest: hey wassup",smessages.get(0));
+        assertEquals("PRIVATE newest: all good man",rmessages.get(0));
+        assertTrue(userService.deleteUser("newestr"));
+    }
 ////    @Test
 //    public void testRecallMessages() throws JsonProcessingException {
 //        if(userService.findUserByUsername("newsender")!=null){

@@ -269,6 +269,9 @@ public abstract class Prattle {
                 subpoenaService.addToSubpoenaMessages(sID, newMsg);
             } else {
                 newMsg += " -> " + receiver + OFFLINE;
+                if (tt != null && tt.isInitialized()) {
+                    tt.enqueueMessage(Message.makeHistoryMessage(newMsg));
+                }
                 subpoenaService.addToSubpoenaMessages(sID, newMsg);
             }
         }
@@ -381,6 +384,9 @@ public abstract class Prattle {
                 StringBuilder bld = new StringBuilder();
                 bld.append(newMsg).append(" -> ").append(user).append(OFFLINE);
                 newMsg = bld.toString();
+                if (tt != null && tt.isInitialized()) {
+                    tt.enqueueMessage(Message.makeHistoryMessage(newMsg));
+                }
                 subpoenaService.addToSubpoenaMessages(sID, newMsg);
             }
         }

@@ -226,6 +226,12 @@ public class TestMessage {
 
         message = Message.makeMessage(Message.MessageType.SUBPOENA_LOGIN_SUCCESS.toString(),SENDER,MY_MESSAGE);
         assertTrue(message.getMessageType().toString().equals(Message.MessageType.SUBPOENA_LOGIN_SUCCESS.toString()));
+
+        message = Message.makeMessage(Message.MessageType.PARENTAL_CONTROL.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.isParentalControl());
+
+        message = Message.makeMessage(Message.MessageType.UID.toString(),SENDER,MY_MESSAGE);
+        assertTrue(message.getMessageType().toString().equals(Message.MessageType.UID.toString()));
     }
 
     @Test
@@ -250,5 +256,7 @@ public class TestMessage {
         assertTrue(message.isGroupSubpoena());
         message = message.makeMessage(Message.MessageType.USER_SUBPOENA_CREATE.toString(),SENDER,"rec",MY_MESSAGE);
         assertTrue(message.isUserSubpoena());
+        message.setText("hello");
+        assertEquals("hello",message.getText());
     }
 }
