@@ -19,7 +19,7 @@ public class MessagePrinter {
         message = message.substring(0, message.indexOf(" ") + 1) + message.substring(message.indexOf(" ", message.indexOf(" ") + 1) + 1, message.lastIndexOf(" "));
         if(message.contains("[Private Msg]"))
             System.out.println(ANSI_RED + message + ANSI_RESET);
-        else if(message.contains("PRIVATE")) {
+        else if(message.contains("PRIVATE") || message.contains("**RECALLED**")) {
             System.out.println(ANSI_RESET + message);
         }
         else if(message.contains("GROUP")) {
