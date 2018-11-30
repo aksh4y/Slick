@@ -418,9 +418,10 @@ public class ClientRunnable implements Runnable {
                     // Handle Private Message
                     else if (msg.isPrivateMessage()) {
                         if (userService.findUserByUsername(msg.getMsgRecipient()) != null) {
-                            String m = getIP() + " PRIVATE " + msg.getMsgRecipient() + " " + msg.getText()
+                            long timestamp = new java.sql.Timestamp(System.currentTimeMillis()).getTime();
+                            String m = timestamp + " " + getIP() + " PRIVATE " + msg.getMsgRecipient() + " " + msg.getText()
                             + " /Offline";
-                            String mg = getIP() + " [Private Msg] " + user.getUsername() + ": " + msg.getText()
+                            String mg = timestamp + " " + getIP() + " [Private Msg] " + user.getUsername() + ": " + msg.getText()
                             + " /Offline";
                             Prattle.broadcastPrivateMessage(user, msg, msg.getMsgRecipient(), m, mg);
                         } else {
@@ -436,15 +437,17 @@ public class ClientRunnable implements Runnable {
                             Message failMsg = Message.makeGroupNotExist();
                             this.enqueueMessage(failMsg);
                         } else {
-                            String m = getIP() +  " GROUP " + msg.getMsgRecipient() + " " + msg.getText();
-                            String mg = getIP() + " [" + user.getUsername() + "@" + msg.getMsgRecipient() + "] " + msg.getText();
+                            long timestamp = new java.sql.Timestamp(System.currentTimeMillis()).getTime();
+                            String m = timestamp + " " +  getIP() +  " GROUP " + msg.getMsgRecipient() + " " + msg.getText();
+                            String mg = timestamp + " " + getIP() + " [" + user.getUsername() + "@" + msg.getMsgRecipient() + "] " + msg.getText();
                             Prattle.broadcastGroupMessage(user, msg, group.getListOfUsers(), m, mg);
                         }
                     }
                     // Handle MIME messages
                     else if (msg.isMIME()) {
-                        String m = "File Sent To " + msg.getMsgRecipient();
-                        String mg = "File Received From " + user.getUsername();
+                        long timestamp = new java.sql.Timestamp(System.currentTimeMillis()).getTime();
+                        String m =  timestamp + " " +  getIP() + "File Sent To " + msg.getMsgRecipient();
+                        String mg = timestamp + " " +  getIP() + "File Received From " + user.getUsername();
                         Prattle.broadcastPrivateMessage(user, msg, msg.getMsgRecipient(), m, mg);
                     }
                     // If it is create group message

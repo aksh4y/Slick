@@ -25,6 +25,7 @@ import edu.northeastern.ccs.im.Message.MessageType;
  * @version 1.3
  */
 public class Message {
+	
 	/**
 	 * List of the different possible message types.
 	 */
@@ -933,28 +934,28 @@ public class Message {
 	}
 
 	/**
-	 * Representation of this message as a String. This begins with the message
-	 * handle and then contains the length (as an integer) and the value of the next
-	 * two arguments.
-	 * 
-	 * @return Representation of this message as a String.
-	 */
-	@Override
-	public String toString() {
-		String result = msgType.toString();
-		if (msgSender != null) {
-			result += " " + msgSender.length() + " " + msgSender;
-		} else {
-			result += " " + NULL_OUTPUT.length() + " " + NULL_OUTPUT;
-		}
-		if (msgRecipient != null) {
-			result += " " + msgRecipient.length() + " " + msgRecipient;
-		}
-		if (msgText != null) {
-			result += " " + msgText.length() + " " + msgText;
-		} else {
-			result += " " + NULL_OUTPUT.length() + " " + NULL_OUTPUT;
-		}
-		return result;
-	}
+     * Representation of this message as a String. This begins with the message
+     * handle and then contains the length (as an integer) and the value of the next
+     * two arguments.
+     * 
+     * @return Representation of this message as a String.
+     */
+    @Override
+    public String toString() {
+        String result = msgType.toString();
+        if (msgSender != null) {
+            result += " " + msgSender.length() + " " + msgSender;
+        } else {
+            result += " " + NULL_OUTPUT.length() + " " + NULL_OUTPUT;
+        }
+        if (msgRecipient != null) {
+            result += " " + msgRecipient.length() + " " + msgRecipient;
+        }
+        if (msgText != null) {
+            result += " " + msgText.length() + " " + msgText;
+        } else {
+            result += " " + NULL_OUTPUT.length() + " " + NULL_OUTPUT;
+        }
+        return result;
+    }
 }

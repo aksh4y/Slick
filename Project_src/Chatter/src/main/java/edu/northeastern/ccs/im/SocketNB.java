@@ -12,7 +12,6 @@ import java.nio.charset.CharsetDecoder;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import com.github.seratch.jslack.Slack;
 import com.github.seratch.jslack.api.webhook.Payload;
 import com.github.seratch.jslack.api.webhook.WebhookResponse;
@@ -214,8 +213,13 @@ public final class SocketNB {
 
                     Slack slack = Slack.getInstance();
                     WebhookResponse response = slack.send(SLACK_URL, payload);
+                    try {
                     if(!response.getMessage().equalsIgnoreCase("OK"))
                         LOGGER.log(Level.SEVERE, "Slack integration failed!");
+                    }
+                    catch(Exception e) {
+                        LOGGER.log(Level.SEVERE, "Slack integration failed!");
+                    }
                     LOGGER.log(Level.SEVERE, "Invalid Login Attempt @ Slick");
                 }
                 if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.LOGIN_SUCCESS) {
