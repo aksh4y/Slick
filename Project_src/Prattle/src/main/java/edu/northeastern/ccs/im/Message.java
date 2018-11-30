@@ -724,8 +724,8 @@ public class Message {
         return new Message(MessageType.HELLO, myName);
     }
 
-    public static Message makeRecallMessage(String srcName, String recipient, String text) {
-        return new Message(MessageType.RECALL, srcName, recipient, text);
+    public static Message makeRecallMessage(String UID, String type, String name) {
+        return new Message(MessageType.RECALL, UID, type, name);
     }
 
     public static Message makeSearchMessage(String srcName, String recipient, String text) {

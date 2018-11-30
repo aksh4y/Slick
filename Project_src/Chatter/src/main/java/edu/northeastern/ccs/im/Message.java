@@ -241,8 +241,8 @@ public class Message {
         return new Message(MessageType.PRIVATE, srcName, recipient, text);
     }
 
-    public static Message makeRecallMessage(String srcName, String recipient, String text) {
-        return new Message(MessageType.RECALL, srcName, recipient, text);
+    public static Message makeRecallMessage(String uid, String type, String name) {
+        return new Message(MessageType.RECALL, uid, type, name);
     }
 
     public static Message makeSearchMessage(String srcName, String recipient, String text) {

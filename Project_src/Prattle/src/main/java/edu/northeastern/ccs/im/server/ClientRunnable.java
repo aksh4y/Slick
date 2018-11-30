@@ -542,13 +542,12 @@ public class ClientRunnable implements Runnable {
                     } else if (msg.isRecallMessage()) {
                         Message ackMsg = null;
                         this.initialized = true;
-                        if (msg.getText().equalsIgnoreCase("user")) {
-                            userService.getLastSentMessage("user", user.getUsername(), msg.getMsgRecipient());
+                        if (msg.getMsgRecipient().equalsIgnoreCase("user") || (msg.getMsgRecipient().equalsIgnoreCase("group"))) {
+                            //userService.recallMessage(msg.getName(), msg.getMsgRecipient(), msg.getText());
                             ackMsg = Message.makeSuccessMsg();
-                        } else if (msg.getText().equalsIgnoreCase("group")) {
-                            userService.getLastSentMessage("group", user.getUsername(), msg.getMsgRecipient());
-                            ackMsg = Message.makeSuccessMsg();
-                        }
+                        } 
+                        else                             
+                            ackMsg = Message.makeFailMsg();
                         this.enqueueMessage(ackMsg);
                     } else if (msg.isSearchMessage()) {
 
