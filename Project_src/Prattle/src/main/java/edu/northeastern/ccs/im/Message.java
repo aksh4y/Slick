@@ -317,7 +317,14 @@ public class Message {
             result = makeCreateGroupMessage(srcName);
         } else if (handle.compareTo(MessageType.GROUP_CREATE_SUCCESS.toString()) == 0) {
             result = makeCreateGroupSuccess();
-        } else if (handle.compareTo(MessageType.GROUP_CREATE_FAIL.toString()) == 0) {
+        } else result = makeMessagePt2(handle, srcName, text);
+        return result;
+
+    }
+
+    private static Message makeMessagePt2(String handle, String srcName, String text) {
+        Message result = null;
+        if (handle.compareTo(MessageType.GROUP_CREATE_FAIL.toString()) == 0) {
             result = makeCreateGroupFail();
         } else if (handle.compareTo(MessageType.GROUP_EXIST.toString()) == 0) {
             result = makeGroupExist();
@@ -345,7 +352,13 @@ public class Message {
             result = makeFailMsg();
         } else if (handle.compareTo(MessageType.UPDATE_USER.toString()) == 0) {
             result = makeUpdateUserMessage(srcName, text);
-        } else if (handle.compareTo(MessageType.HISTORY_MESSAGE.toString()) == 0) {
+        } else result = makeMessagePt3(handle, srcName);
+        return result;
+    }
+
+    private static Message makeMessagePt3(String handle, String srcName) {
+        Message result = null;
+        if (handle.compareTo(MessageType.HISTORY_MESSAGE.toString()) == 0) {
             result = makeHistoryMessage(srcName);
         } else if (handle.compareTo(MessageType.NOTIFY_PENDING.toString()) == 0) {
             result = makePendingMsgNotif();
@@ -362,7 +375,6 @@ public class Message {
             result = makeUID(srcName);
         }
         return result;
-
     }
 
     /**
@@ -724,8 +736,8 @@ public class Message {
         return new Message(MessageType.HELLO, myName);
     }
 
-    public static Message makeRecallMessage(String UID, String type, String name) {
-        return new Message(MessageType.RECALL, UID, type, name);
+    public static Message makeRecallMessage(String uid, String type, String name) {
+        return new Message(MessageType.RECALL, uid, type, name);
     }
 
     public static Message makeSearchMessage(String srcName, String recipient, String text) {
