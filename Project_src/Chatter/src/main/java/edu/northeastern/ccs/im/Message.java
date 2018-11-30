@@ -902,6 +902,16 @@ public class Message {
         return (msgType == MessageType.SUBPOENA_LOGIN_SUCCESS);
     }
 
+    
+    /**
+     * Determine if this message is of type History Message.
+     * 
+     * @return True if the message is of type SUBPOENA_LOGIN_SUCCESS; false otherwise
+     */
+    public boolean isHistoryMessage() {
+        return (msgType == MessageType.HISTORY_MESSAGE);
+    }
+
 
     /**
      * Determine if this message is of type login success.
