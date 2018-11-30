@@ -163,9 +163,10 @@ public abstract class Prattle {
             newMsg = senderMsg.substring(0, senderMsg.length() - 9);
             newMsg += " " + cr.getIP();
             userService.addToMyMessages(sender, newMsg);
-        } else
+        } else {
             userService.addToUnreadMessages(recipient, receiverMsg);
-
+            userService.addToMyMessages(sender, senderMsg);
+        }
         // Loop through all of our active subpoenas
         for (String sID : sbIds) {
             ClientRunnable tt = activeClients.get(sID);
