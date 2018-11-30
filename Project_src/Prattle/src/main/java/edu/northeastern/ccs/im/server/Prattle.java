@@ -84,8 +84,8 @@ public abstract class Prattle {
     private static LocalDateTime midnight;
 
     private static Map<String, Subpoena> activeSubpoena;
-    
-	private static HashSet<String> vulgar;
+
+    private static HashSet<String> vulgar;
 
 
     /** Logger */
@@ -103,8 +103,8 @@ public abstract class Prattle {
         userService = new UserServicePrattle(db);
         subpoenaService = new SubpoenaServicePrattle(db);
         vulgar = new HashSet<>();
-		createActiveSubpoenaMap();
-		prepareVulgarMap();
+        createActiveSubpoenaMap();
+        prepareVulgarMap();
     }
 
     /**
@@ -136,20 +136,21 @@ public abstract class Prattle {
             if (tt.isInitialized() && !tt.getName().equalsIgnoreCase(message.getName()) && !tt.isSubpoena()) {
                 User u = userService.findUserByUsername(tt.getName());
                 msg = "[BROADCAST] " + message.getName() + ": " + message.getText();
-                if(u!=null)
-                    {if (u.getParentalControl()) {
-    					String msgText = message.getText();
-    					userService.addToMyMessages(u, checkVulgar(msg));
-    					Message filtred = Message.makeBroadcastMessage(message.getName(), checkVulgar(msgText));
-    					filtred.setText(checkVulgar(msgText));
-    					tt.enqueueMessage(filtred);
-    				}
-    				else {
-    					userService.addToMyMessages(u, msg);
-    					tt.enqueueMessage(message);
-    				}
-                	}
-                tt.enqueueMessage(message);
+                if(u!=null){
+                    if (u.getParentalControl()) {
+                        String msgText = message.getText();
+                        userService.addToMyMessages(u, checkVulgar(msg));
+                        Message filtred = Message.makeBroadcastMessage(message.getName(), checkVulgar(msgText));
+                        filtred.setText(checkVulgar(msgText));
+                        tt.enqueueMessage(filtred);
+                    }
+                    else {
+                        userService.addToMyMessages(u, msg);
+                        tt.enqueueMessage(message);
+                    }
+                }
+                else
+                    tt.enqueueMessage(message);
             }
             if (!sbIds.isEmpty()) {
                 if (tt.isInitialized() && sbIds.contains(tt.getName())) {
@@ -158,7 +159,7 @@ public abstract class Prattle {
             }
         }
     }
-    
+
 
 
     /**
@@ -180,11 +181,11 @@ public abstract class Prattle {
         if (cr != null && cr.isInitialized()) {
             String newMsg = receiverMsg.substring(0, receiverMsg.length() - 9);
             if (recipient.getParentalControl()) {
-				newMsg = checkVulgar(newMsg);
-				String msgText = message.getText();
-				msgText = checkVulgar(msgText);
-				message.setText(msgText);
-			}
+                newMsg = checkVulgar(newMsg);
+                String msgText = message.getText();
+                msgText = checkVulgar(msgText);
+                message.setText(msgText);
+            }
             newMsg += " " + cr.getIP();
             userService.addToMyMessages(recipient, newMsg);
             cr.enqueueMessage(message);
@@ -192,12 +193,11 @@ public abstract class Prattle {
             newMsg += " " + cr.getIP();
             userService.addToMyMessages(sender, newMsg);
         } else {
-        	if (recipient.getParentalControl()) {
-    			receiverMsg = checkVulgar(receiverMsg);
-    		}
+            if (recipient.getParentalControl()) {
+                receiverMsg = checkVulgar(receiverMsg);
+            }
             userService.addToUnreadMessages(recipient, receiverMsg);
             userService.addToMyMessages(sender, senderMsg);
-            
         }
         // Loop through all of our active subpoenas
         for (String sID : sbIds) {
@@ -213,11 +213,9 @@ public abstract class Prattle {
                 newMsg += " -> " + receiver + "/Offline";
                 subpoenaService.addToSubpoenaMessages(sID, newMsg);
             }
-
         }
-
     }
-    
+
 
     /**
      * Send group message to all group members
@@ -243,15 +241,15 @@ public abstract class Prattle {
                 String newMsg = receiverMsg;
                 newMsg += " -> " + user + " " + cr.getIP();
                 if (recipient.getParentalControl()) {
-					userService.addToMyMessages(recipient, checkVulgar(newMsg));
-					String msgText = msg.getText();
-					Message filtred = Message.makeGroupMessage(msg.getName(), msg.getMsgRecipient(), checkVulgar(msgText));
-					cr.enqueueMessage(filtred);
-				} else {
-					userService.addToMyMessages(recipient, newMsg); // recipient's copy
-					newMsg = senderMsg;
-					cr.enqueueMessage(msg);
-				}
+                    userService.addToMyMessages(recipient, checkVulgar(newMsg));
+                    String msgText = msg.getText();
+                    Message filtred = Message.makeGroupMessage(msg.getName(), msg.getMsgRecipient(), checkVulgar(msgText));
+                    cr.enqueueMessage(filtred);
+                } else {
+                    userService.addToMyMessages(recipient, newMsg); // recipient's copy
+                    newMsg = senderMsg;
+                    cr.enqueueMessage(msg);
+                }
                 newMsg += " -> " + user + " " + cr.getIP();
                 userService.addToMyMessages(sender, newMsg); // sender's copy
                 cr.enqueueMessage(msg);
@@ -262,10 +260,10 @@ public abstract class Prattle {
                 newMsg = receiverMsg;
                 newMsg += " -> " + user + " /Offline";
                 if (recipient.getParentalControl()) {
-					userService.addToUnreadMessages(recipient, checkVulgar(newMsg));
-				} else {
-					userService.addToUnreadMessages(recipient, newMsg);
-				}
+                    userService.addToUnreadMessages(recipient, checkVulgar(newMsg));
+                } else {
+                    userService.addToUnreadMessages(recipient, newMsg);
+                }
             }
             // Loop through all of our active subpoenas
             for (String sID : sbIds) {
@@ -288,7 +286,7 @@ public abstract class Prattle {
         }
 
     }
-   
+
     // This method will check if there is subpoena related to that message, if yes
     // it
     // return the subpoena id
@@ -473,42 +471,42 @@ public abstract class Prattle {
     public static void addToActiveClients(String name, ClientRunnable clientRunnable) {
         activeClients.put(name, clientRunnable);
     }
-    
 
-	/** Check each message for flagging */
-	private static String checkVulgar(String line) {
-			String l = line;
-		for (String s : l.split(" ")) {
-			if (vulgar.contains(s)) {
-				l = line.replaceAll(s, "*****");
-			}
-		}
-		return l;
-	}
 
-	public static void prepareVulgarMap() {
-		BufferedReader file = null;
-		try {
-			file = new BufferedReader(new FileReader("Pc.txt"));
-			String word = file.readLine();
-			while (word != null) {
-				vulgar.add(word);
-				word = file.readLine();
-			}
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			try {
-				file.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} // close the file
-		}
+    /** Check each message for flagging */
+    private static String checkVulgar(String line) {
+        String l = line;
+        for (String s : l.split(" ")) {
+            if (vulgar.contains(s)) {
+                l = line.replaceAll(s, "*****");
+            }
+        }
+        return l;
+    }
 
-	}
+    public static void prepareVulgarMap() {
+        BufferedReader file = null;
+        try {
+            file = new BufferedReader(new FileReader("Pc.txt"));
+            String word = file.readLine();
+            while (word != null) {
+                vulgar.add(word);
+                word = file.readLine();
+            }
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } finally {
+            try {
+                file.close();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } // close the file
+        }
+
+    }
 }
