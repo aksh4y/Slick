@@ -11,6 +11,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Queue;
 
 import org.junit.jupiter.api.AfterAll;
@@ -120,6 +122,51 @@ public class ClientRunnableTest {
 		broadcastMessageIsSpecial.setAccessible(true);
 		Message msg = Message.makeBroadcastMessage("test user", "How are you?");
 		assertTrue((Boolean) broadcastMessageIsSpecial.invoke(client, msg));
+	}
+
+	
+	public void testSubpoenaCreate() throws IOException, NoSuchMethodException, SecurityException,
+			IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
+		SocketNB socket = new SocketNB("127.0.0.1", 4545);
+		SocketChannel sChannel;
+		sChannel = socket.getSocket();
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");
+		LocalDate fromDate = LocalDate.parse("11-20-2019", formatter);
+		LocalDate toDate = LocalDate.parse("12-20-2019", formatter);
+
+		client = new ClientRunnable(sChannel);
+		Class cls = client.getClass();
+		
+		Method handleMsgs = cls.getDeclaredMethod("handleMsgs", Message.class);
+		handleMsgs.setAccessible(true);
+		
+		Method createUserSubpoena = cls.getDeclaredMethod("createUserSubpoena", Message.class, LocalDate.class,
+				LocalDate.class, Boolean.class);
+		createUserSubpoena.setAccessible(true);
+
+		Method createGroupSubpoena = cls.getDeclaredMethod("createGroupSubpoena", Message.class, LocalDate.class,
+				LocalDate.class, Boolean.class);
+		createGroupSubpoena.setAccessible(true);
+
+		Message msg = (Message) createUserSubpoena.invoke(client,
+				Message.makeCreateUserSubpoena("akshay$%$peter", "11-20-2019", "12-20-2019"), fromDate, toDate, true);
+		subpoenaService.deleteSubpoena(msg.getName());
+		msg = (Message) createUserSubpoena.invoke(client,
+				Message.makeCreateUserSubpoena("akshay$%$all", "11-20-2019", "12-20-2019"), fromDate, toDate, true);
+		createUserSubpoena.invoke(client, Message.makeCreateUserSubpoena("akshay$%$allki", "11-20-2019", "12-20-2019"),
+				fromDate, toDate, true);
+		createUserSubpoena.invoke(client, Message.makeCreateUserSubpoena("akshswway$%$all", "11-20-2019", "12-20-2019"),
+				fromDate, toDate, true);
+		handleMsgs.invoke(client, Message.makeSubpoenaLogin(msg.getName()));
+		assertTrue(subpoenaService.deleteSubpoena(msg.getName()));
+
+		msg = (Message) createGroupSubpoena.invoke(client,
+				Message.makeCreateGroupSubpoena("nipungroup", "11-20-2019", "12-20-2019"), fromDate, toDate, true);
+		createGroupSubpoena.invoke(client, Message.makeCreateGroupSubpoena("nipungroupss", "11-20-2019", "12-20-2019"),
+				fromDate, toDate, true);
+		handleMsgs.invoke(client, Message.makeSubpoenaLogin(msg.getName()));
+		assertTrue(subpoenaService.deleteSubpoena(msg.getName()));
+
 	}
 
 	/*
@@ -403,6 +450,7 @@ public class ClientRunnableTest {
 		queue.add(correctLoginMessage);
 		client.run();
 		
+		testSubpoenaCreate();
 
 		assertTrue(client.isInitialized());
 		queue.add(terminate);
@@ -434,16 +482,16 @@ public class ClientRunnableTest {
 		client.enqueueMessage(msg);
 		assertTrue(userName.equalsIgnoreCase(client.getName()));
 		assertFalse(client.isInitialized());
-		
+
 		Method handleMsgsMethod = cls.getDeclaredMethod("handleMsgs", Message.class);
 		handleMsgsMethod.setAccessible(true);
 		Method handleOtherMsgsMethod = cls.getDeclaredMethod("handleOtherMsgs", Message.class);
 		handleOtherMsgsMethod.setAccessible(true);
-		
+
 		handleMsgsMethod.invoke(client, Message.makeLoginMessage("nipun", "test"));
-	    handleOtherMsgsMethod.invoke(client, Message.makeCreateGroupSubpoena("petergroup", "11-20-2019", "12-20-2019"));
-//		 handleMsgsMethod.invoke(client, Message.makeSubpoenaLogin(id));
-	    
+		handleOtherMsgsMethod.invoke(client, Message.makeCreateGroupSubpoena("petergroup", "11-20-2019", "12-20-2019"));
+		// handleMsgsMethod.invoke(client, Message.makeSubpoenaLogin(id));
+
 		handleMsgsMethod.invoke(client, Message.makeLoginMessage("admin", "test"));
 		handleOtherMsgsMethod.invoke(client, Message.makeCreateGroupSubpoena("petergroup", "11-20-2021", "12-20-2019"));
 	}
@@ -464,33 +512,5 @@ public class ClientRunnableTest {
 		client = new ClientRunnable(sChannel);
 		assertEquals(0, client.getUserId());
 	}
-
-//	@Test
-//	public void testSubpoenaCreate() throws IOException, NoSuchMethodException, SecurityException,
-//			IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
-//		SocketNB socket = new SocketNB("127.0.0.1", 4545);
-//		SocketChannel sChannel;
-//		sChannel = socket.getSocket();
-//		client = new ClientRunnable(sChannel);
-//		Class cls = client.getClass();
-////		
-////		Field userField = cls.getDeclaredField("user");
-////		userField.setAccessible(true);
-////		User user = (User) userField.get(client);
-////		user= new User("admin", "test");
-//		
-////		Method handleMsgsMethod = cls.getDeclaredMethod("handleMsgs", Message.class);
-////		handleMsgsMethod.setAccessible(true);
-////		Method handleOtherMsgsMethod = cls.getDeclaredMethod("handleOtherMsgs", Message.class);
-////		handleOtherMsgsMethod.setAccessible(true);
-////		
-////		handleMsgsMethod.invoke(client, Message.makeLoginMessage("user", "test"));
-////	    handleOtherMsgsMethod.invoke(client, Message.makeCreateGroupSubpoena("petergroup", "11-20-2019", "12-20-2019"));
-//////		 handleMsgsMethod.invoke(client, Message.makeSubpoenaLogin(id));
-////	    subpoenaService.deleteSubpoena("5c01a467f8cd512d5cf835dc");
-////	    
-////		handleMsgsMethod.invoke(client, Message.makeLoginMessage("admin", "test"));
-////		handleOtherMsgsMethod.invoke(client, Message.makeCreateGroupSubpoena("petergroup", "11-20-2021", "12-20-2019"));
-//	}
 
 }

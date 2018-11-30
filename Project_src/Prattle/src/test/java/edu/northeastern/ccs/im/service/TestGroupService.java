@@ -36,7 +36,6 @@ public class TestGroupService {
         groupService.addUserToGroup(g2, userService.findUserByUsername("peter"));
         assertEquals(true, groupService.deleteGroup(g2.getName()));
         assertEquals(false, groupService.deleteGroup("asdf"));
-
     }
 
     @Test
