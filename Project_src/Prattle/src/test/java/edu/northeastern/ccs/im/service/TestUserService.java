@@ -161,83 +161,6 @@ public class TestUserService {
         assertEquals("PRIVATE newest: all good man",rmessages.get(0));
         assertTrue(userService.deleteUser("newestr"));
     }
-////    @Test
-//    public void testRecallMessages() throws JsonProcessingException {
-//        if(userService.findUserByUsername("newsender")!=null){
-//            assertTrue(userService.deleteUser("newsender"));
-//        }
-//        if(userService.findUserByUsername("newreceiver")!=null){
-//            assertTrue(userService.deleteUser("newreceiver"));
-//        }
-//        User newsender = userService.createUser("newsender", "newsenderpass");
-//        User newreceiver = userService.createUser("newreceiver", "newreceiverpass");
-//        userService.addToMyMessages(newsender,"Private newreceiver hey");
-//        userService.addToMyMessages(newsender,"Private newreceiver hey");
-//        userService.addToMyMessages(newreceiver,"[Private Msg] newsender: hey");
-//        userService.addToUnreadMessages(newreceiver,"[Private Msg] newsender: hey");
-//        newreceiver = userService.findUserByUsername("newreceiver");
-//        assertEquals(1, newreceiver.getMyMessages().size());
-//        assertEquals(1, newreceiver.getMyUnreadMessages().size());
-//        userService.recallFromMessages(newreceiver,"newsender");
-//        userService.recallFromUnreadMessages(newreceiver, "newsender");
-//        newreceiver = userService.findUserByUsername("newreceiver");
-//        assertEquals("[Private Msg] newsender: [Message Deleted]", newreceiver.getMyMessages().get(0));
-//        assertEquals("[Private Msg] newsender: [Message Deleted]", newreceiver.getMyUnreadMessages().get(0));
-//        userService.deleteUser("newreceiver");
-//        userService.deleteUser("newsender");
-////    }
-//    @Test
-//    public void testLastSentMessage() throws JsonProcessingException {
-//        if(userService.findUserByUsername("newsender")!=null){
-//            assertTrue(userService.deleteUser("newsender"));
-//        }
-//        if(userService.findUserByUsername("rec")!=null){
-//            assertTrue(userService.deleteUser("rec"));
-//        }
-//        User newsender = userService.createUser("newsender", "newsenderpass");
-//        User rec = userService.createUser("rec", "recpass");
-//        userService.addToMyMessages(newsender,"Private rec hey");
-//        userService.addToMyMessages(rec,"[Private Msg] newsender: hey");
-//        newsender = userService.findUserByUsername("newsender");
-//        rec = userService.findUserByUsername("rec");
-//        assertEquals(1, rec.getMyMessages().size());
-//        assertEquals(1, newsender.getMyMessages().size());
-//        userService.getLastSentMessage("user","newsender","rec");
-//        newsender = userService.findUserByUsername("newsender");
-//        rec = userService.findUserByUsername("rec");
-//        assertEquals("**Recalled**Private rec hey", newsender.getMyMessages().get(0));
-//        assertEquals("[Private Msg] newsender: [Message Deleted]",rec.getMyMessages().get(0));
-//        userService.addToMyMessages(newsender,"Private rec hey ya");
-//        userService.addToUnreadMessages(rec,"[Private Msg] newsender: hey ya");
-//        userService.getLastSentMessage("user","newsender","rec");
-//        newsender = userService.findUserByUsername("newsender");
-//        rec = userService.findUserByUsername("rec");
-//        assertEquals("**Recalled**Private rec hey ya", newsender.getMyMessages().get(1));
-//        assertEquals("[Private Msg] newsender: [Message Deleted]",rec.getMyUnreadMessages().get(0));
-//        userService.deleteUser("rec");
-//        userService.deleteUser("newsender");
-//    }
-//    @Test
-//    public void testLastGroupMessage() throws JsonProcessingException {
-//        if(userService.findUserByUsername("newsender")!=null){
-//            assertTrue(userService.deleteUser("newsender"));
-//        }
-//        if(userService.findUserByUsername("rec")!=null){
-//            assertTrue(userService.deleteUser("rec"));
-//        }
-//        if(groupService.findGroupByName("newgrouptest")!=null){
-//            assertTrue(groupService.deleteGroup("newgrouptest"));
-//        }
-//        User newsender = userService.createUser("newsender", "newsenderpass");
-//        User rec = userService.createUser("rec", "recpass");
-//        Group newgrouptest = groupService.createGroup("newgrouptest");
-//        newgrouptest.addUserTOGroup(newsender);
-//        groupService.addUserToGroup(newgrouptest, newsender);
-//        groupService.addUserToGroup(newgrouptest, rec);
-//        userService.addToMyMessages(newsender,"GROUP newgrouptest hey everyone");
-//        userService.addToMyMessages(rec, "[newsender@newgrouptest] hey everyone");
-//        userService.getLastSentMessage("group","newsender","newgrouptest");
-//    }
 
     @Test
     public void testParentalControl() throws JsonProcessingException {
@@ -263,5 +186,26 @@ public class TestUserService {
         assertEquals(false, userService.updateMessage("someuserthatshouldnotbeinthedatabase",
                         "anymsg","anyothermsg"));
         assertTrue(userService.deleteUser("newsender"));
+    }
+    @Test
+    public void testIsSender() throws JsonProcessingException {
+        if(userService.findUserByUsername("harry")!=null){
+            userService.deleteUser("harry");
+        }
+        User user = userService.createUser("harry", "potter");
+        userService.addToMyMessages(user, "1543604981922 /127.0.0.1:50618 PRIVATE peter hey /Offline");
+        userService.addToMyMessages(user,"1543607554047 /127.0.0.1:50513 GROUP petergroup yo guys -> peter /127.0.0.1:50502");
+        assertTrue(userService.isSender("1543604981922","user","peter","harry"));
+        assertFalse(userService.isSender("1543604981922","something","peter","harry"));
+        assertFalse(userService.isSender("1543604981922","user","akshay","harry"));
+        assertFalse(userService.isSender("15436049819220978","user","peter","harry"));
+        assertTrue(userService.isSender("1543607554047","group","petergroup","harry"));
+        assertFalse(userService.isSender("1543607554047","group","akshaygroup","harry"));
+        assertFalse(userService.isSender("15436049819220978","group","peter","harry"));
+        assertTrue(userService.deleteUser("harry"));
+    }
+    @Test
+    public void testRecallMessage(){
+
     }
 }

@@ -320,9 +320,6 @@ public class UserServicePrattle {
 				}
 			}
 		}
-		else{
-			return false;
-		}
 		return false;
 	}
 
