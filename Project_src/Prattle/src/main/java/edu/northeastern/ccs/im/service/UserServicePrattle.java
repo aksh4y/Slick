@@ -288,7 +288,7 @@ public class UserServicePrattle {
 		return false;
 	}
 
-	public void recallMessage(String UID, String type, String recepient){ //type user or group
+	public void recallMessage(String UID, String type, String recepient,String sender){ //type user or group
 		if(type.equalsIgnoreCase("user")){
 			User user = findUserByUsername(recepient);
 			if(!isPresentInUnreadMessages(user,UID)){
@@ -296,7 +296,9 @@ public class UserServicePrattle {
 			}
 		}else if(type.equalsIgnoreCase("group")){
 			Group group= group_service.findGroupByName(recepient);
-			for(String username: group.getListOfUsers()){
+			List<String> users = group.getListOfUsers();
+			users.remove(sender.toLowerCase());
+			for(String username: users){
 				User user = findUserByUsername(username);
 				if(!isPresentInUnreadMessages(user,UID)){
 					isPresentInMessages(user,UID);
