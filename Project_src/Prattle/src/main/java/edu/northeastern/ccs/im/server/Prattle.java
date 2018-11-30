@@ -167,8 +167,9 @@ public abstract class Prattle {
                         userService.addToMyMessages(u, msg);
                         tt.enqueueMessage(message);
                     }
-                } else
+                } else {
                     tt.enqueueMessage(message);
+                }
             }
         }
         broadcastToSubpoena(msg, sbIds);
@@ -239,10 +240,12 @@ public abstract class Prattle {
             newMsg += " " + cr.getIP();
             userService.addToMyMessages(sender, newMsg);
         } else {
-            if (recipient.getParentalControl())
+            if (recipient.getParentalControl()) {
                 userService.addToUnreadMessages(recipient, checkVulgar(receiverMsg));
-            else
+            }
+            else {
                 userService.addToUnreadMessages(recipient, receiverMsg);
+            }
 
 
             userService.addToMyMessages(sender, senderMsg);
