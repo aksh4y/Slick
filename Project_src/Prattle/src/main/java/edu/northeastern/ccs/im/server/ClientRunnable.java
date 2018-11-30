@@ -543,7 +543,7 @@ public class ClientRunnable implements Runnable {
                         Message ackMsg = null;
                         this.initialized = true;
                         if (msg.getMsgRecipient().equalsIgnoreCase("user") || (msg.getMsgRecipient().equalsIgnoreCase("group"))) {
-                            //userService.recallMessage(msg.getName(), msg.getMsgRecipient(), msg.getText());
+                            userService.recallMessage(msg.getName(), msg.getMsgRecipient(), msg.getText());
                             ackMsg = Message.makeSuccessMsg();
                         } 
                         else                             
