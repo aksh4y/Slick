@@ -10,8 +10,6 @@ import java.util.Base64;
 
 import javax.imageio.ImageIO;
 
-import edu.northeastern.ccs.im.Message.MessageType;
-
 /**
  * Each instance of this class represents a single transmission by our IM
  * clients.
@@ -106,6 +104,8 @@ public class Message {
         HISTORY_MESSAGE("HMG"),
         /** Notify pending msgs exist */
         NOTIFY_PENDING("PEN"),
+        /** Send back a UID on message sending */
+        UID("UID"),
         RECALL("REC"),
         SEARCH("SCH"),
         /** Message for user Subpoena create messages */
@@ -444,6 +444,9 @@ public class Message {
             result = makeSubpoenaSuccess(srcName);
         } else if (handle.compareTo(MessageType.SUBPOENA_LOGIN_SUCCESS.toString()) == 0) {
             result = makeSubpoenaLoginSuccess();
+        } else if (handle.compareTo(MessageType.UID.toString()) == 0) {
+            System.out.println("Delivered with UID -> " + srcName);
+            result = makeUID(srcName);
         }
         return result;
     }
@@ -725,6 +728,15 @@ public class Message {
     public static Message makeUserIdExist() {
         return new Message(MessageType.USER_EXIST);
     }
+    
+    /**
+     * Create a new message to return UID of sent message
+     * 
+     * @return Instance of Message.
+     */
+    public static Message makeUID(String uid) {
+        return new Message(MessageType.UID, uid);
+    }
 
     /**
      * Given a handle, name and text, return the appropriate message instance or an
@@ -884,6 +896,14 @@ public class Message {
      */
     public boolean isLoginSuccess() {
         return (msgType == MessageType.LOGIN_SUCCESS);
+    }
+    
+    /**
+     * 
+     * @return true iff message is of type UID
+     */
+    public boolean isUIDMessage() {
+        return (msgType == MessageType.UID);
     }
 
     /**

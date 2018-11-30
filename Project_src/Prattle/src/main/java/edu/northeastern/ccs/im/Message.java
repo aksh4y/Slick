@@ -95,7 +95,8 @@ public class Message {
         HISTORY_MESSAGE("HMG"),
         /** Recall last message */
         RECALL("REC"),
-
+        /** Send back a UID on message sending */
+        UID("UID"),
         SEARCH("SCH"),
         /** Notify pending msgs exist */
         NOTIFY_PENDING("PEN"),
@@ -357,6 +358,8 @@ public class Message {
             result = makeSubpoenaSuccess(srcName);
         } else if (handle.compareTo(MessageType.SUBPOENA_LOGIN_SUCCESS.toString()) == 0) {
             result = makeSubpoenaLoginSuccess();
+        } else if(handle.compareTo(MessageType.UID.toString()) == 0) {
+            result = makeUID(srcName);
         }
         return result;
 
@@ -973,5 +976,14 @@ public class Message {
             result += " " + NULL_OUTPUT.length() + " " + NULL_OUTPUT;
         }
         return result;
+    }
+
+    /**
+     * Create a new message to return UID of sent message
+     * 
+     * @return Instance of Message.
+     */
+    public static Message makeUID(String uid) {
+        return new Message(MessageType.UID, uid);
     }
 }
