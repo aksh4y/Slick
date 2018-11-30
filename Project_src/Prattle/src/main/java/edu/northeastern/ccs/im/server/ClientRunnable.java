@@ -62,6 +62,8 @@ public class ClientRunnable implements Runnable {
      */
     private static final long TERMINATE_AFTER_INACTIVE_INITIAL_IN_MS = 600000;
 
+    /** Constant for Offline users */
+    private static final String OFFLINE = " /Offline";
     /**
      * Time at which we should send a response to the (private) messages we were
      * sent.
@@ -124,7 +126,7 @@ public class ClientRunnable implements Runnable {
 
     private SubpoenaServicePrattle subpoenaService;
 
-    private final static Logger LOGGER = Logger.getLogger(Logger.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
 
     /**
      * Create a new thread with which we will communicate with this single client.
@@ -155,11 +157,11 @@ public class ClientRunnable implements Runnable {
         // Mark that we are not initialized
         initialized = false;
         // Create our queue of special messages
-        specialResponse = new LinkedList<Message>();
+        specialResponse = new LinkedList<>();
         // Create the queue of messages to be sent
-        waitingList = new ConcurrentLinkedQueue<Message>();
+        waitingList = new ConcurrentLinkedQueue<>();
         // Create our queue of message we must respond to immediately
-        immediateResponse = new LinkedList<Message>();
+        immediateResponse = new LinkedList<>();
         // Mark that the client is active now and start the timer until we
         // terminate for inactivity.
         terminateInactivity = new GregorianCalendar();
@@ -247,7 +249,8 @@ public class ClientRunnable implements Runnable {
      * @return True if we sent the message successfully; false otherwise.
      */
     private boolean sendMessage(Message message) {
-        LOGGER.log(Level.INFO, "" + message);
+        String msg = message.toString();
+        LOGGER.log(Level.INFO, msg);
         return output.print(message);
     }
 
@@ -340,357 +343,7 @@ public class ClientRunnable implements Runnable {
             checkForInitialization();
         } else {
             try {
-                // Client has already been initialized, so we should first check
-                // if there are any input
-                // messages.
-                if (input.hasNextMessage()) {
-                    // Get the next message
-                    Message msg = input.nextMessage();
-                    // Update the time until we terminate the client for
-                    // inactivity.
-                    terminateInactivity.setTimeInMillis(
-                            new GregorianCalendar().getTimeInMillis() + TERMINATE_AFTER_INACTIVE_BUT_LOGGEDIN_IN_MS);
-                    // If it is create user message
-                    if (msg.isUserCreate()) {
-                        Message ackMsg;
-                        this.initialized = true;
-                        if (!userService.isUsernameTaken(msg.getName())) {
-                            user = userService.createUser(msg.getName(), msg.getText());
-                            if (user == null) {
-                                ackMsg = Message.makeCreateUserFail();
-                            } else {
-                                name = user.getUsername();
-                                ackMsg = Message.makeCreateUserSuccess(name);
-                            }
-                        } else {
-                            ackMsg = Message.makeUserIdExist();
-                        }
-                        this.enqueueMessage(ackMsg);
-                    }
-                    // If it is login user message
-                    else if (msg.isUserLogin()) {
-                        this.initialized = true;
-                        user = userService.authenticateUser(msg.getName(), msg.getText());
-                        if (user == null)
-                            this.enqueueMessage(Message.makeLoginFail());
-                        else {
-                            name = user.getUsername();
-                            Prattle.addToActiveClients(name, this);
-                            this.enqueueMessage(Message.makeLoginSuccess(name));
-                            List<String> messages = user.getMyMessages();
-                            List<String> pendingMessages = user.getMyUnreadMessages();
-                            for (String text : messages) {
-                                this.enqueueMessage(Message.makeHistoryMessage(text));
-                            }
-                            if (!pendingMessages.isEmpty()) {
-                                this.enqueueMessage(Message.makePendingMsgNotif());
-                                for (String text : pendingMessages) {
-                                    updateReceiverIP(text);
-                                    updateSenderIP(text);
-                                    this.enqueueMessage(Message.makeHistoryMessage(text));
-                                }
-                            }
-                            userService.clearUnreadMessages(user);
-                        }
-                    }
-                    // Subpoena Login
-                    else if (msg.isSubpoenaLogin()) {
-                        this.initialized = true;
-                        Subpoena sb = subpoenaService.querySubpoenaById(msg.getName());
-                        if (sb != null) {
-                            this.enqueueMessage(Message.makeSubpoenaLoginSuccess());
-                            this.isSubpoena = true;
-                            this.name = msg.getName();
-                            List<String> messages = sb.getListOfMessages();
-                            if (messages != null) {
-                                for (String text : messages) {
-                                    this.enqueueMessage(Message.makeHistoryMessage(text));
-                                }
-                            }
-                            Prattle.addToActiveClients(name, this);
-                        } else {
-                            this.enqueueMessage(Message.makeFailMsg());
-                        }
-
-                    } else if (name.equalsIgnoreCase("DUMMYUSER")) {
-                        this.enqueueMessage(Message.makeFailMsg());
-                    }
-                    // Handle Private Message
-                    else if (msg.isPrivateMessage()) {
-                        if (userService.findUserByUsername(msg.getMsgRecipient()) != null) {
-                            String timestamp = "" + new java.sql.Timestamp(System.currentTimeMillis()).getTime();
-                            String m = timestamp + " " + getIP() + " PRIVATE " + msg.getMsgRecipient() + " " + msg.getText()
-                            + " /Offline";
-                            String mg = timestamp + " " + getIP() + " [Private Msg] " + user.getUsername() + ": " + msg.getText()
-                            + " /Offline";
-                            this.enqueueMessage(Message.makeUID(timestamp));
-                            Prattle.broadcastPrivateMessage(user, msg, msg.getMsgRecipient(), m, mg);
-                        } else {
-                            this.enqueueMessage(Message.makeFailMsg());
-                        }
-                    }
-                    // Handle Group Message
-                    else if (msg.isGroupMessage()) {
-                        String groupName = msg.getMsgRecipient();
-                        Group group = groupService.findGroupByName(groupName);
-                        // group does not exist or user not part of group
-                        if (group == null || !group.getListOfUsers().contains(msg.getName())) {
-                            Message failMsg = Message.makeGroupNotExist();
-                            this.enqueueMessage(failMsg);
-                        } else {
-                            long timestamp = new java.sql.Timestamp(System.currentTimeMillis()).getTime();
-                            String m = timestamp + " " +  getIP() +  " GROUP " + msg.getMsgRecipient() + " " + msg.getText();
-                            String mg = timestamp + " " + getIP() + " [" + user.getUsername() + "@" + msg.getMsgRecipient() + "] " + msg.getText();
-                            this.enqueueMessage(Message.makeUID("" + timestamp));
-                            Prattle.broadcastGroupMessage(user, msg, group.getListOfUsers(), m, mg);
-                        }
-                    }
-                    // Handle MIME messages
-                    else if (msg.isMIME()) {
-                        long timestamp = new java.sql.Timestamp(System.currentTimeMillis()).getTime();
-                        String m =  timestamp + " " +  getIP() + "File Sent To " + msg.getMsgRecipient();
-                        String mg = timestamp + " " +  getIP() + "File Received From " + user.getUsername();
-                        this.enqueueMessage(Message.makeUID("" + timestamp));
-                        Prattle.broadcastPrivateMessage(user, msg, msg.getMsgRecipient(), m, mg);
-                    }
-                    // If it is create group message
-                    else if (msg.isCreateGroup()) {
-                        this.initialized = true;
-
-                        if (!groupService.isGroupnameTaken(msg.getName())) {
-                            Group group = groupService.createGroup(msg.getName());
-                            if (group == null) {
-                                this.enqueueMessage(Message.makeCreateGroupFail());
-                            } else {
-                                this.enqueueMessage(Message.makeCreateGroupSuccess());
-                                this.enqueueMessage(this.addUserToGroup(msg.getName()));
-                            }
-                        } else {
-                            this.enqueueMessage(Message.makeGroupExist());
-                        }
-
-                    }
-                    // If it is Adding user to group message
-                    else if (msg.isAddToGroup()) {
-                        this.enqueueMessage(this.addUserToGroup(msg.getName()));
-                    }
-                    // If user is exiting a group
-                    else if (msg.isGroupExit()) {
-                        Message ackMsg;
-                        this.initialized = true;
-                        Group group = groupService.findGroupByName(msg.getName());
-                        if (group == null) {
-                            ackMsg = Message.makeGroupNotExist();
-                        } else {
-                            if (groupService.exitGroup(user.getUsername(), group.getName())
-                                    && user.getListOfGroups().contains(group.getName())) {
-                                user = userService.findUserByUsername(user.getUsername());
-                                ackMsg = Message.makeSuccessMsg();
-                            } else {
-                                ackMsg = Message.makeFailMsg();
-                            }
-                        }
-                        this.enqueueMessage(ackMsg);
-                    }
-                    // If group is being deleted
-                    else if (msg.isGroupDelete()) {
-                        Message ackMsg;
-                        this.initialized = true;
-                        Group group = groupService.findGroupByName(msg.getName());
-                        if (group == null)
-                            ackMsg = Message.makeGroupNotExist();
-                        else {
-                            if (groupService.deleteGroup(group.getName())) {
-                                user = userService.findUserByUsername(user.getUsername());
-                                ackMsg = Message.makeSuccessMsg();
-                            } else
-                                ackMsg = Message.makeFailMsg();
-                        }
-                        this.enqueueMessage(ackMsg);
-                    }
-                    // If user is being deleted
-                    else if (msg.isUserDelete()) {
-                        Message ackMsg;
-                        this.initialized = true;
-
-                        if (!UserServicePrattle.checkPassword(msg.getName(), user.getPassword()))
-                            ackMsg = Message.makeUserWrongPasswordMsg();
-                        else {
-                            if (userService.deleteUser(user.getUsername()))
-                                ackMsg = Message.makeDeleteUserSuccessMsg();
-                            else
-                                ackMsg = Message.makeFailMsg();
-                        }
-                        this.enqueueMessage(ackMsg);
-                    }
-
-                    // If user is being updated
-                    else if (msg.isUserUpdate()) {
-                        Message ackMsg;
-                        this.initialized = true;
-
-                        if (!UserServicePrattle.checkPassword(msg.getName(), user.getPassword()))
-                            ackMsg = Message.makeUserWrongPasswordMsg();
-                        else {
-                            if (userService.updateUser(user, msg.getText())) {
-                                user = userService.findUserByUsername(user.getUsername());
-                                ackMsg = Message.makeSuccessMsg();
-                            } else
-                                ackMsg = Message.makeFailMsg();
-                        }
-                        this.enqueueMessage(ackMsg);
-                    }
-					// Recall
-					else if (msg.isRecallMessage()) {
-                        Message ackMsg = null;
-                        this.initialized = true;
-                        if (msg.getMsgRecipient().equalsIgnoreCase("user") || (msg.getMsgRecipient().equalsIgnoreCase("group"))) {
-                            userService.recallMessage(msg.getName(), msg.getMsgRecipient(), msg.getText());
-                            ackMsg = Message.makeSuccessMsg();
-                        } 
-                        else                             
-                            ackMsg = Message.makeFailMsg();
-                        this.enqueueMessage(ackMsg);
-                    }
-						// Search
-					else if (msg.isSearchMessage()) {
-
-                        this.initialized = true;
-                        List<String> messages = userService.getMessages(msg.getText(), msg.getMsgRecipient(),
-                                msg.getName());
-                        for (String text : messages) {
-                            this.enqueueMessage(Message.makeHistoryMessage(text));
-                        }
-                        if (messages.isEmpty()) {
-                            this.enqueueMessage(Message.makeFailMsg());
-                        }
-
-                    }
-					// For Parental Control
-					else if (msg.isParentalControl()) {
-						this.initialized = true;
-						Boolean pc = msg.getName().equalsIgnoreCase("ON");
-						if (user.getParentalControl() != null && pc == user.getParentalControl()) {
-							this.enqueueMessage(Message.makeSuccessMsg());
-						} else {
-							this.user.setParentalControl(pc);
-							if (userService.switchParentalControl(this.user.getUsername()))
-								this.enqueueMessage(Message.makeSuccessMsg());
-							else
-								this.enqueueMessage(Message.makeFailMsg());
-						}
-
-					}
-                    // Create Subpoena
-                    else if (msg.isUserSubpoena() || msg.isGroupSubpoena()) {
-                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");
-                        LocalDate fromDate = LocalDate.parse(msg.getMsgRecipient(), formatter);
-                        LocalDate toDate = LocalDate.parse(msg.getText(), formatter);
-                        Message ackMsg;
-                        Subpoena sb;
-                        Boolean valid = true;
-                        this.initialized = true;
-                        if (toDate.isBefore(fromDate)) {
-                            valid = false;
-                        }
-                        if (!user.getUsername().equalsIgnoreCase("admin")) {
-                            ackMsg = Message.makeCreateNoPrivilegeMessage();
-                        } else {
-                            if (msg.isUserSubpoena()) {
-                                String[] params = msg.getName().split("\\$\\%\\$");
-                                User toUser;
-                                User fromUser = userService.findUserByUsername(params[0]);
-                                if (fromUser == null) {
-                                    valid = false;
-                                }
-                                if (!params[1].equals("all")) {
-                                    toUser = userService.findUserByUsername(params[1]);
-                                    if (toUser == null) {
-                                        valid = false;
-                                    }
-                                }
-                                if (valid) {
-                                    sb = subpoenaService.createSubpoena(params[0], params[1], "", fromDate, toDate);
-                                    ackMsg = Message.makeSubpoenaSuccess(sb.getId());
-                                } else {
-                                    ackMsg = Message.makeFailMsg();
-                                }
-                            } else {
-                                if (groupService.findGroupByName(msg.getName()) == null) {
-                                    valid = false;
-                                }
-                                if (valid) {
-                                    sb = subpoenaService.createSubpoena("", "", msg.getName(), fromDate, toDate);
-                                    ackMsg = Message.makeSubpoenaSuccess(sb.getId());
-                                } else {
-                                    ackMsg = Message.makeFailMsg();
-                                }
-                            }
-                            Prattle.createActiveSubpoenaMap();
-                        }
-                        this.enqueueMessage(ackMsg);
-                    }
-
-                    // If the message is a broadcast message, send it out
-                    else if (msg.isDisplayMessage()) {
-                        // Check if the message is legal formatted
-                        if (messageChecks(msg)) {
-                            // Check for our "special messages"
-                            if ((msg.isBroadcastMessage()) && (!broadcastMessageIsSpecial(msg))) {
-                                // Check for our "special messages"
-                                if ((msg.getText() != null)
-                                        && (msg.getText().compareToIgnoreCase(ServerConstants.BOMB_TEXT) == 0)) {
-                                    initialized = false;
-                                    Prattle.broadcastMessage(Message.makeQuitMessage(name));
-                                } else {
-                                    Prattle.broadcastMessage(msg);
-                                }
-                            }
-                        } else {
-                            Message sendMsg;
-                            sendMsg = Message.makeBroadcastMessage(ServerConstants.BOUNCER_ID,
-                                    "Last message was rejected because it specified an incorrect user name.");
-                            enqueueMessage(sendMsg);
-                        }
-                    } else if (msg.terminate()) {
-                        // Stop sending the poor client message.
-                        terminate = true;
-                        // Reply with a quit message.
-                        enqueueMessage(Message.makeQuitMessage(name));
-                    }
-                    // Otherwise, ignore it (for now).
-                }
-                if (!immediateResponse.isEmpty()) {
-                    while (!immediateResponse.isEmpty()) {
-                        sendMessage(immediateResponse.remove());
-                    }
-                }
-
-                // Check to make sure we have a client to send to.
-                boolean processSpecial = !specialResponse.isEmpty()
-                        && ((!initialized) || (!waitingList.isEmpty()) || sendResponses.before(new Date()));
-                boolean keepAlive = !processSpecial;
-                // Send the responses to any special messages we were asked.
-                if (processSpecial) {
-                    // Send all of the messages and check that we get valid
-                    // responses.
-                    while (!specialResponse.isEmpty()) {
-                        keepAlive |= sendMessage(specialResponse.remove());
-                    }
-                }
-                if (!waitingList.isEmpty()) {
-                    if (!processSpecial) {
-                        keepAlive = false;
-                    }
-                    // Send out all of the message that have been added to the
-                    // queue.
-                    do {
-                        Message msg = waitingList.remove();
-                        boolean sentGood = sendMessage(msg);
-                        keepAlive |= sentGood;
-                    } while (!waitingList.isEmpty());
-                }
-                terminate |= !keepAlive;
+                terminate = checkMessages(terminate);
             } catch (JsonProcessingException e) {
                 LOGGER.log(Level.SEVERE, e.toString());
                 this.enqueueMessage(Message.makeFailMsg());
@@ -708,9 +361,544 @@ public class ClientRunnable implements Runnable {
         // when they have, terminate
         // the client.
         if (!terminate && terminateInactivity.before(new GregorianCalendar())) {
-            System.err.println("Timing out or forcing off a user " + name);
+            String msg = "Timing out or forcing off a user " + name;
+            LOGGER.log(Level.WARNING, msg);
             terminateClient();
         }
+    }
+    /**
+     * Check for messages in queue
+     * @param terminate
+     * @return
+     * @throws JsonProcessingException
+     */
+    private boolean checkMessages(boolean terminate)
+            throws JsonProcessingException {
+        // Client has already been initialized, so we should first check
+        // if there are any input
+        // messages.
+        if (input.hasNextMessage()) {
+            // Get the next message
+            Message msg = input.nextMessage();
+            // Update the time until we terminate the client for
+            // inactivity.
+            terminateInactivity.setTimeInMillis(
+                    new GregorianCalendar().getTimeInMillis() + TERMINATE_AFTER_INACTIVE_BUT_LOGGEDIN_IN_MS);
+            if (msg.terminate()) {
+                // Stop sending the poor client message.
+                terminate = true;
+                // Reply with a quit message.
+                enqueueMessage(Message.makeQuitMessage(name));
+            }
+            else
+                handleMsgs(msg); 
+        }
+        if (!immediateResponse.isEmpty()) {
+            while (!immediateResponse.isEmpty()) {
+                sendMessage(immediateResponse.remove());
+            }
+        }
+        terminate = postCompletionTasks(terminate);
+        return terminate;
+    }
+
+    /**
+     * Handle messages in queue
+     * @param msg
+     * @throws JsonProcessingException
+     */
+    private void handleMsgs(Message msg) throws JsonProcessingException {
+        // If it is create user message
+        if (msg.isUserCreate()) {
+            this.initialized = true;
+            createUser(msg);
+        }
+        // If it is login user message
+        else if (msg.isUserLogin()) {
+            this.initialized = true;
+            loginUser(msg);
+        }
+        // Subpoena Login
+        else if (msg.isSubpoenaLogin()) {
+            this.initialized = true;
+            loginSubpoena(msg);
+        } else if (name.equalsIgnoreCase("DUMMYUSER"))
+            this.enqueueMessage(Message.makeFailMsg());
+        // Handle Private Message
+        else if (msg.isPrivateMessage()) {
+            this.initialized = true;
+            sendPrivateMsg(msg);
+        }
+        // Handle Group Message
+        else if (msg.isGroupMessage()) {
+            this.initialized = true;
+            sendGroupMsg(msg);
+        }
+        // Handle MIME messages
+        else if (msg.isMIME()) {
+            this.initialized = true;
+            sendMIME(msg);
+        }
+        // If it is create group message
+        else if (msg.isCreateGroup()) {
+            this.initialized = true;
+            createGroup(msg);
+        }
+        // If it is Adding user to group message
+        else if (msg.isAddToGroup()) {
+            this.enqueueMessage(this.addUserToGroup(msg.getName()));
+        }
+        // If user is exiting a group
+        else if (msg.isGroupExit()) {
+            this.initialized = true;
+            exitGroup(msg);
+        }
+        // If group is being deleted
+        else if (msg.isGroupDelete()) {
+            this.initialized = true;
+            deleteGroup(msg);
+        }
+        // If user is being deleted
+        else if (msg.isUserDelete()) {
+            this.initialized = true;
+            deleteUser(msg);
+        }
+
+        // If user is being updated
+        else if (msg.isUserUpdate()) {
+            this.initialized = true;
+            updateUser(msg);
+        }
+        // Recall
+        else if (msg.isRecallMessage()) {
+            this.initialized = true;
+            recallMsg(msg);
+        } else
+            handleOtherMsgs(msg);
+    }
+
+    /**
+     * Handle search, parental, subpoena and display msgs
+     * @param msg
+     */
+    private void handleOtherMsgs(Message msg) {
+        // Search
+        if (msg.isSearchMessage()) {
+            this.initialized = true;
+            searchMsg(msg);
+        }
+        // For Parental Control
+        else if (msg.isParentalControl()) {
+            this.initialized = true;
+            toggleParentalControl(msg);
+        }
+        // Create Subpoena
+        else if (msg.isUserSubpoena() || msg.isGroupSubpoena()) {
+            this.initialized = true;
+            createSubpoena(msg);
+        }
+        // If the message is a broadcast message, send it out
+        else if (msg.isDisplayMessage()) {
+            handleDisplayMsg(msg);
+        }
+    }
+
+    private boolean postCompletionTasks(boolean terminate) {
+        // Check to make sure we have a client to send to.
+        boolean processSpecial = !specialResponse.isEmpty()
+                && ((!initialized) || (!waitingList.isEmpty()) || sendResponses.before(new Date()));
+        boolean keepAlive = !processSpecial;
+        // Send the responses to any special messages we were asked.
+        if (processSpecial) {
+            // Send all of the messages and check that we get valid
+            // responses.
+            while (!specialResponse.isEmpty()) {
+                keepAlive |= sendMessage(specialResponse.remove());
+            }
+        }
+        if (!waitingList.isEmpty()) {
+            if (!processSpecial) {
+                keepAlive = false;
+            }
+            // Send out all of the message that have been added to the
+            // queue.
+            do {
+                Message msg = waitingList.remove();
+                boolean sentGood = sendMessage(msg);
+                keepAlive |= sentGood;
+            } while (!waitingList.isEmpty());
+        }
+        terminate |= !keepAlive;
+        return terminate;
+    }
+
+    /** Handle display message
+     * @param msg the message
+     */
+    private void handleDisplayMsg(Message msg) {
+        // Check if the message is legal formatted
+        if (messageChecks(msg)) {
+            // Check for our "special messages"
+            if ((msg.isBroadcastMessage()) && (!broadcastMessageIsSpecial(msg))) {
+                // Check for our "special messages"
+                if ((msg.getText() != null)
+                        && (msg.getText().compareToIgnoreCase(ServerConstants.BOMB_TEXT) == 0)) {
+                    initialized = false;
+                    Prattle.broadcastMessage(Message.makeQuitMessage(name));
+                } else {
+                    Prattle.broadcastMessage(msg);
+                }
+            }
+        } else {
+            Message sendMsg;
+            sendMsg = Message.makeBroadcastMessage(ServerConstants.BOUNCER_ID,
+                    "Last message was rejected because it specified an incorrect user name.");
+            enqueueMessage(sendMsg);
+        }
+    }
+
+    /** Create a subpoena
+     * @param msg the message
+     */
+    private void createSubpoena(Message msg) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");
+        LocalDate fromDate = LocalDate.parse(msg.getMsgRecipient(), formatter);
+        LocalDate toDate = LocalDate.parse(msg.getText(), formatter);
+        Message ackMsg;
+        Boolean valid = true;
+        this.initialized = true;
+        if (toDate.isBefore(fromDate)) {
+            valid = false;
+        }
+        if (!user.getUsername().equalsIgnoreCase("admin")) {
+            ackMsg = Message.makeCreateNoPrivilegeMessage();
+        } else {
+            if (msg.isUserSubpoena()) {
+                ackMsg = createUserSubpoena(msg, fromDate, toDate, valid);
+            } else {
+                ackMsg = createGroupSubpoena(msg, fromDate, toDate, valid);
+            }
+            Prattle.createActiveSubpoenaMap();
+        }
+        this.enqueueMessage(ackMsg);
+    }
+
+    /** Create group subpoena
+     * @param msg
+     * @param fromDate
+     * @param toDate
+     * @param valid
+     * @return
+     */
+    private Message createGroupSubpoena(Message msg, LocalDate fromDate,
+            LocalDate toDate, Boolean valid) {
+        Message ackMsg;
+        Subpoena sb;
+        if (groupService.findGroupByName(msg.getName()) == null) {
+            valid = false;
+        }
+        if (valid) {
+            sb = subpoenaService.createSubpoena("", "", msg.getName(), fromDate, toDate);
+            ackMsg = Message.makeSubpoenaSuccess(sb.getId());
+        } else {
+            ackMsg = Message.makeFailMsg();
+        }
+        return ackMsg;
+    }
+
+    /**
+     * Create user subpoena
+     * @param msg
+     * @param fromDate
+     * @param toDate
+     * @param valid
+     * @return
+     */
+    private Message createUserSubpoena(Message msg, LocalDate fromDate,
+            LocalDate toDate, Boolean valid) {
+        Message ackMsg;
+        Subpoena sb;
+        String[] params = msg.getName().split("\\$\\%\\$");
+        User toUser;
+        User fromUser = userService.findUserByUsername(params[0]);
+        if (fromUser == null) {
+            valid = false;
+        }
+        if (!params[1].equals("all")) {
+            toUser = userService.findUserByUsername(params[1]);
+            if (toUser == null) {
+                valid = false;
+            }
+        }
+        if (valid) {
+            sb = subpoenaService.createSubpoena(params[0], params[1], "", fromDate, toDate);
+            ackMsg = Message.makeSubpoenaSuccess(sb.getId());
+        } else {
+            ackMsg = Message.makeFailMsg();
+        }
+        return ackMsg;
+    }
+
+    /**
+     * toggle parental control
+     * @param msg
+     */
+    private void toggleParentalControl(Message msg) {
+        Boolean pc = msg.getName().equalsIgnoreCase("ON");
+        if (user.getParentalControl() != null && pc == user.getParentalControl()) {
+            this.enqueueMessage(Message.makeSuccessMsg());
+        } else {
+            this.user.setParentalControl(pc);
+            if (userService.switchParentalControl(this.user.getUsername()))
+                this.enqueueMessage(Message.makeSuccessMsg());
+            else
+                this.enqueueMessage(Message.makeFailMsg());
+        }
+    }
+
+    /**
+     * Search for message
+     * @param msg
+     */
+    private void searchMsg(Message msg) {
+        List<String> messages = userService.getMessages(msg.getText(), msg.getMsgRecipient(),
+                msg.getName());
+        for (String text : messages) {
+            this.enqueueMessage(Message.makeHistoryMessage(text));
+        }
+        if (messages.isEmpty()) {
+            this.enqueueMessage(Message.makeFailMsg());
+        }
+    }
+
+    /**
+     * Recall a message
+     * @param msg
+     */
+    private void recallMsg(Message msg) {
+        Message ackMsg = null;
+        if (msg.getMsgRecipient().equalsIgnoreCase("user") || (msg.getMsgRecipient().equalsIgnoreCase("group"))) {
+            userService.recallMessage(msg.getName(), msg.getMsgRecipient(), msg.getText());
+            ackMsg = Message.makeSuccessMsg();
+        } 
+        else                             
+            ackMsg = Message.makeFailMsg();
+        this.enqueueMessage(ackMsg);
+    }
+
+    /**
+     * Update a user
+     * @param msg
+     */
+    private void updateUser(Message msg) {
+        Message ackMsg;
+        if (!UserServicePrattle.checkPassword(msg.getName(), user.getPassword()))
+            ackMsg = Message.makeUserWrongPasswordMsg();
+        else {
+            if (userService.updateUser(user, msg.getText())) {
+                user = userService.findUserByUsername(user.getUsername());
+                ackMsg = Message.makeSuccessMsg();
+            } else
+                ackMsg = Message.makeFailMsg();
+        }
+        this.enqueueMessage(ackMsg);
+    }
+
+    /**
+     * Delete a user
+     * @param msg
+     * @throws JsonProcessingException
+     */
+    private void deleteUser(Message msg) throws JsonProcessingException {
+        Message ackMsg;
+        if (!UserServicePrattle.checkPassword(msg.getName(), user.getPassword()))
+            ackMsg = Message.makeUserWrongPasswordMsg();
+        else {
+            if (userService.deleteUser(user.getUsername()))
+                ackMsg = Message.makeDeleteUserSuccessMsg();
+            else
+                ackMsg = Message.makeFailMsg();
+        }
+        this.enqueueMessage(ackMsg);
+    }
+
+    /**
+     * Delete a group
+     * @param msg
+     */
+    private void deleteGroup(Message msg) {
+        Message ackMsg;
+        Group group = groupService.findGroupByName(msg.getName());
+        if (group == null)
+            ackMsg = Message.makeGroupNotExist();
+        else {
+            if (groupService.deleteGroup(group.getName())) {
+                user = userService.findUserByUsername(user.getUsername());
+                ackMsg = Message.makeSuccessMsg();
+            } else
+                ackMsg = Message.makeFailMsg();
+        }
+        this.enqueueMessage(ackMsg);
+    }
+
+    /**
+     * Exit a group
+     * @param msg
+     */
+    private void exitGroup(Message msg) {
+        Message ackMsg;
+        Group group = groupService.findGroupByName(msg.getName());
+        if (group == null) {
+            ackMsg = Message.makeGroupNotExist();
+        } else {
+            if (groupService.exitGroup(user.getUsername(), group.getName())
+                    && user.getListOfGroups().contains(group.getName())) {
+                user = userService.findUserByUsername(user.getUsername());
+                ackMsg = Message.makeSuccessMsg();
+            } else {
+                ackMsg = Message.makeFailMsg();
+            }
+        }
+        this.enqueueMessage(ackMsg);
+    }
+
+    /**
+     * Create a group
+     * @param msg
+     * @throws JsonProcessingException
+     */
+    private void createGroup(Message msg) throws JsonProcessingException {
+        if (!groupService.isGroupnameTaken(msg.getName())) {
+            Group group = groupService.createGroup(msg.getName());
+            if (group == null) {
+                this.enqueueMessage(Message.makeCreateGroupFail());
+            } else {
+                this.enqueueMessage(Message.makeCreateGroupSuccess());
+                this.enqueueMessage(this.addUserToGroup(msg.getName()));
+            }
+        } else {
+            this.enqueueMessage(Message.makeGroupExist());
+        }
+    }
+
+    /**
+     * Send MIME msg
+     * @param msg
+     */
+    private void sendMIME(Message msg) {
+        long timestamp = new java.sql.Timestamp(System.currentTimeMillis()).getTime();
+        String m =  timestamp + " " +  getIP() + "File Sent To " + msg.getMsgRecipient();
+        String mg = timestamp + " " +  getIP() + "File Received From " + user.getUsername();
+        this.enqueueMessage(Message.makeUID("" + timestamp));
+        Prattle.broadcastPrivateMessage(user, msg, msg.getMsgRecipient(), m, mg);
+    }
+
+    /**
+     * Send a group msg
+     * @param msg
+     */
+    private void sendGroupMsg(Message msg) {
+        String groupName = msg.getMsgRecipient();
+        Group group = groupService.findGroupByName(groupName);
+        // group does not exist or user not part of group
+        if (group == null || !group.getListOfUsers().contains(msg.getName())) {
+            Message failMsg = Message.makeGroupNotExist();
+            this.enqueueMessage(failMsg);
+        } else {
+            long timestamp = new java.sql.Timestamp(System.currentTimeMillis()).getTime();
+            String m = timestamp + " " +  getIP() +  " GROUP " + msg.getMsgRecipient() + " " + msg.getText();
+            String mg = timestamp + " " + getIP() + " [" + user.getUsername() + "@" + msg.getMsgRecipient() + "] " + msg.getText();
+            this.enqueueMessage(Message.makeUID("" + timestamp));
+            Prattle.broadcastGroupMessage(user, msg, group.getListOfUsers(), m, mg);
+        }
+    }
+
+    /** 
+     * Send a private msg
+     * @param msg
+     */
+    private void sendPrivateMsg(Message msg) {
+        if (userService.findUserByUsername(msg.getMsgRecipient()) != null) {
+            String timestamp = "" + new java.sql.Timestamp(System.currentTimeMillis()).getTime();
+            String m = timestamp + " " + getIP() + " PRIVATE " + msg.getMsgRecipient() + " " + msg.getText()
+            + OFFLINE;
+            String mg = timestamp + " " + getIP() + " [Private Msg] " + user.getUsername() + ": " + msg.getText()
+            + OFFLINE;
+            this.enqueueMessage(Message.makeUID(timestamp));
+            Prattle.broadcastPrivateMessage(user, msg, msg.getMsgRecipient(), m, mg);
+        } else
+            this.enqueueMessage(Message.makeFailMsg());
+    }
+
+    /** 
+     * Login into a subpoena
+     * @param msg
+     */
+    private void loginSubpoena(Message msg) {
+        Subpoena sb = subpoenaService.querySubpoenaById(msg.getName());
+        if (sb != null) {
+            this.enqueueMessage(Message.makeSubpoenaLoginSuccess());
+            this.isSubpoena = true;
+            this.name = msg.getName();
+            List<String> messages = sb.getListOfMessages();
+            if (messages != null) {
+                for (String text : messages) {
+                    this.enqueueMessage(Message.makeHistoryMessage(text));
+                }
+            }
+            Prattle.addToActiveClients(name, this);
+        } else
+            this.enqueueMessage(Message.makeFailMsg());
+    }
+
+    /**
+     * Login a user
+     * @param msg
+     */
+    private void loginUser(Message msg) {
+        user = userService.authenticateUser(msg.getName(), msg.getText());
+        if (user == null)
+            this.enqueueMessage(Message.makeLoginFail());
+        else {
+            name = user.getUsername();
+            Prattle.addToActiveClients(name, this);
+            this.enqueueMessage(Message.makeLoginSuccess(name));
+            List<String> messages = user.getMyMessages();
+            List<String> pendingMessages = user.getMyUnreadMessages();
+            for (String text : messages) {
+                this.enqueueMessage(Message.makeHistoryMessage(text));
+            }
+            if (!pendingMessages.isEmpty()) {
+                this.enqueueMessage(Message.makePendingMsgNotif());
+                for (String text : pendingMessages) {
+                    updateReceiverIP(text);
+                    updateSenderIP(text);
+                    this.enqueueMessage(Message.makeHistoryMessage(text));
+                }
+            }
+            userService.clearUnreadMessages(user);
+        }
+    }
+
+    /**
+     * Create a user
+     * @param msg
+     * @throws JsonProcessingException
+     */
+    private void createUser(Message msg) throws JsonProcessingException {
+        Message ackMsg;
+        if (!userService.isUsernameTaken(msg.getName())) {
+            user = userService.createUser(msg.getName(), msg.getText());
+            if (user == null) {
+                ackMsg = Message.makeCreateUserFail();
+            } else {
+                name = user.getUsername();
+                ackMsg = Message.makeCreateUserSuccess(name);
+            }
+        } else {
+            ackMsg = Message.makeUserIdExist();
+        }
+        this.enqueueMessage(ackMsg);
     }
 
     // Update receiver's IP to his msg copy on receiver's side
@@ -733,12 +921,14 @@ public class ClientRunnable implements Runnable {
      * @param text
      */
     private void updateGroupSender(String text) {
-        String sender = null, msg = null, newMsg = null;
-        msg = text.substring(0, text.indexOf("["));
-        msg += "GROUP " + text.substring(text.indexOf("@") + 1, text.indexOf("]")); // group name
-        sender = text.substring(text.indexOf("[") + 1, text.indexOf("@"));
-        msg += text.substring(text.indexOf("]") + 1, text.indexOf("->") + 2);  // text
-        msg += " " + name + " /Offline";
+        String sender = null;
+        String msg = null;
+        String newMsg = null;
+        msg = text.substring(0, text.indexOf('['));
+        msg += "GROUP " + text.substring(text.indexOf('@') + 1, text.indexOf(']')); // group name
+        sender = text.substring(text.indexOf('[') + 1, text.indexOf('@'));
+        msg += text.substring(text.indexOf(']') + 1, text.indexOf("->") + 2);  // text
+        msg += " " + name + OFFLINE;
         newMsg = msg.substring(0, msg.length() - 8) + this.getIP();
         userService.updateMessage(sender, msg, newMsg);
     }
@@ -748,12 +938,11 @@ public class ClientRunnable implements Runnable {
      * @param text
      */
     private void updatePrivateSender(String text) {
-        String sender = null, msg = null, newMsg = null;
-        msg = text.substring(0, text.indexOf("["));
+        String msg = text.substring(0, text.indexOf('['));
         msg += "PRIVATE " + name;
-        sender = text.substring(text.indexOf("] ") + 2, text.indexOf(":", text.indexOf(":") + 1));
-        msg += text.substring(text.indexOf(":", text.indexOf(":") + 1) + 1);
-        newMsg = msg.substring(0, msg.length() - 8) + this.getIP();
+        String sender = text.substring(text.indexOf("] ") + 2, text.indexOf(':', text.indexOf(':') + 1));
+        msg += text.substring(text.indexOf(':', text.indexOf(':') + 1) + 1);
+        String newMsg = msg.substring(0, msg.length() - 8) + this.getIP();
         userService.updateMessage(sender, msg, newMsg);
     }
 
@@ -761,18 +950,13 @@ public class ClientRunnable implements Runnable {
     /**
      * @return the IP of this client
      */
-    public String getIP() {
-        return ip;
-    }
+    public String getIP() { return ip; }
 
     /**
      * set the IP of this client
-     * 
      * @param ip
      */
-    public void setIP(String ip) {
-        this.ip = ip;
-    }
+    public void setIP(String ip) { this.ip = ip; }
 
     /**
      * Store the object used by this client runnable to control when it is scheduled
@@ -786,7 +970,12 @@ public class ClientRunnable implements Runnable {
         runnableMe = future;
     }
 
-    private Message addUserToGroup(String groupName) throws JsonProcessingException {
+    /**
+     * Add user to group
+     * @param groupName the name of group
+     * @return message acknowledgement
+     */
+    private Message addUserToGroup(String groupName) {
         Message ackMsg;
         this.initialized = true;
         Group group = groupService.findGroupByName(groupName);

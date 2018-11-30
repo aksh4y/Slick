@@ -65,6 +65,9 @@ public abstract class Prattle {
     /** Delay between times the thread pool runs the client check. */
     private static final int CLIENT_CHECK_DELAY = 200;
 
+    /** Constant for Offline users */
+    private static final String OFFLINE = " /Offline";
+
     /** Collection of threads that are currently being used. */
     private static ConcurrentLinkedQueue<ClientRunnable> active;
 
@@ -79,10 +82,6 @@ public abstract class Prattle {
 
     private static SubpoenaServicePrattle subpoenaService;
 
-    private static LocalDateTime now;
-
-    private static LocalDateTime midnight;
-
     private static Map<String, Subpoena> activeSubpoena;
 
     private static HashSet<String> vulgar;
@@ -96,8 +95,8 @@ public abstract class Prattle {
     /** All of the static initialization occurs in this "method" */
     static {
         // Create the new queue of active threads.
-        active = new ConcurrentLinkedQueue<ClientRunnable>();
-        activeClients = new HashMap<String, ClientRunnable>();
+        active = new ConcurrentLinkedQueue<>();
+        activeClients = new HashMap<>();
         activeSubpoena = new HashMap<>();
         db = MongoConnection.createConnection();
         userService = new UserServicePrattle(db);
@@ -131,19 +130,25 @@ public abstract class Prattle {
             return;
         userService.addToMyMessages(sender, senderIP + " " + msg); // sender's copy
         message.setText(message.getText() + " " + senderIP); 
+        broadcastToAll(message, sbIds);
+    }
+
+
+    /**
+     * Send broadcast msgs to all active clients
+     * @param message
+     * @param sbIds
+     */
+    private static void broadcastToAll(Message message, Set<String> sbIds) {
+        String msg;
         for (ClientRunnable tt : active) { // receiver's copy
             // Do not send the message to any clients that are not ready to receive it.
             if (tt.isInitialized() && !tt.getName().equalsIgnoreCase(message.getName()) && !tt.isSubpoena()) {
                 User u = userService.findUserByUsername(tt.getName());
                 msg = "[BROADCAST] " + message.getName() + ": " + message.getText();
                 if(u!=null){
-                    if (u.getParentalControl()) {
-                        String msgText = message.getText();
-                        userService.addToMyMessages(u, checkVulgar(msg));
-                        Message filtred = Message.makeBroadcastMessage(message.getName(), checkVulgar(msgText));
-                        filtred.setText(checkVulgar(msgText));
-                        tt.enqueueMessage(filtred);
-                    }
+                    if (u.getParentalControl())
+                        handleParental(message, msg, tt, u);
                     else {
                         userService.addToMyMessages(u, msg);
                         tt.enqueueMessage(message);
@@ -152,12 +157,39 @@ public abstract class Prattle {
                 else
                     tt.enqueueMessage(message);
             }
-            if (!sbIds.isEmpty()) {
-                if (tt.isInitialized() && sbIds.contains(tt.getName())) {
-                    tt.enqueueMessage(message);
-                }
-            }
+            broadcastToSubpoena(message, sbIds, tt);
         }
+    }
+
+
+    /**
+     * Broadcast msgs to active subpoenas
+     * @param message
+     * @param sbIds
+     * @param tt
+     */
+    private static void broadcastToSubpoena(Message message, Set<String> sbIds,
+            ClientRunnable tt) {
+        if (!sbIds.isEmpty() && tt.isInitialized() && sbIds.contains(tt.getName())) {
+            tt.enqueueMessage(message);
+        }
+    }
+
+
+    /**
+     * Handle active parental control msgs
+     * @param message
+     * @param msg
+     * @param tt
+     * @param u
+     */
+    private static void handleParental(Message message, String msg,
+            ClientRunnable tt, User u) {
+        String msgText = message.getText();
+        userService.addToMyMessages(u, checkVulgar(msg));
+        Message filtred = Message.makeBroadcastMessage(message.getName(), checkVulgar(msgText));
+        filtred.setText(checkVulgar(msgText));
+        tt.enqueueMessage(filtred);
     }
 
 
@@ -196,9 +228,24 @@ public abstract class Prattle {
             if (recipient.getParentalControl()) {
                 userService.addToUnreadMessages(recipient, checkVulgar(receiverMsg));
             }
-            
+
             userService.addToMyMessages(sender, senderMsg);
         }
+        // Handle active subpoenas
+        handleActiveSubpoenas(receiver, receiverMsg, sbIds, cr);
+    }
+
+
+
+    /**
+     * Handle active subpoenas
+     * @param receiver
+     * @param receiverMsg
+     * @param sbIds
+     * @param cr
+     */
+    private static void handleActiveSubpoenas(String receiver,
+            String receiverMsg, Set<String> sbIds, ClientRunnable cr) {
         // Loop through all of our active subpoenas
         for (String sID : sbIds) {
             ClientRunnable tt = activeClients.get(sID);
@@ -210,7 +257,7 @@ public abstract class Prattle {
                 }
                 subpoenaService.addToSubpoenaMessages(sID, newMsg);
             } else {
-                newMsg += " -> " + receiver + " /Offline";
+                newMsg += " -> " + receiver + OFFLINE;
                 subpoenaService.addToSubpoenaMessages(sID, newMsg);
             }
         }
@@ -230,7 +277,7 @@ public abstract class Prattle {
     public static void broadcastGroupMessage(User sender, Message msg, List<String> listOfUsers, String senderMsg,
             String receiverMsg) {
         Set<String> sbIds = handleSubpoena(msg);
-        for (String user : listOfUsers) {
+        for(String user : listOfUsers) {
             if (user.equals(msg.getName())) // Sender
                 continue;
             User recipient = userService.findUserByUsername(user);
@@ -238,58 +285,101 @@ public abstract class Prattle {
                 continue;
             ClientRunnable cr = activeClients.get(user);
             if (cr != null && cr.isInitialized()) {
-                String newMsg = receiverMsg;
-                newMsg += " -> " + user + " " + cr.getIP();
-                if (recipient.getParentalControl()) {
-                    userService.addToMyMessages(recipient, checkVulgar(newMsg));
-                    String msgText = msg.getText();
-                    Message filtred = Message.makeGroupMessage(msg.getName(), msg.getMsgRecipient(), checkVulgar(msgText));
-                    cr.enqueueMessage(filtred);
-                } else {
-                    userService.addToMyMessages(recipient, newMsg); // recipient's copy
-                    newMsg = senderMsg;
-                    cr.enqueueMessage(msg);
-                }
-                newMsg = senderMsg;
-                newMsg += " -> " + user + " " + cr.getIP();
-                userService.addToMyMessages(sender, newMsg); // sender's copy
+                handleOnlineClient(sender, msg, senderMsg, receiverMsg, user,
+                        recipient, cr);
             } else {
-                String newMsg = senderMsg;
-                newMsg += " -> " + user + " /Offline";
-                userService.addToMyMessages(sender, newMsg);
-                newMsg = receiverMsg;
-                newMsg += " -> " + user + " /Offline";
-                if (recipient.getParentalControl()) {
-                    userService.addToUnreadMessages(recipient, checkVulgar(newMsg));
-                } else {
-                    userService.addToUnreadMessages(recipient, newMsg);
-                }
+                handleOfflineClient(sender, senderMsg, receiverMsg, user,
+                        recipient);
             }
-            // Loop through all of our active subpoenas
-            for (String sID : sbIds) {
-                ClientRunnable tt = activeClients.get(sID);
-                if (cr != null && cr.isInitialized()) {
-                    String newMsg = receiverMsg;
-                    newMsg += " -> " + user + " " + cr.getIP();
-                    if (tt != null && tt.isInitialized()) {
-                        tt.enqueueMessage(Message.makeHistoryMessage(newMsg));
-                    }
-                    subpoenaService.addToSubpoenaMessages(sID, newMsg);
-                } else {
-                    String newMsg = receiverMsg;
-                    newMsg += " -> " + user + " /Offline";
-                    subpoenaService.addToSubpoenaMessages(sID, newMsg);
-                }
-
-            }
-
+            handleActiveSubpoenas(receiverMsg, sbIds, user, cr);
         }
-
     }
 
-    // This method will check if there is subpoena related to that message, if yes
-    // it
-    // return the subpoena id
+    /**
+     * Handle offline clients
+     * @param sender
+     * @param senderMsg
+     * @param receiverMsg
+     * @param user
+     * @param recipient
+     */
+    private static void handleOfflineClient(User sender, String senderMsg,
+            String receiverMsg, String user, User recipient) {
+        String newMsg = senderMsg;
+        newMsg += " -> " + user + OFFLINE;
+        userService.addToMyMessages(sender, newMsg);
+        newMsg = receiverMsg;
+        newMsg += " -> " + user + OFFLINE;
+        if (recipient.getParentalControl()) {
+            userService.addToUnreadMessages(recipient, checkVulgar(newMsg));
+        } else {
+            userService.addToUnreadMessages(recipient, newMsg);
+        }
+    }
+
+    /**
+     * Handle online clients
+     * @param sender
+     * @param msg
+     * @param senderMsg
+     * @param receiverMsg
+     * @param user
+     * @param recipient
+     * @param cr
+     */
+    private static void handleOnlineClient(User sender, Message msg,
+            String senderMsg, String receiverMsg, String user, User recipient,
+            ClientRunnable cr) {
+        String newMsg = receiverMsg;
+        newMsg += " -> " + user + " " + cr.getIP();
+        if (recipient.getParentalControl()) {
+            userService.addToMyMessages(recipient, checkVulgar(newMsg));
+            String msgText = msg.getText();
+            Message filtred = Message.makeGroupMessage(msg.getName(), msg.getMsgRecipient(), checkVulgar(msgText));
+            cr.enqueueMessage(filtred);
+        } else {
+            userService.addToMyMessages(recipient, newMsg); // recipient's copy
+            cr.enqueueMessage(msg);
+        }
+        newMsg = senderMsg;
+        newMsg += " -> " + user + " " + cr.getIP();
+        userService.addToMyMessages(sender, newMsg); // sender's copy
+    }
+
+
+    /**
+     * Handle active subpoenas
+     * @param receiverMsg
+     * @param sbIds
+     * @param user
+     * @param cr
+     */
+    private static void handleActiveSubpoenas(String receiverMsg,
+            Set<String> sbIds, String user, ClientRunnable cr) {
+        // Loop through all of our active subpoenas
+        for (String sID : sbIds) {
+            ClientRunnable tt = activeClients.get(sID);
+            if (cr != null && cr.isInitialized()) {
+                String newMsg = receiverMsg;
+                StringBuilder bld = new StringBuilder();
+                bld.append(newMsg).append(" -> ").append(user).append(" ").append(cr.getIP());
+                newMsg = bld.toString();
+                if (tt != null && tt.isInitialized()) {
+                    tt.enqueueMessage(Message.makeHistoryMessage(newMsg));
+                }
+                subpoenaService.addToSubpoenaMessages(sID, newMsg);
+            } else {
+                String newMsg = receiverMsg;
+                StringBuilder bld = new StringBuilder();
+                bld.append(newMsg).append(" -> ").append(user).append(OFFLINE);
+                newMsg = bld.toString();
+                subpoenaService.addToSubpoenaMessages(sID, newMsg);
+            }
+        }
+    }
+
+    /* This method will check if there is subpoena related to that message, if yes
+     * it return the subpoena id */
     private static Set<String> handleSubpoena(Message msg) {
         Subpoena sb;
         Set<String> sbIds = new HashSet<>();
@@ -322,6 +412,9 @@ public abstract class Prattle {
         return sbIds;
     }
 
+    /**
+     * Create a map of active subpoenas
+     */
     public static void createActiveSubpoenaMap() {
         List<Subpoena> subpoenaList = subpoenaService.getActiveSubpoenas();
         for (Subpoena subpoena : subpoenaList) {
@@ -348,7 +441,6 @@ public abstract class Prattle {
      *             Exception thrown if the server cannot connect to the port to
      *             which it is supposed to listen.
      */
-    @SuppressWarnings("unchecked")
     public static void main(String[] args) throws IOException {
         // Connect to the socket on the appropriate port to which this server connects.
         ServerSocketChannel serverSocket = null;
@@ -366,8 +458,8 @@ public abstract class Prattle {
             // Listen on this port until ...
             done = false;
             while (!done) {
-                now = LocalDateTime.now();
-                midnight = LocalDate.now().atTime(0, 0);
+                LocalDateTime now = LocalDateTime.now();
+                LocalDateTime midnight = LocalDate.now().atTime(0, 0);
                 if (now.isEqual(midnight)) {
                     createActiveSubpoenaMap();
                 }
@@ -386,32 +478,7 @@ public abstract class Prattle {
                         assert key.channel() == serverSocket;
                         // Create a new thread to handle the client for which we just received a
                         // request.
-                        try {
-                            // Accept the connection and create a new thread to handle this client.
-                            SocketChannel socket = serverSocket.accept();
-                            // Make sure we have a connection to work with.
-                            if (socket != null) {
-                                ClientRunnable tt = new ClientRunnable(socket);
-                                // Add the thread to the queue of active threads
-                                String ip = socket.getRemoteAddress().toString();
-                                if (ip == null) { // Not CALEA compliant
-                                    tt.enqueueMessage(Message.makeFailMsg());
-                                    return;
-                                }
-                                tt.setIP(ip);
-                                active.add(tt);
-                                activeClients.put(tt.getName(), tt);
-                                // Have the client executed by our pool of threads.
-                                @SuppressWarnings("rawtypes")
-                                ScheduledFuture clientFuture = threadPool.scheduleAtFixedRate(tt, CLIENT_CHECK_DELAY,
-                                        CLIENT_CHECK_DELAY, TimeUnit.MILLISECONDS);
-                                tt.setFuture(clientFuture);
-                            }
-                        } catch (AssertionError ae) {
-                            LOGGER.log(Level.WARNING, "Caught Assetion: " + ae.toString(), ae);
-                        } catch (Exception e) {
-                            LOGGER.log(Level.WARNING, "Caught Exception: " + e.toString(), e);
-                        }
+                        acceptClientConnection(serverSocket, threadPool);
                     }
                 }
             }
@@ -433,6 +500,42 @@ public abstract class Prattle {
         } finally {
             if (serverSocket != null)
                 serverSocket.close();
+        }
+    }
+
+    /**
+     * Accept client connection
+     * @param serverSocket
+     * @param threadPool
+     */
+    @SuppressWarnings("unchecked")
+    private static void acceptClientConnection(ServerSocketChannel serverSocket,
+            ScheduledExecutorService threadPool) {
+        try {
+            // Accept the connection and create a new thread to handle this client.
+            SocketChannel socket = serverSocket.accept();
+            // Make sure we have a connection to work with.
+            if (socket != null) {
+                ClientRunnable tt = new ClientRunnable(socket);
+                // Add the thread to the queue of active threads
+                String ip = socket.getRemoteAddress().toString();
+                if (ip == null) { // Not CALEA compliant
+                    tt.enqueueMessage(Message.makeFailMsg());
+                    return;
+                }
+                tt.setIP(ip);
+                active.add(tt);
+                activeClients.put(tt.getName(), tt);
+                // Have the client executed by our pool of threads.
+                @SuppressWarnings("rawtypes")
+                ScheduledFuture clientFuture = threadPool.scheduleAtFixedRate(tt, CLIENT_CHECK_DELAY,
+                        CLIENT_CHECK_DELAY, TimeUnit.MILLISECONDS);
+                tt.setFuture(clientFuture);
+            }
+        } catch (AssertionError ae) {
+            LOGGER.log(Level.WARNING, "Caught Assetion: " + ae.toString(), ae);
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Caught Exception: " + e.toString(), e);
         }
     }
 
@@ -485,28 +588,16 @@ public abstract class Prattle {
     }
 
     public static void prepareVulgarMap() {
-        BufferedReader file = null;
-        try {
-            file = new BufferedReader(new FileReader("Pc.txt"));
+        try (BufferedReader file = new BufferedReader(new FileReader("Pc.txt"))) {
             String word = file.readLine();
             while (word != null) {
                 vulgar.add(word);
                 word = file.readLine();
             }
         } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "File not found for parental control", e);
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } finally {
-            try {
-                file.close();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } // close the file
+            LOGGER.log(Level.SEVERE, "IO Exception when trying to read file for parental control", e);
         }
-
     }
 }
