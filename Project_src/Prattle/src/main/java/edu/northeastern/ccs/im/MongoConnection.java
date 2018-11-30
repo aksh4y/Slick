@@ -5,8 +5,8 @@ import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoDatabase;
 
 public class MongoConnection {
-	static final String username = "team203";// username
-	static final String pass = "Oct2018"; // password
+	static final String USERNAME = "team203";// username
+	static final String PASSWORD = "Oct2018"; // password
 	public MongoConnection(){
 		//SonarLint requirement and Test coverage
 	}
@@ -15,7 +15,7 @@ public class MongoConnection {
      *  Mongo client url
      */
 	private static MongoClientURI uri = new MongoClientURI(
-			"mongodb://" + username + ":" + pass + "@ds157843.mlab.com:57843/msd");
+			"mongodb://" + USERNAME + ":" + PASSWORD + "@ds157843.mlab.com:57843/msd");
 
     /**
      * Mongo client
