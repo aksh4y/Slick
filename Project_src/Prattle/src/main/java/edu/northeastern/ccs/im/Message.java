@@ -16,6 +16,7 @@ package edu.northeastern.ccs.im;
  */
 
 public class Message {
+
     /**
      * List of the different possible message types.
      */
@@ -111,7 +112,9 @@ public class Message {
         /** Message for create Subpoena is success */
         SUBPOENA_SUCCESS("SBC"),
         /** Message for create Subpoena is success */
-        SUBPOENA_LOGIN_SUCCESS("SLC");
+        SUBPOENA_LOGIN_SUCCESS("SLC"),
+		/** Message to turn Parental control on and off */
+		PARENTAL_CONTROL("PCR");
 
         /** Store the short name of this message type. */
         private String tla;
@@ -371,9 +374,12 @@ public class Message {
             result = makeSubpoenaSuccess(srcName);
         } else if (handle.compareTo(MessageType.SUBPOENA_LOGIN_SUCCESS.toString()) == 0) {
             result = makeSubpoenaLoginSuccess();
-        } else if(handle.compareTo(MessageType.UID.toString()) == 0) {
+
+        } else if (handle.compareTo(MessageType.PARENTAL_CONTROL.toString()) == 0) {
+			result = makeParentalControlMessage(srcName);
+		} else if(handle.compareTo(MessageType.UID.toString()) == 0) {
             result = makeUID(srcName);
-        }
+    }
         return result;
     }
 
@@ -414,6 +420,16 @@ public class Message {
     private static Message makeMIMEMessage(String srcName, String recipient, String url) {
         return new Message(MessageType.MIME, srcName, recipient, url);
     }
+
+    /**
+	 * Create a new message Parental Control on/off.
+	 * 
+	 * @return Instance of Message.
+	 */
+
+	public static Message makeParentalControlMessage(String t) {
+		return new Message(MessageType.PARENTAL_CONTROL, t);
+	}
 
 
     /**
@@ -877,6 +893,10 @@ public class Message {
     public boolean isUserCreate() {
         return (msgType == MessageType.CREATE_USER);
     }
+
+    public boolean isParentalControl() {
+		return (msgType == MessageType.PARENTAL_CONTROL);
+	}
 
     /**
      * Determine if this message is an Add user To Group message.

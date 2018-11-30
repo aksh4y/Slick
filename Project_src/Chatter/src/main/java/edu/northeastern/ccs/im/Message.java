@@ -7,8 +7,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Base64;
-
 import javax.imageio.ImageIO;
+
 
 /**
  * Each instance of this class represents a single transmission by our IM
@@ -106,6 +106,8 @@ public class Message {
         NOTIFY_PENDING("PEN"),
         /** Send back a UID on message sending */
         UID("UID"),
+        /** Message to turn Parental control on and off */
+        PARENTAL_CONTROL("PCR"),
         RECALL("REC"),
         SEARCH("SCH"),
         /** Message for user Subpoena create messages */
@@ -434,8 +436,8 @@ public class Message {
             result = makeUpdateUserMessage(srcName, text);
         } else if (handle.compareTo(MessageType.HISTORY_MESSAGE.toString()) == 0) {
             result = makeHistoryMessage(srcName);
-        }else if (handle.compareTo(MessageType.NOTIFY_PENDING.toString()) == 0) {		
-            result = makePendingMsgNotif();		
+        }else if (handle.compareTo(MessageType.NOTIFY_PENDING.toString()) == 0) {       
+            result = makePendingMsgNotif();     
         } else if (handle.compareTo(MessageType.SUBPOENA_NO_PRIVILEGE.toString()) == 0) {
             result = makeCreateNoPrivilegeMessage();
         } else if (handle.compareTo(MessageType.SUBPOENA_LOGIN.toString()) == 0) {
@@ -447,6 +449,8 @@ public class Message {
         } else if (handle.compareTo(MessageType.UID.toString()) == 0) {
             System.out.println("Delivered with UID -> " + srcName);
             result = makeUID(srcName);
+        } else if (handle.compareTo(MessageType.PARENTAL_CONTROL.toString()) == 0) {
+            result = makeParentalControlMessage(srcName);
         }
         return result;
     }
@@ -567,13 +571,13 @@ public class Message {
         return new Message(MessageType.USER_WRONG_PASSWORD);
     }
 
-    /**		
-     * Create a new message if pending messages exist		
-     * 		
-     * @return Instance of Message.		
-     */		
-    public static Message makePendingMsgNotif() {		
-        return new Message(MessageType.NOTIFY_PENDING);		
+    /**     
+     * Create a new message if pending messages exist       
+     *      
+     * @return Instance of Message.     
+     */     
+    public static Message makePendingMsgNotif() {       
+        return new Message(MessageType.NOTIFY_PENDING);     
     }
 
     /**
@@ -664,6 +668,16 @@ public class Message {
      */
     public static Message makeLoginFaill() {
         return new Message(MessageType.LOGIN_FAIL);
+    }
+    
+    /**
+     * Create a new message Parental Control on/off.
+     * 
+     * @return Instance of Message.
+     */
+
+    public static Message makeParentalControlMessage(String t) {
+        return new Message(MessageType.PARENTAL_CONTROL, t);
     }
 
     /**
