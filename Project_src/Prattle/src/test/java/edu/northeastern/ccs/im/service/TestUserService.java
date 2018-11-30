@@ -205,7 +205,53 @@ public class TestUserService {
         assertTrue(userService.deleteUser("harry"));
     }
     @Test
-    public void testRecallMessage(){
-
+    public void testRecallMessage() throws JsonProcessingException {
+        if(userService.findUserByUsername("harry")!=null){
+            userService.deleteUser("harry");
+        }
+        if(userService.findUserByUsername("ron")!=null){
+            userService.deleteUser("ron");
+        }
+        if(groupService.findGroupByName("gryffindor")!=null){
+            groupService.deleteGroup("gryffindor");
+        }
+        User user = userService.createUser("harry", "potter");
+        User user2 = userService.createUser("ron", "weasley");
+        Group group = groupService.createGroup("gryffindor");
+        groupService.addUserToGroup(group,user);
+        groupService.addUserToGroup(group,user2);
+        userService.addToMyMessages(user, "1543617897547 /127.0.0.1:52215 PRIVATE ron hey ron /127.0.0.1:52207");
+        userService.addToMyMessages(user, "1543617914550 /127.0.0.1:52215 GROUP gryffindor hey homies -> ron /127.0.0.1:52207");
+        userService.addToMyMessages(user, "1543618034531 /127.0.0.1:52215 PRIVATE ron you're offline /Offline");
+        userService.addToMyMessages(user,"1543618050537 /127.0.0.1:52215 GROUP gryffindor hey offline homies -> ron /Offline");
+        userService.addToMyMessages(user2, "1543617897547 /127.0.0.1:52215 [Private Msg] harry: hey ron /127.0.0.1:52207");
+        userService.addToMyMessages(user2, "1543617914550 /127.0.0.1:52215 [harry@gryffindor] hey homies -> ron /127.0.0.1:52207");
+        userService.addToUnreadMessages(user2,"1543618034531 /127.0.0.1:52215 [Private Msg] harry: you're offline /Offline");
+        userService.addToUnreadMessages(user2,"1543618050537 /127.0.0.1:52215 [harry@gryffindor] hey offline homies -> ron /Offline");
+        userService.recallMessage("1543617897547","user","ron","harry");
+        userService.recallMessage("1543617914550","group","gryffindor","harry");
+        userService.recallMessage("1543618034531","user","ron","harry");
+        userService.recallMessage("1543618050537","group","gryffindor","harry");
+        userService.recallMessage("1543618050537","something","gryffindor","harry");
+        user = userService.findUserByUsername("harry");
+        user2 = userService.findUserByUsername("ron");
+        assertEquals(4, user.getMyMessages().size());
+        assertEquals(2, user2.getMyMessages().size());
+        assertEquals(0, user2.getMyUnreadMessages().size());
+        assertTrue(userService.deleteUser("harry"));
+        assertTrue(userService.deleteUser("ron"));
+        assertTrue(groupService.deleteGroup("gryffindor"));
+    }
+    @Test
+    public void testAdditionalConditions(){
+        User user = new User("who","me");
+        List<String> messages = new ArrayList<>();
+        messages.add("**RECALLED**");
+        assertEquals(0,userService.getMessagesbyReceiver("harry",user).size());
+        assertFalse(userService.isPresentInMessages(user,"harry","user"));
+        assertFalse(userService.isPresentInMessages(user,"harry","group"));
+        assertFalse(userService.isPresentInMessages(user,"harry","some"));
+        user.setMyMessages(messages);
+        assertFalse(userService.isPresentInMessages(user,"harry","user"));
     }
 }
