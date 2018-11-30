@@ -2,9 +2,11 @@
 package edu.northeastern.ccs.im.server;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -18,6 +20,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
@@ -88,8 +91,10 @@ public abstract class Prattle {
     /** Logger */
     private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
 
+    static final Properties prop = new Properties();
+    static InputStream input;
     /** Slack WebHook URL */
-    private static final String SLACK_URL = "https://hooks.slack.com/services/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";
+    private static final String SLACK_URL;
     /** All of the static initialization occurs in this "method" */
     static {
         // Create the new queue of active threads.
@@ -97,6 +102,13 @@ public abstract class Prattle {
         activeClients = new HashMap<>();
         activeSubpoena = new HashMap<>();
         db = MongoConnection.createConnection();
+        try {
+            input = new FileInputStream("config.properties");
+            prop.load(input);
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Could not load config file", e);
+        }
+        SLACK_URL = prop.getProperty("slackURL");
         userService = new UserServicePrattle(db);
         subpoenaService = new SubpoenaServicePrattle(db);
         vulgar = new HashSet<>();

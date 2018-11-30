@@ -1,6 +1,8 @@
 package edu.northeastern.ccs.im;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.channels.SelectionKey;
@@ -8,6 +10,7 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
+import java.util.Properties;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
@@ -31,240 +34,253 @@ import com.github.seratch.jslack.api.webhook.WebhookResponse;
  * @version 1.3
  */
 public class ScanNetNB {
-	private static final int BUFFER_SIZE = 64 * 1024;
+    private static final int BUFFER_SIZE = 64 * 1024;
 
-	private static final int DECIMAL_RADIX = 10;
+    private static final int DECIMAL_RADIX = 10;
 
-	private static final int HANDLE_LENGTH = 3;
+    private static final int HANDLE_LENGTH = 3;
 
-	private static final int MIN_MESSAGE_LENGTH = 7;
+    private static final int MIN_MESSAGE_LENGTH = 7;
 
-	private static final String CHARSET_NAME = "us-ascii";
+    private static final String CHARSET_NAME = "us-ascii";
 
-	private SocketChannel channel;
+    private static final String TRANSFER_ERR_MSG = "Something went wrong during data transfer @ Slick";
 
-	private Selector selector;
+    private static final String INTEGRATION_ERR_MSG = "Slack integration failed!";
 
-	private SelectionKey key;
+    private SocketChannel channel;
 
-	private ByteBuffer buff;
+    private Selector selector;
 
-	private Queue<Message> messages;
+    private SelectionKey key;
 
-	private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
+    private ByteBuffer buff;
 
-	/** Slack WebHook URL */
-	private static final String SLACK_URL = "https://hooks.slack.com/services/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";
+    private Queue<Message> messages;
 
-	/**
-	 * Creates a new instance of this class. Since, by definition, this class takes
-	 * in input from the network, we need to supply the non-blocking Socket instance
-	 * from which we will read.
-	 * 
-	 * @param sockChan
-	 *            Non-blocking SocketChannel from which we will receive
-	 *            communications.
-	 */
-	public ScanNetNB(SocketChannel sockChan) {
-		// Create the queue that will hold the messages received from over the network
-		messages = new ConcurrentLinkedQueue<>();
-		// Allocate the buffer we will use to read data
-		buff = ByteBuffer.allocate(BUFFER_SIZE);
-		// Remember the channel that we will be using.
-		channel = sockChan;
-		try {
-			// Open the selector to handle our non-blocking I/O
-			selector = Selector.open();
-			// Register our channel to receive alerts to complete the connection
-			key = channel.register(selector, SelectionKey.OP_READ);
-		} catch (IOException e) {
-			// Log this exception
-			LOGGER.log(Level.SEVERE, e.toString());
-			Payload payload = Payload.builder().channel("#cs5500-team-203-f18").username("Slick Bot")
-					.iconEmoji(":man-facepalming:").text("Something went wrong during data transfer @ Slick").build();
+    private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
 
-			Slack slack = Slack.getInstance();
-			WebhookResponse response = null;
-			try {
-				response = slack.send(SLACK_URL, payload);
-				if (!response.getMessage().equalsIgnoreCase("OK"))
-	                LOGGER.log(Level.SEVERE, "Slack integration failed!");
-			} catch (IOException e1) {
-				LOGGER.log(Level.SEVERE, "Slack integration failed!");
-			}
-			
-			LOGGER.log(Level.SEVERE, "Something went wrong during data transfer @ Slick");
-			assert false;
-		}
-	}
+    Properties prop = new Properties();
+    InputStream input;
 
-	/**
-	 * Creates a new instance of this class. Since, by definition, this class takes
-	 * in input from the network, we need to supply the non-blocking Socket instance
-	 * from which we will read.
-	 * 
-	 * @param connection
-	 *            Non-blocking Socket instance from which we will receive
-	 *            communications.
-	 */
-	public ScanNetNB(SocketNB connection) {
-		// Get the socket channel from the SocketNB instance and go.
-		this(connection.getSocket());
-	}
+    /** Slack WebHook URL */
+    private static String slackURL;
+    /**
+     * Creates a new instance of this class. Since, by definition, this class takes
+     * in input from the network, we need to supply the non-blocking Socket instance
+     * from which we will read.
+     * 
+     * @param sockChan
+     *            Non-blocking SocketChannel from which we will receive
+     *            communications.
+     */
+    public ScanNetNB(SocketChannel sockChan) {
+        // Create the queue that will hold the messages received from over the network
+        messages = new ConcurrentLinkedQueue<>();
+        // Allocate the buffer we will use to read data
+        buff = ByteBuffer.allocate(BUFFER_SIZE);
+        // Remember the channel that we will be using.
+        channel = sockChan;
+        try {
+            input = new FileInputStream("config.properties");
+            prop.load(input);
+            slackURL = prop.getProperty("slackURL");
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Could not load config file", e);
+        }
 
-	/**
-	 * Read in a new argument from the IM server.
-	 * 
-	 * @param charBuffer
-	 *            Buffer holding text from over the network.
-	 * @return String holding the next argument sent over the network.
-	 */
-	private String readArgument(CharBuffer charBuffer) {
-		// Compute the current position in the buffer
-		int pos = charBuffer.position();
-		// Compute the length of this argument
-		int length = 0;
-		// Track the number of locations visited.
-		int seen = 0;
-		// Assert that this character is a digit representing the length of the first
-		// argument
-		assert Character.isDigit(charBuffer.get(pos));
-		// Now read in the length of the first argument
-		while (Character.isDigit(charBuffer.get(pos))) {
-			// My quick-and-dirty numeric converter
-			length = length * DECIMAL_RADIX;
-			length += Character.digit(charBuffer.get(pos), DECIMAL_RADIX);
-			// Move to the next character
-			pos += 1;
-			seen += 1;
-		}
-		seen += 1;
-		if (length == 0) {
-			// Update our position
-			charBuffer.position(pos);
-			// If the length is 0, this argument is null
-			return null;
-		}
-		String result = charBuffer.subSequence(seen, length + seen).toString();
-		charBuffer.position(pos + length);
-		return result;
-	}
+        try {
+            // Open the selector to handle our non-blocking I/O
+            selector = Selector.open();
+            // Register our channel to receive alerts to complete the connection
+            key = channel.register(selector, SelectionKey.OP_READ);
+        } catch (IOException e) {
+            // Log this exception
+            LOGGER.log(Level.SEVERE, e.toString());
+            Payload payload = Payload.builder().channel("#cs5500-team-203-f18").username("Slick Bot")
+                    .iconEmoji(":man-facepalming:").text(TRANSFER_ERR_MSG).build();
 
-	/**
-	 * Returns true if there is another line of input from this instance. This
-	 * method will NOT block while waiting for input. This class does not advance
-	 * past any input.
-	 * 
-	 * @return True if and only if this instance of the class has another line of
-	 *         input
-	 * @see java.util.Scanner#hasNextLine()
-	 */
-	public boolean hasNextMessage() {
-		// If we have messages waiting for us, return true.
-		if (!messages.isEmpty()) {
-			return true;
-		}
-		try {
-			// Otherwise, check if we can read in at least one new message
-			if (selector.selectNow() != 0) {
-				assert key.isReadable();
-				// Read in the next set of commands from the channel.
-				channel.read(buff);
-				selector.selectedKeys().remove(key);
-				buff.flip();
-			} else {
-				return false;
-			}
-			// Create a decoder which will convert our traffic to something useful
-			Charset charset = Charset.forName(CHARSET_NAME);
-			CharsetDecoder decoder = charset.newDecoder();
-			// Convert the buffer to a format that we can actually use.
-			CharBuffer charBuffer = decoder.decode(buff);
-			// get rid of any extra whitespace at the beginning
-			// Start scanning the buffer for any and all messages.
-			int start = 0;
-			// Scan through the entire buffer; check that we have the minimum message size
-			while ((start + MIN_MESSAGE_LENGTH) <= charBuffer.limit()) {
-				// If this is not the first message, skip extra space.
-				if (start != 0) {
-					charBuffer.position(start);
-				}
-				// First read in the handle
-				final String handle = charBuffer.subSequence(0, HANDLE_LENGTH).toString();
-				// Skip past the handle
-				charBuffer.position(start + HANDLE_LENGTH + 1);
-				// Read the first argument containing the sender's name
-				final String sender = readArgument(charBuffer);
-				// Skip past the leading space
-				charBuffer.position(charBuffer.position() + 2);
-				// Read in the second argument containing the message
-				// Add this message into our queue
-				Message newMsg;
-				if (handle.equals("PRI") || handle.equals("GRP") || handle.equals("MIM") || handle.equals("SUN")
-						|| handle.equals("SGN") || handle.equals("SCH") || handle.equals("REC")){ // Private or Group
-					// Read in the second argument containing the message
-					final String reciever = readArgument(charBuffer);
-					charBuffer.position(charBuffer.position() + 2);
-					// Read in the second argument containing the message
-					final String message = readArgument(charBuffer);
-					newMsg = Message.makeMessage(handle, sender, reciever, message);
-				} else {
-					final String message = readArgument(charBuffer);
-					newMsg = Message.makeMessage(handle, sender, message);
-				}
-				messages.add(newMsg);
-				// And move the position to the start of the next character
-				start = charBuffer.position() + 1;
-			}
-			// Move any read messages out of the buffer so that we can add to the end.
-			buff.position(start);
-			// Move all of the remaining data to the start of the buffer.
-			buff.compact();
-		} catch (IOException ioe) {
-			Payload payload = Payload.builder().channel("#cs5500-team-203-f18").username("Slick Bot")
-					.iconEmoji(":man-facepalming:").text("Something went wrong during reading a message @ Slick")
-					.build();
+            Slack slack = Slack.getInstance();
+            WebhookResponse response = null;
+            try {
+                response = slack.send(slackURL, payload);
+                if (!response.getMessage().equalsIgnoreCase("OK"))
+                    LOGGER.log(Level.SEVERE, INTEGRATION_ERR_MSG);
+            } catch (IOException e1) {
+                LOGGER.log(Level.SEVERE, INTEGRATION_ERR_MSG);
+            }
 
-			Slack slack = Slack.getInstance();
-			WebhookResponse response = null;
-			try {
-				response = slack.send(SLACK_URL, payload);
-				if (!response.getMessage().equalsIgnoreCase("OK"))
-	                LOGGER.log(Level.SEVERE, "Slack integration failed!");
-			} catch (IOException e1) {
-				LOGGER.log(Level.SEVERE, "Slack integration failed!");
-			}
-			LOGGER.log(Level.SEVERE, "Something went wrong during reading a message @ Slick");
-			assert false;
-		}
-		// Do we now have any messages?
-		return !messages.isEmpty();
-	}
+            LOGGER.log(Level.SEVERE, TRANSFER_ERR_MSG);
+            assert false;
+        }
+    }
 
-	/**
-	 * Advances past the current line and returns the line that was read. This
-	 * method returns the rest of the current line, excluding any line separator at
-	 * the end. The position in the input is set to the beginning of the next line.
-	 * 
-	 * @throws NextDoesNotExistException
-	 *             Exception thrown when hasNextLine returns false.
-	 * @return String containing the line that was skipped
-	 * @see java.util.Scanner#nextLine()
-	 */
-	public Message nextMessage() {
-		if (messages.isEmpty()) {
-			throw new NextDoesNotExistException("No next line has been typed in at the keyboard");
-		}
-		Message msg = messages.remove();
-		return msg;
-	}
+    /**
+     * Creates a new instance of this class. Since, by definition, this class takes
+     * in input from the network, we need to supply the non-blocking Socket instance
+     * from which we will read.
+     * 
+     * @param connection
+     *            Non-blocking Socket instance from which we will receive
+     *            communications.
+     */
+    public ScanNetNB(SocketNB connection) {
+        // Get the socket channel from the SocketNB instance and go.
+        this(connection.getSocket());
+    }
 
-	public void close() {
-		try {
-			selector.close();
-		} catch (IOException e) {
-			LOGGER.log(Level.WARNING, e.toString());
-			assert false;
-		}
-	}
+    /**
+     * Read in a new argument from the IM server.
+     * 
+     * @param charBuffer
+     *            Buffer holding text from over the network.
+     * @return String holding the next argument sent over the network.
+     */
+    private String readArgument(CharBuffer charBuffer) {
+        // Compute the current position in the buffer
+        int pos = charBuffer.position();
+        // Compute the length of this argument
+        int length = 0;
+        // Track the number of locations visited.
+        int seen = 0;
+        // Assert that this character is a digit representing the length of the first
+        // argument
+        assert Character.isDigit(charBuffer.get(pos));
+        // Now read in the length of the first argument
+        while (Character.isDigit(charBuffer.get(pos))) {
+            // My quick-and-dirty numeric converter
+            length = length * DECIMAL_RADIX;
+            length += Character.digit(charBuffer.get(pos), DECIMAL_RADIX);
+            // Move to the next character
+            pos += 1;
+            seen += 1;
+        }
+        seen += 1;
+        if (length == 0) {
+            // Update our position
+            charBuffer.position(pos);
+            // If the length is 0, this argument is null
+            return null;
+        }
+        String result = charBuffer.subSequence(seen, length + seen).toString();
+        charBuffer.position(pos + length);
+        return result;
+    }
+
+    /**
+     * Returns true if there is another line of input from this instance. This
+     * method will NOT block while waiting for input. This class does not advance
+     * past any input.
+     * 
+     * @return True if and only if this instance of the class has another line of
+     *         input
+     * @see java.util.Scanner#hasNextLine()
+     */
+    public boolean hasNextMessage() {
+        // If we have messages waiting for us, return true.
+        if (!messages.isEmpty()) {
+            return true;
+        }
+        try {
+            // Otherwise, check if we can read in at least one new message
+            if (selector.selectNow() != 0) {
+                assert key.isReadable();
+                // Read in the next set of commands from the channel.
+                channel.read(buff);
+                selector.selectedKeys().remove(key);
+                buff.flip();
+            } else {
+                return false;
+            }
+            // Create a decoder which will convert our traffic to something useful
+            Charset charset = Charset.forName(CHARSET_NAME);
+            CharsetDecoder decoder = charset.newDecoder();
+            // Convert the buffer to a format that we can actually use.
+            CharBuffer charBuffer = decoder.decode(buff);
+            // get rid of any extra whitespace at the beginning
+            // Start scanning the buffer for any and all messages.
+            int start = 0;
+            // Scan through the entire buffer; check that we have the minimum message size
+            while ((start + MIN_MESSAGE_LENGTH) <= charBuffer.limit()) {
+                // If this is not the first message, skip extra space.
+                if (start != 0) {
+                    charBuffer.position(start);
+                }
+                // First read in the handle
+                final String handle = charBuffer.subSequence(0, HANDLE_LENGTH).toString();
+                // Skip past the handle
+                charBuffer.position(start + HANDLE_LENGTH + 1);
+                // Read the first argument containing the sender's name
+                final String sender = readArgument(charBuffer);
+                // Skip past the leading space
+                charBuffer.position(charBuffer.position() + 2);
+                // Read in the second argument containing the message
+                // Add this message into our queue
+                Message newMsg;
+                if (handle.equals("PRI") || handle.equals("GRP") || handle.equals("MIM") || handle.equals("SUN")
+                        || handle.equals("SGN") || handle.equals("SCH") || handle.equals("REC")){ // Private or Group
+                    // Read in the second argument containing the message
+                    final String reciever = readArgument(charBuffer);
+                    charBuffer.position(charBuffer.position() + 2);
+                    // Read in the second argument containing the message
+                    final String message = readArgument(charBuffer);
+                    newMsg = Message.makeMessage(handle, sender, reciever, message);
+                } else {
+                    final String message = readArgument(charBuffer);
+                    newMsg = Message.makeMessage(handle, sender, message);
+                }
+                messages.add(newMsg);
+                // And move the position to the start of the next character
+                start = charBuffer.position() + 1;
+            }
+            // Move any read messages out of the buffer so that we can add to the end.
+            buff.position(start);
+            // Move all of the remaining data to the start of the buffer.
+            buff.compact();
+        } catch (IOException ioe) {
+            Payload payload = Payload.builder().channel("#cs5500-team-203-f18").username("Slick Bot")
+                    .iconEmoji(":man-facepalming:").text(TRANSFER_ERR_MSG)
+                    .build();
+
+            Slack slack = Slack.getInstance();
+            WebhookResponse response = null;
+            try {
+                response = slack.send(slackURL, payload);
+                if (!response.getMessage().equalsIgnoreCase("OK"))
+                    LOGGER.log(Level.SEVERE, INTEGRATION_ERR_MSG);
+            } catch (IOException e1) {
+                LOGGER.log(Level.SEVERE, INTEGRATION_ERR_MSG);
+            }
+            LOGGER.log(Level.SEVERE, TRANSFER_ERR_MSG);
+            assert false;
+        }
+        // Do we now have any messages?
+        return !messages.isEmpty();
+    }
+
+    /**
+     * Advances past the current line and returns the line that was read. This
+     * method returns the rest of the current line, excluding any line separator at
+     * the end. The position in the input is set to the beginning of the next line.
+     * 
+     * @throws NextDoesNotExistException
+     *             Exception thrown when hasNextLine returns false.
+     * @return String containing the line that was skipped
+     * @see java.util.Scanner#nextLine()
+     */
+    public Message nextMessage() {
+        if (messages.isEmpty()) {
+            throw new NextDoesNotExistException("No next line has been typed in at the keyboard");
+        }
+        return messages.remove();
+    }
+
+    public void close() {
+        try {
+            selector.close();
+        } catch (IOException e) {
+            LOGGER.log(Level.WARNING, e.toString());
+            assert false;
+        }
+    }
 }

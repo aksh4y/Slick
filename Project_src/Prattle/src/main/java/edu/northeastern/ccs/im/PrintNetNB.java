@@ -1,8 +1,11 @@
 package edu.northeastern.ccs.im;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -36,8 +39,14 @@ public class PrintNetNB {
 	 */
 	private static final int MAXIMUM_TRIES_SENDING = 100;
 	
+	private static final String TRANSFER_ERR_MSG = "Something went wrong during data transfer @ Slick";
+	
+	private static final String INTEGRATION_ERR_MSG = "Slack integration failed!";
+	
+	Properties prop = new Properties();
+	InputStream input;
 	/** Slack WebHook URL */
-	private static final String SLACK_URL = "https://hooks.slack.com/services/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";
+	private String slackURL;
 
 	/**
 	 * Creates a new instance of this class. Since, by definition, this class sends
@@ -50,6 +59,13 @@ public class PrintNetNB {
 	public PrintNetNB(SocketChannel sockChan) {
 		// Remember the channel that we will be using.
 		channel = sockChan;
+		try {
+            input = new FileInputStream("config.properties");
+            prop.load(input);
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Could not load config file", e);
+        }
+        slackURL = prop.getProperty("slackURL");
 	}
 
 	/**
@@ -89,19 +105,19 @@ public class PrintNetNB {
                         .channel("#cs5500-team-203-f18")
                         .username("Slick Bot")
                         .iconEmoji(":man-facepalming:")
-                        .text("Something went wrong during data transfer @ Slick")
+                        .text(TRANSFER_ERR_MSG)
                         .build();
 
                 Slack slack = Slack.getInstance();
                 WebhookResponse response = null;
                 try {
-                    response = slack.send(SLACK_URL, payload);
+                    response = slack.send(slackURL, payload);
                     if(!response.getMessage().equalsIgnoreCase("OK"))
-                        LOGGER.log(Level.SEVERE, "Slack integration failed!");
+                        LOGGER.log(Level.SEVERE, INTEGRATION_ERR_MSG);
                 } catch (IOException e1) {
-                    LOGGER.log(Level.SEVERE, "Slack integration failed!");
+                    LOGGER.log(Level.SEVERE, INTEGRATION_ERR_MSG);
                 }
-                LOGGER.log(Level.SEVERE, "Something went wrong during data transfer @ Slick");
+                LOGGER.log(Level.SEVERE, TRANSFER_ERR_MSG);
 				return false;
 			}
 		}
@@ -112,19 +128,19 @@ public class PrintNetNB {
                      .channel("#cs5500-team-203-f18")
                      .username("Slick Bot")
                      .iconEmoji(":man-facepalming:")
-                     .text("Something went wrong during data transfer @ Slick")
+                     .text(TRANSFER_ERR_MSG)
                      .build();
 
              Slack slack = Slack.getInstance();
              WebhookResponse response = null;
              try {
-                 response = slack.send(SLACK_URL, payload);
+                 response = slack.send(slackURL, payload);
                  if(!response.getMessage().equalsIgnoreCase("OK"))
-                     LOGGER.log(Level.SEVERE, "Slack integration failed!");
+                     LOGGER.log(Level.SEVERE, INTEGRATION_ERR_MSG);
              } catch (IOException e1) {
-                 LOGGER.log(Level.SEVERE, "Slack integration failed!");
+                 LOGGER.log(Level.SEVERE, INTEGRATION_ERR_MSG);
              }
-             LOGGER.log(Level.SEVERE, "Something went wrong during data transfer @ Slick");
+             LOGGER.log(Level.SEVERE, TRANSFER_ERR_MSG);
              return false;
          }
 		return true;
