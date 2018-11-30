@@ -266,7 +266,7 @@ public final class SocketNB {
                     System.out.println("Success");
                 }
                 if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.HISTORY_MESSAGE) {
-                    MessagePrinter.printMessage(newMsg.getSender());
+                    //MessagePrinter.printMessage(newMsg.getSender());
                 }
                 if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.NOTIFY_PENDING) {
                     System.out.println("\u001B[33m--------YOU HAVE UNREAD MESSAGES--------\u001B[0m");

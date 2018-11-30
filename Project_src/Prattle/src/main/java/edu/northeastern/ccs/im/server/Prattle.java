@@ -55,7 +55,6 @@ import edu.northeastern.ccs.im.service.UserServicePrattle;
  */
 
 public abstract class Prattle {
-
     /** Amount of time we should wait for a signal to arrive. */
     private static final int DELAY_IN_MS = 50;
 
@@ -85,7 +84,6 @@ public abstract class Prattle {
     private static Map<String, Subpoena> activeSubpoena;
 
     private static HashSet<String> vulgar;
-
 
     /** Logger */
     private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
@@ -129,70 +127,70 @@ public abstract class Prattle {
         if (senderIP == null) // Not CALEA compliant
             return;
         userService.addToMyMessages(sender, senderIP + " " + msg); // sender's copy
-        message.setText(message.getText() + " " + senderIP); 
+        message.setText(message.getText() + " " + senderIP);
         broadcastToAll(message, sbIds);
     }
 
-
     /**
      * Send broadcast msgs to all active clients
+     * 
      * @param message
      * @param sbIds
      */
     private static void broadcastToAll(Message message, Set<String> sbIds) {
         String msg;
+        msg = "[BROADCAST] " + message.getName() + ": " + message.getText();
         for (ClientRunnable tt : active) { // receiver's copy
             // Do not send the message to any clients that are not ready to receive it.
             if (tt.isInitialized() && !tt.getName().equalsIgnoreCase(message.getName()) && !tt.isSubpoena()) {
                 User u = userService.findUserByUsername(tt.getName());
-                msg = "[BROADCAST] " + message.getName() + ": " + message.getText();
-                if(u!=null){
+                if (u != null) {
                     if (u.getParentalControl())
                         handleParental(message, msg, tt, u);
                     else {
                         userService.addToMyMessages(u, msg);
                         tt.enqueueMessage(message);
                     }
-                }
-                else
+                } else
                     tt.enqueueMessage(message);
             }
-            broadcastToSubpoena(message, sbIds, tt);
         }
+        broadcastToSubpoena(msg, sbIds);
     }
-
 
     /**
      * Broadcast msgs to active subpoenas
+     * 
      * @param message
      * @param sbIds
      * @param tt
      */
-    private static void broadcastToSubpoena(Message message, Set<String> sbIds,
-            ClientRunnable tt) {
-        if (!sbIds.isEmpty() && tt.isInitialized() && sbIds.contains(tt.getName())) {
-            tt.enqueueMessage(message);
+    private static void broadcastToSubpoena(String msg, Set<String> sbIds) {
+        for (String sID : sbIds) {
+            ClientRunnable tt = activeClients.get(sID);
+            if ( tt!= null && tt.isInitialized()) {
+                tt.enqueueMessage(Message.makeHistoryMessage(msg));
+            }
+            subpoenaService.addToSubpoenaMessages(sID, msg);
         }
-    }
 
+    }
 
     /**
      * Handle active parental control msgs
+     * 
      * @param message
      * @param msg
      * @param tt
      * @param u
      */
-    private static void handleParental(Message message, String msg,
-            ClientRunnable tt, User u) {
+    private static void handleParental(Message message, String msg, ClientRunnable tt, User u) {
         String msgText = message.getText();
         userService.addToMyMessages(u, checkVulgar(msg));
         Message filtred = Message.makeBroadcastMessage(message.getName(), checkVulgar(msgText));
         filtred.setText(checkVulgar(msgText));
         tt.enqueueMessage(filtred);
     }
-
-
 
     /**
      * Broadcast a given private message to all the other given receiver handle
@@ -225,9 +223,11 @@ public abstract class Prattle {
             newMsg += " " + cr.getIP();
             userService.addToMyMessages(sender, newMsg);
         } else {
-            if (recipient.getParentalControl()) {
+            if (recipient.getParentalControl())
                 userService.addToUnreadMessages(recipient, checkVulgar(receiverMsg));
-            }
+            else
+                userService.addToUnreadMessages(recipient, receiverMsg);
+
 
             userService.addToMyMessages(sender, senderMsg);
         }
@@ -235,17 +235,16 @@ public abstract class Prattle {
         handleActiveSubpoenas(receiver, receiverMsg, sbIds, cr);
     }
 
-
-
     /**
      * Handle active subpoenas
+     * 
      * @param receiver
      * @param receiverMsg
      * @param sbIds
      * @param cr
      */
-    private static void handleActiveSubpoenas(String receiver,
-            String receiverMsg, Set<String> sbIds, ClientRunnable cr) {
+    private static void handleActiveSubpoenas(String receiver, String receiverMsg, Set<String> sbIds,
+            ClientRunnable cr) {
         // Loop through all of our active subpoenas
         for (String sID : sbIds) {
             ClientRunnable tt = activeClients.get(sID);
@@ -258,11 +257,13 @@ public abstract class Prattle {
                 subpoenaService.addToSubpoenaMessages(sID, newMsg);
             } else {
                 newMsg += " -> " + receiver + OFFLINE;
+                if (tt != null && tt.isInitialized()) {
+                    tt.enqueueMessage(Message.makeHistoryMessage(newMsg));
+                }
                 subpoenaService.addToSubpoenaMessages(sID, newMsg);
             }
         }
     }
-
 
     /**
      * Send group message to all group members
@@ -277,7 +278,7 @@ public abstract class Prattle {
     public static void broadcastGroupMessage(User sender, Message msg, List<String> listOfUsers, String senderMsg,
             String receiverMsg) {
         Set<String> sbIds = handleSubpoena(msg);
-        for(String user : listOfUsers) {
+        for (String user : listOfUsers) {
             if (user.equals(msg.getName())) // Sender
                 continue;
             User recipient = userService.findUserByUsername(user);
@@ -285,11 +286,9 @@ public abstract class Prattle {
                 continue;
             ClientRunnable cr = activeClients.get(user);
             if (cr != null && cr.isInitialized()) {
-                handleOnlineClient(sender, msg, senderMsg, receiverMsg, user,
-                        recipient, cr);
+                handleOnlineClient(sender, msg, senderMsg, receiverMsg, user, recipient, cr);
             } else {
-                handleOfflineClient(sender, senderMsg, receiverMsg, user,
-                        recipient);
+                handleOfflineClient(sender, senderMsg, receiverMsg, user, recipient);
             }
             handleActiveSubpoenas(receiverMsg, sbIds, user, cr);
         }
@@ -297,14 +296,15 @@ public abstract class Prattle {
 
     /**
      * Handle offline clients
+     * 
      * @param sender
      * @param senderMsg
      * @param receiverMsg
      * @param user
      * @param recipient
      */
-    private static void handleOfflineClient(User sender, String senderMsg,
-            String receiverMsg, String user, User recipient) {
+    private static void handleOfflineClient(User sender, String senderMsg, String receiverMsg, String user,
+            User recipient) {
         String newMsg = senderMsg;
         newMsg += " -> " + user + OFFLINE;
         userService.addToMyMessages(sender, newMsg);
@@ -319,6 +319,7 @@ public abstract class Prattle {
 
     /**
      * Handle online clients
+     * 
      * @param sender
      * @param msg
      * @param senderMsg
@@ -327,9 +328,8 @@ public abstract class Prattle {
      * @param recipient
      * @param cr
      */
-    private static void handleOnlineClient(User sender, Message msg,
-            String senderMsg, String receiverMsg, String user, User recipient,
-            ClientRunnable cr) {
+    private static void handleOnlineClient(User sender, Message msg, String senderMsg, String receiverMsg, String user,
+            User recipient, ClientRunnable cr) {
         String newMsg = receiverMsg;
         newMsg += " -> " + user + " " + cr.getIP();
         if (recipient.getParentalControl()) {
@@ -346,16 +346,15 @@ public abstract class Prattle {
         userService.addToMyMessages(sender, newMsg); // sender's copy
     }
 
-
     /**
      * Handle active subpoenas
+     * 
      * @param receiverMsg
      * @param sbIds
      * @param user
      * @param cr
      */
-    private static void handleActiveSubpoenas(String receiverMsg,
-            Set<String> sbIds, String user, ClientRunnable cr) {
+    private static void handleActiveSubpoenas(String receiverMsg, Set<String> sbIds, String user, ClientRunnable cr) {
         // Loop through all of our active subpoenas
         for (String sID : sbIds) {
             ClientRunnable tt = activeClients.get(sID);
@@ -373,13 +372,18 @@ public abstract class Prattle {
                 StringBuilder bld = new StringBuilder();
                 bld.append(newMsg).append(" -> ").append(user).append(OFFLINE);
                 newMsg = bld.toString();
+                if (tt != null && tt.isInitialized()) {
+                    tt.enqueueMessage(Message.makeHistoryMessage(newMsg));
+                }
                 subpoenaService.addToSubpoenaMessages(sID, newMsg);
             }
         }
     }
 
-    /* This method will check if there is subpoena related to that message, if yes
-     * it return the subpoena id */
+    /*
+     * This method will check if there is subpoena related to that message, if yes
+     * it return the subpoena id
+     */
     private static Set<String> handleSubpoena(Message msg) {
         Subpoena sb;
         Set<String> sbIds = new HashSet<>();
@@ -505,12 +509,12 @@ public abstract class Prattle {
 
     /**
      * Accept client connection
+     * 
      * @param serverSocket
      * @param threadPool
      */
     @SuppressWarnings("unchecked")
-    private static void acceptClientConnection(ServerSocketChannel serverSocket,
-            ScheduledExecutorService threadPool) {
+    private static void acceptClientConnection(ServerSocketChannel serverSocket, ScheduledExecutorService threadPool) {
         try {
             // Accept the connection and create a new thread to handle this client.
             SocketChannel socket = serverSocket.accept();
@@ -574,7 +578,6 @@ public abstract class Prattle {
     public static void addToActiveClients(String name, ClientRunnable clientRunnable) {
         activeClients.put(name, clientRunnable);
     }
-
 
     /** Check each message for flagging */
     private static String checkVulgar(String line) {
