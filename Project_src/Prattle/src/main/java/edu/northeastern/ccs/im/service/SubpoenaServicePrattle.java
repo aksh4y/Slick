@@ -107,13 +107,7 @@ public class SubpoenaServicePrattle {
      * @return list of active subpoenas
      */
     public List<Subpoena> getActiveSubpoenas() {
-        List<Subpoena> listOfActiveSubpoenas = new ArrayList<Subpoena>();
-//        BasicDBObject query = new BasicDBObject();
-//        query.put("startDate",
-//                new BasicDBObject("$lte", LocalDate.now()));
-//        query.put("endDate",
-//                new BasicDBObject("gte",LocalDate.now()));
-
+        List<Subpoena> listOfActiveSubpoenas = new ArrayList<>();
         FindIterable<Document> activeSubpoenas = scol.find();
         for(Document doc: activeSubpoenas) {
             LocalDate startDate = gson.fromJson(gson.toJson(doc.get("startDate")), LocalDate.class);
@@ -154,6 +148,5 @@ public class SubpoenaServicePrattle {
     public boolean deleteSubpoena(String id){
         DeleteResult deleteResult = scol.deleteOne(Filters.eq("_id",new ObjectId(id)));
         return deleteResult.getDeletedCount() == 1;
-
     }
 }

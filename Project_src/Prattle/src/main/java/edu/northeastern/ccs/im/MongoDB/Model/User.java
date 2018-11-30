@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * The type User.
  *
  * @author Peter
  * @version 1.0
@@ -23,8 +24,8 @@ public class User {
     private Boolean parentalControl;
 
 
-
     /**
+     * Instantiates a new User.
      *
      * @param username username for the user
      * @param password password for the user
@@ -39,6 +40,7 @@ public class User {
     }
 
     /**
+     * Gets id.
      *
      * @return id of the user
      */
@@ -46,7 +48,8 @@ public class User {
         return id;
     }
 
-    /**git
+    /**
+     * git
      *
      * @param id int id to set for the user
      */
@@ -55,6 +58,7 @@ public class User {
     }
 
     /**
+     * Gets username.
      *
      * @return username for the user
      */
@@ -63,6 +67,7 @@ public class User {
     }
 
     /**
+     * Sets username.
      *
      * @param username String username for the user
      */
@@ -71,6 +76,7 @@ public class User {
     }
 
     /**
+     * Gets password.
      *
      * @return String password for the user
      */
@@ -79,6 +85,7 @@ public class User {
     }
 
     /**
+     * Sets password.
      *
      * @param password String to set as password
      */
@@ -87,6 +94,7 @@ public class User {
     }
 
     /**
+     * Gets list of groups.
      *
      * @return list of groups the user belongs to
      */
@@ -94,26 +102,56 @@ public class User {
         return listOfGroups;
     }
 
+    /**
+     * Gets my messages.
+     *
+     * @return the my messages
+     */
     public List<String> getMyMessages() {
         return myMessages;
     }
 
+    /**
+     * Sets my messages.
+     *
+     * @param myMessages the my messages
+     */
     public void setMyMessages(List<String> myMessages) {
         this.myMessages = myMessages;
     }
 
+    /**
+     * Gets my unread messages.
+     *
+     * @return the my unread messages
+     */
     public List<String> getMyUnreadMessages() {
         return myUnreadMessages;
     }
 
+    /**
+     * Sets my unread messages.
+     *
+     * @param myUnreadMessages the my unread messages
+     */
     public void setMyUnreadMessages(List<String> myUnreadMessages) {
         this.myUnreadMessages = myUnreadMessages;
     }
 
+    /**
+     * Gets parental control.
+     *
+     * @return the parental control
+     */
     public Boolean getParentalControl() {
         return parentalControl;
     }
 
+    /**
+     * Sets parental control.
+     *
+     * @param parentalControl the parental control
+     */
     public void setParentalControl(Boolean parentalControl) {
         this.parentalControl = parentalControl;
     }
