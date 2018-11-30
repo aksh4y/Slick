@@ -1,13 +1,10 @@
 package edu.northeastern.ccs.im.chatter;
 
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.Base64;
-import java.util.HashSet;
 
 import javax.imageio.ImageIO;
 
@@ -77,7 +74,9 @@ public class CommandLineMain {
 										+ "\nCREATE_USER <username> <password>\tLOGIN_USER <username> <password>\n\nUPDATE_PASSWORD <current password> <new password>\t" + ANSI_RED + "DELETE_USER <password>\n\n" + ANSI_RESET
 										+ "PRIVATE <username> <message>\tBROADCAST <message>\tGROUP <group name> <message>\tMIME <username> <file path>\n\n"
 										+ "CREATE_GROUP <group name>\tJOIN_GROUP <group name>\t" + ANSI_RED + "EXIT_GROUP <group name> \tDELETE_GROUP <group name>\n\n" + ANSI_RESET
-										+ "RECALL <message_id> <user/group> <name>\t\tSEARCH <sender/receiver> <name>\n");
+										+ "RECALL <message_id> <user/group> <name>\t\tSEARCH <sender/receiver> <name>\n\n"
+										+ "SUBPOENA <id>\tSUBPOENA_GROUP <group name> <from_date> <to_date>\tSUBPOENA_USER <username> <from_date> <to_date>\n\n"
+										+ "PARENTAL_CONTROL <on/off>\n");
 					} else {
 						// Else, send the text so that it is broadcast to all users
 						// logged in to the IM
