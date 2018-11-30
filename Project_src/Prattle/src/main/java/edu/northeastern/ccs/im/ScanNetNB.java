@@ -228,11 +228,11 @@ public class ScanNetNB {
 			WebhookResponse response = null;
 			try {
 				response = slack.send(SLACK_URL, payload);
+				if (!response.getMessage().equalsIgnoreCase("OK"))
+	                LOGGER.log(Level.SEVERE, "Slack integration failed!");
 			} catch (IOException e1) {
 				LOGGER.log(Level.SEVERE, "Slack integration failed!");
 			}
-			if (!response.getMessage().equalsIgnoreCase("OK"))
-				LOGGER.log(Level.SEVERE, "Slack integration failed!");
 			LOGGER.log(Level.SEVERE, "Something went wrong during reading a message @ Slick");
 			assert false;
 		}
