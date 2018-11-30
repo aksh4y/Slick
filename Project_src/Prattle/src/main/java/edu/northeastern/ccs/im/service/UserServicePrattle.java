@@ -248,14 +248,15 @@ public class UserServicePrattle {
 	}
 	public Boolean isPresentInMessages(User user, String key){
 		for(String message: user.getMyMessages()){
-			if(message.contains(key)){
+			if(message.contains(key) && !message.contains("**RECALLED**")){
 
-				String[] params=message.split(":");
+				String[] params=message.split(" ");
+				String newMessage= params[0]+" "+params[1]+" **RECALLED** "+params[params.length-1];
 				BasicDBObject query = new BasicDBObject();
 				query.put("username", user.getUsername());
 				query.put("myMessages", message);
 				BasicDBObject data = new BasicDBObject();
-				data.put("myMessages.$", params[0]+": **RECALLED** " +params[1]);
+				data.put("myMessages.$", newMessage);
 				BasicDBObject command = new BasicDBObject();
 				command.put("$set", data);
 				UpdateResult updateResult = col.updateOne(query, command);
