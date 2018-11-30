@@ -216,7 +216,7 @@ public class UserServicePrattle {
 		List<String> listOfMessages = new ArrayList<String>();
 		name= name.toLowerCase();
 		for(String message: user.getMyMessages()){
-			if(message.contains("[Private Msg] "+name+":")){
+			if(message.contains("[Private Msg] "+name+":") || (message.contains("["+name+"@"))){
 				listOfMessages.add(message);
 			}
 		}
@@ -228,7 +228,7 @@ public class UserServicePrattle {
 		name= name.toLowerCase();
 		for(String message: user.getMyMessages()){
 
-			if(message.contains("PRIVATE "+name)){
+			if(message.contains("PRIVATE "+name) || message.contains("-> "+name)){
 				listOfMessages.add(message);
 			}
 		}
@@ -251,7 +251,9 @@ public class UserServicePrattle {
 			if(message.contains(key) && !message.contains("**RECALLED**")){
 
 				String[] params=message.split(" ");
-				String newMessage= params[0]+" "+params[1]+" **RECALLED** "+params[params.length-1];
+
+				String newMessage= params[0]+" "+params[1]+" "+params[2]+" "+params[3]+" "+params[4]+" **RECALLED** "+params[params.length-1];
+//						params[0]+" "+params[1]+" **RECALLED** "+params[params.length-1];
 				BasicDBObject query = new BasicDBObject();
 				query.put("username", user.getUsername());
 				query.put("myMessages", message);
