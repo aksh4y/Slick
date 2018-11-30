@@ -157,7 +157,7 @@ public class TestUserService {
 ////    @Test
 //    public void testRecallMessages() throws JsonProcessingException {
 //        if(userService.findUserByUsername("newsender")!=null){
-//            assertTrue(userService.deleteUser("newseder"));
+//            assertTrue(userService.deleteUser("newsender"));
 //        }
 //        if(userService.findUserByUsername("newreceiver")!=null){
 //            assertTrue(userService.deleteUser("newreceiver"));
@@ -182,7 +182,7 @@ public class TestUserService {
 //    @Test
 //    public void testLastSentMessage() throws JsonProcessingException {
 //        if(userService.findUserByUsername("newsender")!=null){
-//            assertTrue(userService.deleteUser("newseder"));
+//            assertTrue(userService.deleteUser("newsender"));
 //        }
 //        if(userService.findUserByUsername("rec")!=null){
 //            assertTrue(userService.deleteUser("rec"));
@@ -213,7 +213,7 @@ public class TestUserService {
 //    @Test
 //    public void testLastGroupMessage() throws JsonProcessingException {
 //        if(userService.findUserByUsername("newsender")!=null){
-//            assertTrue(userService.deleteUser("newseder"));
+//            assertTrue(userService.deleteUser("newsender"));
 //        }
 //        if(userService.findUserByUsername("rec")!=null){
 //            assertTrue(userService.deleteUser("rec"));
@@ -231,4 +231,30 @@ public class TestUserService {
 //        userService.addToMyMessages(rec, "[newsender@newgrouptest] hey everyone");
 //        userService.getLastSentMessage("group","newsender","newgrouptest");
 //    }
+
+    @Test
+    public void testParentalControl() throws JsonProcessingException {
+        if(userService.findUserByUsername("newsender")!=null){
+            assertTrue(userService.deleteUser("newsender"));
+        }
+        User user = userService.createUser("newsender", "newpass");
+        userService.switchParentalControl("newsender");
+        user = userService.findUserByUsername("newsender");
+        assertEquals(true, user.getParentalControl());
+        userService.switchParentalControl("newsender");
+        user = userService.findUserByUsername("newsender");
+        assertEquals(false, user.getParentalControl());
+        assertFalse(userService.updateMessage("newsender","how are","what are"));
+        assertFalse(userService.updateMessage("newsender","what is", "how is"));
+        userService.addToMyMessages(user,"how are");
+        userService.addToUnreadMessages(user,"what is");
+        userService.updateMessage("newsender","how are","what are");
+        userService.updateMessage("newsender","what is", "how is");
+        user = userService.findUserByUsername("newsender");
+        assertEquals("what are",user.getMyMessages().get(0));
+        assertEquals("how is", user.getMyUnreadMessages().get(0));
+        assertEquals(false, userService.updateMessage("someuserthatshouldnotbeinthedatabase",
+                        "anymsg","anyothermsg"));
+        assertTrue(userService.deleteUser("newsender"));
+    }
 }
