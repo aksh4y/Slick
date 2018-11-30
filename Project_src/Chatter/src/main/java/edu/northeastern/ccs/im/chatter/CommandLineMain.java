@@ -11,6 +11,7 @@ import javax.imageio.ImageIO;
 import edu.northeastern.ccs.im.IMConnection;
 import edu.northeastern.ccs.im.KeyboardScanner;
 import edu.northeastern.ccs.im.Message;
+import edu.northeastern.ccs.im.MessagePrinter;
 import edu.northeastern.ccs.im.MessageScanner;
 
 /**
@@ -96,6 +97,12 @@ public class CommandLineMain {
 				Message message = mess.next();
 				if (message.isSubpoenaLoginSuccess())
 					isSubpoena = true;
+				else if(message.isHistoryMessage() && isSubpoena) {
+					System.out.println(message.getSender());
+				}
+				else if(message.isHistoryMessage() && !isSubpoena) {
+					MessagePrinter.printMessage(message.getSender());
+				}
 				else if (message.isLoginSuccess() || message.isCreateSuccess())
 					connect.setUsername(message.getSender());
 				else if (!message.getSender().equals(connect.getUserName())) {
