@@ -2,7 +2,6 @@ package edu.northeastern.ccs.im.server;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -124,7 +123,6 @@ public class ClientRunnableTest {
 		assertTrue((Boolean) broadcastMessageIsSpecial.invoke(client, msg));
 	}
 
-	
 	public void testSubpoenaCreate() throws IOException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
 		SocketNB socket = new SocketNB("127.0.0.1", 4545);
@@ -136,10 +134,12 @@ public class ClientRunnableTest {
 
 		client = new ClientRunnable(sChannel);
 		Class cls = client.getClass();
-		
+
 		Method handleMsgs = cls.getDeclaredMethod("handleMsgs", Message.class);
 		handleMsgs.setAccessible(true);
-		
+		Method handleOtherMsgs = cls.getDeclaredMethod("handleOtherMsgs", Message.class);
+		handleOtherMsgs.setAccessible(true);
+
 		Method createUserSubpoena = cls.getDeclaredMethod("createUserSubpoena", Message.class, LocalDate.class,
 				LocalDate.class, Boolean.class);
 		createUserSubpoena.setAccessible(true);
@@ -165,7 +165,19 @@ public class ClientRunnableTest {
 		createGroupSubpoena.invoke(client, Message.makeCreateGroupSubpoena("nipungroupss", "11-20-2019", "12-20-2019"),
 				fromDate, toDate, true);
 		handleMsgs.invoke(client, Message.makeSubpoenaLogin(msg.getName()));
+		assertTrue(client.isSubpoena());
 		assertTrue(subpoenaService.deleteSubpoena(msg.getName()));
+
+		Message on = Message.makeParentalControlMessage("ON");
+		Message off = Message.makeParentalControlMessage("off");
+		handleMsgs.invoke(client, Message.makeLoginMessage("nipun", "test"));
+		handleOtherMsgs.invoke(client, off);
+		handleOtherMsgs.invoke(client, on);
+		handleOtherMsgs.invoke(client, on);
+		handleOtherMsgs.invoke(client, off);
+
+		client.setName("DUMMYUSER");
+		handleMsgs.invoke(client, Message.makeSubpoenaLogin(msg.getName()));
 
 	}
 
@@ -204,6 +216,7 @@ public class ClientRunnableTest {
 		sendMessage.setAccessible(true);
 		sendMessage.invoke(client, msg);
 		assertTrue((Boolean) messageChecks.invoke(client, msg));
+
 	}
 
 	/*
@@ -449,15 +462,16 @@ public class ClientRunnableTest {
 		client.run();
 		queue.add(correctLoginMessage);
 		client.run();
-		
+
 		testSubpoenaCreate();
 
 		assertTrue(client.isInitialized());
 		queue.add(terminate);
-		Assertions.assertThrows(NullPointerException.class, () -> {
+		try {
 			client.run();
-		});
-
+		} catch (Exception e) {
+			assertTrue(e == e);
+		}
 	}
 
 	/*
@@ -494,6 +508,9 @@ public class ClientRunnableTest {
 
 		handleMsgsMethod.invoke(client, Message.makeLoginMessage("admin", "test"));
 		handleOtherMsgsMethod.invoke(client, Message.makeCreateGroupSubpoena("petergroup", "11-20-2021", "12-20-2019"));
+		handleOtherMsgsMethod.invoke(client, Message.makeSearchMessage("nipun", "peter", "sender"));
+		handleMsgsMethod.invoke(client, Message.makeLoginMessage("peter", "test"));
+		handleMsgsMethod.invoke(client, Message.makeRecallMessage("1543550328118", "user", "akshay"));
 	}
 
 	/*
