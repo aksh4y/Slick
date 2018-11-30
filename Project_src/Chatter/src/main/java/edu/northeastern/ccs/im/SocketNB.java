@@ -278,7 +278,7 @@ public final class SocketNB {
                     System.out.println("You are not allowed to perform this operation");
                 }
                 if (newMsg.isSubpoenaLoginSuccess()) {
-                    MessagePrinter.printMessage("Subpoena Channel Login Success");
+                    System.out.println("Subpoena Channel Login Success");
                 }
 
                 // Now pass this message on to the system.
