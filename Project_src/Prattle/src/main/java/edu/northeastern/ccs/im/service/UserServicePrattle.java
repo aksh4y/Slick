@@ -224,6 +224,7 @@ public class UserServicePrattle {
 	}
 
 	public List<String>  getMessagesbyReceiver(String name,User user){
+
 		List<String> listOfMessages = new ArrayList<String>();
 		name= name.toLowerCase();
 		for(String message: user.getMyMessages()){
