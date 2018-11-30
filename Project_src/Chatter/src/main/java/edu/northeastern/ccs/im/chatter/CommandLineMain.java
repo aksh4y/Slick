@@ -41,8 +41,6 @@ public class CommandLineMain {
 	 *            Command-line arguments which we ignore
 	 */
 	public static void main(String[] args) throws IOException {
-		// HashSet<String> vulgar = new HashSet<>();
-
 		IMConnection connect;
 		do {
 			System.out.println("\t\t\t::Welcome to Slick::");
@@ -75,10 +73,11 @@ public class CommandLineMain {
 				if (!isSubpoena) {
 					if (line.equalsIgnoreCase("HELP")) {
 						System.out.println(
-								"::Use The Following Commands::\nHello\tWTF\tHow are you?\tWhat time is it Mr. Fox?\tWhat is the date?\tWhat time is it?\t/quit\n"
-										+ "\nCREATE_USER <username> <password>\tLOGIN_USER <username> <password>\n\nUPDATE_PASSWORD <current password> <new password>\tDELETE_USER <password>\n\n"
+								"\t\t::Use The Following Commands::\n\nHello\tWTF\tHow are you?\tWhat time is it Mr. Fox?\tWhat is the date?\tWhat time is it?\t" + ANSI_RED +"/quit\n" + ANSI_RESET
+										+ "\nCREATE_USER <username> <password>\tLOGIN_USER <username> <password>\n\nUPDATE_PASSWORD <current password> <new password>\t" + ANSI_RED + "DELETE_USER <password>\n\n" + ANSI_RESET
 										+ "PRIVATE <username> <message>\tBROADCAST <message>\tGROUP <group name> <message>\tMIME <username> <file path>\n\n"
-										+ "CREATE_GROUP <group name>\tJOIN_GROUP <group name>\tEXIT_GROUP <group name> \tDELETE_GROUP <group name>");
+										+ "CREATE_GROUP <group name>\tJOIN_GROUP <group name>\t" + ANSI_RED + "EXIT_GROUP <group name> \tDELETE_GROUP <group name>\n\n" + ANSI_RESET
+										+ "RECALL <message_id> <user/group> <name>\t\tSEARCH <sender/receiver> <name>\n");
 					} else {
 						// Else, send the text so that it is broadcast to all users
 						// logged in to the IM
