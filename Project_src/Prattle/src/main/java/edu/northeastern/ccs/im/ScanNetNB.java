@@ -64,7 +64,7 @@ public class ScanNetNB {
     InputStream input;
 
     /** Slack WebHook URL */
-    private static String slackURL;
+    private String slackURL;
     /**
      * Creates a new instance of this class. Since, by definition, this class takes
      * in input from the network, we need to supply the non-blocking Socket instance
@@ -97,21 +97,26 @@ public class ScanNetNB {
         } catch (IOException e) {
             // Log this exception
             LOGGER.log(Level.SEVERE, e.toString());
-            Payload payload = Payload.builder().channel("#cs5500-team-203-f18").username("Slick Bot")
-                    .iconEmoji(":man-facepalming:").text(TRANSFER_ERR_MSG).build();
-
-            Slack slack = Slack.getInstance();
-            WebhookResponse response = null;
-            try {
-                response = slack.send(slackURL, payload);
-                if (!response.getMessage().equalsIgnoreCase("OK"))
-                    LOGGER.log(Level.SEVERE, INTEGRATION_ERR_MSG);
-            } catch (IOException e1) {
-                LOGGER.log(Level.SEVERE, INTEGRATION_ERR_MSG);
-            }
-
+            notifySlack();
             LOGGER.log(Level.SEVERE, TRANSFER_ERR_MSG);
             assert false;
+        }
+    }
+
+    /**
+     * Notify slack of this error
+     */
+    private void notifySlack() {
+        Payload payload = Payload.builder().channel("#cs5500-team-203-f18").username("Slick Bot")
+                .iconEmoji(":man-facepalming:").text(TRANSFER_ERR_MSG).build();
+        Slack slack = Slack.getInstance();
+        WebhookResponse response = null;
+        try {
+            response = slack.send(slackURL, payload);
+            if (!response.getMessage().equalsIgnoreCase("OK"))
+                LOGGER.log(Level.SEVERE, INTEGRATION_ERR_MSG);
+        } catch (IOException e1) {
+            LOGGER.log(Level.SEVERE, INTEGRATION_ERR_MSG);
         }
     }
 
@@ -238,19 +243,7 @@ public class ScanNetNB {
             // Move all of the remaining data to the start of the buffer.
             buff.compact();
         } catch (IOException ioe) {
-            Payload payload = Payload.builder().channel("#cs5500-team-203-f18").username("Slick Bot")
-                    .iconEmoji(":man-facepalming:").text(TRANSFER_ERR_MSG)
-                    .build();
-
-            Slack slack = Slack.getInstance();
-            WebhookResponse response = null;
-            try {
-                response = slack.send(slackURL, payload);
-                if (!response.getMessage().equalsIgnoreCase("OK"))
-                    LOGGER.log(Level.SEVERE, INTEGRATION_ERR_MSG);
-            } catch (IOException e1) {
-                LOGGER.log(Level.SEVERE, INTEGRATION_ERR_MSG);
-            }
+            notifySlack();
             LOGGER.log(Level.SEVERE, TRANSFER_ERR_MSG);
             assert false;
         }

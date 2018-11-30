@@ -70,6 +70,10 @@ public abstract class Prattle {
     /** Constant for Offline users */
     private static final String OFFLINE = " /Offline";
 
+    private static final String TRANSFER_ERR_MSG = "Something went wrong during data transfer @ Slick";
+
+    private static final String INTEGRATION_ERR_MSG = "Slack integration failed!";
+
     /** Collection of threads that are currently being used. */
     private static ConcurrentLinkedQueue<ClientRunnable> active;
 
@@ -94,7 +98,7 @@ public abstract class Prattle {
     static final Properties prop = new Properties();
     static InputStream input;
     /** Slack WebHook URL */
-    private static final String SLACK_URL;
+    private static String slackURL;
     /** All of the static initialization occurs in this "method" */
     static {
         // Create the new queue of active threads.
@@ -108,7 +112,7 @@ public abstract class Prattle {
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Could not load config file", e);
         }
-        SLACK_URL = prop.getProperty("slackURL");
+        slackURL = prop.getProperty("slackURL");
         userService = new UserServicePrattle(db);
         subpoenaService = new SubpoenaServicePrattle(db);
         vulgar = new HashSet<>();
@@ -291,18 +295,18 @@ public abstract class Prattle {
             String receiverMsg) {
         Set<String> sbIds = handleSubpoena(msg);
         for (String user : listOfUsers) {
-            if (user.equals(msg.getName())) // Sender
-                continue;
-            User recipient = userService.findUserByUsername(user);
-            if (recipient == null)
-                continue;
-            ClientRunnable cr = activeClients.get(user);
-            if (cr != null && cr.isInitialized()) {
-                handleOnlineClient(sender, msg, senderMsg, receiverMsg, user, recipient, cr);
-            } else {
-                handleOfflineClient(sender, senderMsg, receiverMsg, user, recipient);
+            if (!user.equals(msg.getName())) { // Sender
+                User recipient = userService.findUserByUsername(user);
+                if (recipient == null)
+                    continue;
+                ClientRunnable cr = activeClients.get(user);
+                if (cr != null && cr.isInitialized()) {
+                    handleOnlineClient(sender, msg, senderMsg, receiverMsg, user, recipient, cr);
+                } else {
+                    handleOfflineClient(sender, senderMsg, receiverMsg, user, recipient);
+                }
+                handleActiveSubpoenas(receiverMsg, sbIds, user, cr);
             }
-            handleActiveSubpoenas(receiverMsg, sbIds, user, cr);
         }
     }
 
@@ -500,22 +504,27 @@ public abstract class Prattle {
             }
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Exception while trying to open socket: " + e.toString(), e);
-            Payload payload = Payload.builder().channel("#cs5500-team-203-f18").username("Slick Bot")
-                    .iconEmoji(":man-facepalming:").text("Something went wrong during socket connection @ Slick")
-                    .build();
-
-            Slack slack = Slack.getInstance();
-            WebhookResponse response = null;
-            try {
-                response = slack.send(SLACK_URL, payload);
-                if (!response.getMessage().equalsIgnoreCase("OK"))
-                    LOGGER.log(Level.SEVERE, "Slack integration failed!");
-            } catch (IOException e1) {
-                LOGGER.log(Level.SEVERE, "Slack integration failed!");
-            }
+            notifySlack();
         } finally {
             if (serverSocket != null)
                 serverSocket.close();
+        }
+    }
+
+    /**
+     * Notify slack of this error
+     */
+    private static void notifySlack() {
+        Payload payload = Payload.builder().channel("#cs5500-team-203-f18").username("Slick Bot")
+                .iconEmoji(":man-facepalming:").text(TRANSFER_ERR_MSG).build();
+        Slack slack = Slack.getInstance();
+        WebhookResponse response = null;
+        try {
+            response = slack.send(slackURL, payload);
+            if (!response.getMessage().equalsIgnoreCase("OK"))
+                LOGGER.log(Level.SEVERE, INTEGRATION_ERR_MSG);
+        } catch (IOException e1) {
+            LOGGER.log(Level.SEVERE, INTEGRATION_ERR_MSG);
         }
     }
 

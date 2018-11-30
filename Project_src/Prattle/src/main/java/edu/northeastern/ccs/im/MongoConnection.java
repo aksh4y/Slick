@@ -15,9 +15,7 @@ public class MongoConnection {
     static InputStream input;
     static MongoClientURI uri = null;
     static MongoClient client = null;
-    public MongoConnection() {
-        //SonarLint requirement and Test coverage
-    }
+    private MongoConnection() {}
 
     /**
      *

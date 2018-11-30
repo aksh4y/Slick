@@ -12,8 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class TestSubpoenaService {
 
-    MongoConnection mongoConnection = new MongoConnection();
-    private MongoDatabase db = mongoConnection.createConnection();
+    private MongoDatabase db = MongoConnection.createConnection();
     private GroupServicePrattle groupService = new GroupServicePrattle(db);
     private UserServicePrattle userService = new UserServicePrattle(db);
     private SubpoenaServicePrattle subpoenaService = new SubpoenaServicePrattle(db);

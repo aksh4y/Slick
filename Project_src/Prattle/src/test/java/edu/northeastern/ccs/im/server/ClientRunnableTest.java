@@ -40,8 +40,7 @@ public class ClientRunnableTest {
 	ServerSocketChannel serverSocket;
 
 	static PrattleRunabale server;
-	MongoConnection mongoConnection = new MongoConnection();
-	private MongoDatabase db = mongoConnection.createConnection();
+	private MongoDatabase db = MongoConnection.createConnection();
 	private SubpoenaServicePrattle subpoenaService = new SubpoenaServicePrattle(db);
 
 	@BeforeAll
