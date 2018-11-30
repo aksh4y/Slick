@@ -194,9 +194,9 @@ public abstract class Prattle {
             userService.addToMyMessages(sender, newMsg);
         } else {
             if (recipient.getParentalControl()) {
-                receiverMsg = checkVulgar(receiverMsg);
+                userService.addToUnreadMessages(recipient, checkVulgar(receiverMsg));
             }
-            userService.addToUnreadMessages(recipient, receiverMsg);
+            
             userService.addToMyMessages(sender, senderMsg);
         }
         // Loop through all of our active subpoenas
@@ -210,7 +210,7 @@ public abstract class Prattle {
                 }
                 subpoenaService.addToSubpoenaMessages(sID, newMsg);
             } else {
-                newMsg += " -> " + receiver + "/Offline";
+                newMsg += " -> " + receiver + " /Offline";
                 subpoenaService.addToSubpoenaMessages(sID, newMsg);
             }
         }
