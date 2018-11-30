@@ -1,6 +1,9 @@
 
 package edu.northeastern.ccs.im.server;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
@@ -81,6 +84,8 @@ public abstract class Prattle {
 
 	private static Map<String, Subpoena> activeSubpoena;
 
+	private static HashSet<String> vulgar;
+
 	/** Logger */
 	private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
 
@@ -95,7 +100,10 @@ public abstract class Prattle {
 		db = MongoConnection.createConnection();
 		userService = new UserServicePrattle(db);
 		subpoenaService = new SubpoenaServicePrattle(db);
+		vulgar = new HashSet<>();
 		createActiveSubpoenaMap();
+		prepareVulgarMap();
+
 	}
 
 	/**
@@ -127,8 +135,18 @@ public abstract class Prattle {
 			if (tt.isInitialized() && !tt.getName().equalsIgnoreCase(message.getName()) && !tt.isSubpoena()) {
 				User u = userService.findUserByUsername(tt.getName());
 				msg = "[BROADCAST] " + message.getName() + ": " + message.getText();
-				userService.addToMyMessages(u, msg);
-				tt.enqueueMessage(message);
+				if (u.getParentalControl()) {
+					String msgText = message.getText();
+					userService.addToMyMessages(u, checkVulgar(msg));
+					Message filtred = Message.makeBroadcastMessage(message.getName(), checkVulgar(msgText));
+					filtred.setText(checkVulgar(msgText));
+					tt.enqueueMessage(filtred);
+				}
+				else {
+					userService.addToMyMessages(u, msg);
+					tt.enqueueMessage(message);
+				}
+				
 			}
 			if (!sbIds.isEmpty()) {
 				if (tt.isInitialized() && sbIds.contains(tt.getName())) {
@@ -155,28 +173,40 @@ public abstract class Prattle {
 			return;
 		ClientRunnable cr = activeClients.get(receiver);
 		if (cr != null && cr.isInitialized()) {
-			cr.enqueueMessage(message);
+
 			String newMsg = receiverMsg.substring(0, receiverMsg.length() - 9);
 			newMsg += " " + cr.getIP();
+			if (recipient.getParentalControl()) {
+				newMsg = checkVulgar(newMsg);
+				String msgText = message.getText();
+				msgText = checkVulgar(msgText);
+				message.setText(msgText);
+			}
 			userService.addToMyMessages(recipient, newMsg);
+			cr.enqueueMessage(message);
 			newMsg = senderMsg.substring(0, senderMsg.length() - 9);
 			newMsg += " " + cr.getIP();
 			userService.addToMyMessages(sender, newMsg);
-		} else
-			userService.addToUnreadMessages(recipient, receiverMsg);
+		} else if (recipient.getParentalControl()) {
+			receiverMsg = checkVulgar(receiverMsg);
+		}
+		userService.addToUnreadMessages(recipient, receiverMsg);
 
 		// Loop through all of our active subpoenas
 		for (String sID : sbIds) {
 			ClientRunnable tt = activeClients.get(sID);
 			String newMsg = receiverMsg.substring(0, receiverMsg.length() - 9);
 			if (cr != null && cr.isInitialized()) {
-				newMsg += " ->" + receiver + " " + cr.getIP();
+				newMsg += " -> " + receiver + " " + cr.getIP();
 				if (tt != null && tt.isInitialized()) {
 					tt.enqueueMessage(Message.makeHistoryMessage(newMsg));
 				}
 				subpoenaService.addToSubpoenaMessages(sID, newMsg);
 			} else {
-				newMsg += " -> " + receiver + "/Offline";
+				newMsg += " -> " + receiver + " /Offline";
+				if (tt != null && tt.isInitialized()) {
+					tt.enqueueMessage(Message.makeHistoryMessage(newMsg));
+				}
 				subpoenaService.addToSubpoenaMessages(sID, newMsg);
 			}
 
@@ -207,18 +237,31 @@ public abstract class Prattle {
 			if (cr != null && cr.isInitialized()) {
 				String newMsg = receiverMsg;
 				newMsg += " -> " + user + " " + cr.getIP();
-				userService.addToMyMessages(recipient, newMsg); // recipient's copy
-				newMsg = senderMsg;
+				if (recipient.getParentalControl()) {
+					userService.addToMyMessages(recipient, checkVulgar(newMsg));
+					String msgText = msg.getText();
+					 
+					Message filtred = Message.makeGroupMessage(msg.getName(), msg.getMsgRecipient(), checkVulgar(msgText));
+					cr.enqueueMessage(filtred);
+				} else {
+					userService.addToMyMessages(recipient, newMsg); // recipient's copy
+					newMsg = senderMsg;
+					cr.enqueueMessage(msg);
+				}
 				newMsg += " -> " + user + " " + cr.getIP();
 				userService.addToMyMessages(sender, newMsg); // sender's copy
-				cr.enqueueMessage(msg);
+
 			} else {
 				String newMsg = senderMsg;
 				newMsg += " -> " + user + " /Offline";
 				userService.addToMyMessages(sender, newMsg);
 				newMsg = receiverMsg;
 				newMsg += " -> " + user + " /Offline";
-				userService.addToUnreadMessages(recipient, newMsg);
+				if (recipient.getParentalControl()) {
+					userService.addToUnreadMessages(recipient, checkVulgar(newMsg));
+				} else {
+					userService.addToUnreadMessages(recipient, newMsg);
+				}
 			}
 			// Loop through all of our active subpoenas
 			for (String sID : sbIds) {
@@ -233,6 +276,9 @@ public abstract class Prattle {
 				} else {
 					String newMsg = senderMsg;
 					newMsg += " -> " + user + " /Offline";
+					if (tt != null && tt.isInitialized()) {
+						tt.enqueueMessage(Message.makeHistoryMessage(newMsg));
+					}
 					subpoenaService.addToSubpoenaMessages(sID, newMsg);
 				}
 
@@ -425,5 +471,42 @@ public abstract class Prattle {
 
 	public static void addToActiveClients(String name, ClientRunnable clientRunnable) {
 		activeClients.put(name, clientRunnable);
+	}
+
+	/** Check each message for flagging */
+	private static String checkVulgar(String line) {
+			String l = line;
+		for (String s : l.split(" ")) {
+			if (vulgar.contains(s)) {
+				l = line.replaceAll(s, "*****");
+			}
+		}
+		return l;
+	}
+
+	public static void prepareVulgarMap() {
+		BufferedReader file = null;
+		try {
+			file = new BufferedReader(new FileReader("Pc.txt"));
+			String word = file.readLine();
+			while (word != null) {
+				vulgar.add(word);
+				word = file.readLine();
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				file.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} // close the file
+		}
+
 	}
 }

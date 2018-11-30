@@ -533,7 +533,9 @@ public class ClientRunnable implements Runnable {
                                 ackMsg = Message.makeFailMsg();
                         }
                         this.enqueueMessage(ackMsg);
-                    } else if (msg.isRecallMessage()) {
+                    }
+					// Recall
+					else if (msg.isRecallMessage()) {
                         Message ackMsg = null;
                         this.initialized = true;
                         if (msg.getText().equalsIgnoreCase("user")) {
@@ -544,7 +546,9 @@ public class ClientRunnable implements Runnable {
                             ackMsg = Message.makeSuccessMsg();
                         }
                         this.enqueueMessage(ackMsg);
-                    } else if (msg.isSearchMessage()) {
+                    }
+						// Search
+					else if (msg.isSearchMessage()) {
 
                         this.initialized = true;
                         List<String> messages = userService.getMessages(msg.getText(), msg.getMsgRecipient(),
@@ -557,6 +561,21 @@ public class ClientRunnable implements Runnable {
                         }
 
                     }
+					// For Parental Control
+					else if (msg.isParentalControl()) {
+						this.initialized = true;
+						Boolean pc = msg.getName().equalsIgnoreCase("ON");
+						if (user.getParentalControl() != null && pc == user.getParentalControl()) {
+							this.enqueueMessage(Message.makeSuccessMsg());
+						} else {
+							this.user.setParentalControl(pc);
+							if (userService.switchParentalControl(this.user.getUsername()))
+								this.enqueueMessage(Message.makeSuccessMsg());
+							else
+								this.enqueueMessage(Message.makeFailMsg());
+						}
+
+					}
                     // Create Subpoena
                     else if (msg.isUserSubpoena() || msg.isGroupSubpoena()) {
                         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");

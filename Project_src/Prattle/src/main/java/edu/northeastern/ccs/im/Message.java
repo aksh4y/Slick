@@ -99,8 +99,8 @@ public class Message {
 		RECALL("REC"),
 
 		SEARCH("SCH"),
-    /** Notify pending msgs exist */
-    NOTIFY_PENDING("PEN"),
+		/** Notify pending msgs exist */
+		NOTIFY_PENDING("PEN"),
 		/** Message for user Subpoena create messages */
 		USER_SUBPOENA_CREATE("SUN"),
 		/** Message for group Subpoena create messages */
@@ -112,7 +112,9 @@ public class Message {
 		/** Message for create Subpoena is success */
 		SUBPOENA_SUCCESS("SBC"),
 		/** Message for create Subpoena is success */
-		SUBPOENA_LOGIN_SUCCESS("SLC");
+		SUBPOENA_LOGIN_SUCCESS("SLC"),
+		/** Message to turn Parental control on and off */
+		PARENTAL_CONTROL("PCR");
 
 		/** Store the short name of this message type. */
 		private String tla;
@@ -349,9 +351,8 @@ public class Message {
 		} else if (handle.compareTo(MessageType.HISTORY_MESSAGE.toString()) == 0) {
 			result = makeHistoryMessage(srcName);
 		} else if (handle.compareTo(MessageType.NOTIFY_PENDING.toString()) == 0) {
-       result = makePendingMsgNotif();
-    }
-    else if (handle.compareTo(MessageType.SUBPOENA_NO_PRIVILEGE.toString()) == 0) {
+			result = makePendingMsgNotif();
+		} else if (handle.compareTo(MessageType.SUBPOENA_NO_PRIVILEGE.toString()) == 0) {
 			result = makeCreateNoPrivilegeMessage();
 		} else if (handle.compareTo(MessageType.SUBPOENA_LOGIN.toString()) == 0) {
 			result = makeSubpoenaLogin(srcName);
@@ -359,6 +360,8 @@ public class Message {
 			result = makeSubpoenaSuccess(srcName);
 		} else if (handle.compareTo(MessageType.SUBPOENA_LOGIN_SUCCESS.toString()) == 0) {
 			result = makeSubpoenaLoginSuccess();
+		} else if (handle.compareTo(MessageType.PARENTAL_CONTROL.toString()) == 0) {
+			result = makeParentalControlMessage(srcName);
 		}
 		return result;
 
@@ -383,13 +386,13 @@ public class Message {
 		Message result = null;
 		if (handle.compareTo(MessageType.PRIVATE.toString()) == 0)
 			result = makePrivateMessage(srcName, recipient, text);
-		if(handle.compareTo(MessageType.GROUP.toString()) == 0)
-		    result = makeGroupMessage(srcName, recipient, text);
-		if(handle.compareTo(MessageType.MIME.toString()) == 0)
-		    result = makeMIMEMessage(srcName, recipient, text);
-		if(handle.compareTo(MessageType.RECALL.toString()) == 0)
+		if (handle.compareTo(MessageType.GROUP.toString()) == 0)
+			result = makeGroupMessage(srcName, recipient, text);
+		if (handle.compareTo(MessageType.MIME.toString()) == 0)
+			result = makeMIMEMessage(srcName, recipient, text);
+		if (handle.compareTo(MessageType.RECALL.toString()) == 0)
 			result = makeRecallMessage(srcName, recipient, text);
-		if(handle.compareTo(MessageType.SEARCH.toString()) == 0)
+		if (handle.compareTo(MessageType.SEARCH.toString()) == 0)
 			result = makeSearchMessage(srcName, recipient, text);
 		if (handle.compareTo(MessageType.GROUP_SUBPOENA_CREATE.toString()) == 0)
 			result = makeCreateGroupSubpoena(srcName, recipient, text);
@@ -401,8 +404,17 @@ public class Message {
 	private static Message makeMIMEMessage(String srcName, String recipient, String url) {
 		return new Message(MessageType.MIME, srcName, recipient, url);
 	}
-	
-	
+
+	/**
+	 * Create a new message Parental Control on/off.
+	 * 
+	 * @return Instance of Message.
+	 */
+
+	public static Message makeParentalControlMessage(String t) {
+		return new Message(MessageType.PARENTAL_CONTROL, t);
+	}
+
 	/**
 	 * Create a new message Subpoena Login is success.
 	 * 
@@ -509,15 +521,15 @@ public class Message {
 	public static Message makeDeleteUserSuccessMsg() {
 		return new Message(MessageType.DELETE_USER_SUCCESS);
 	}
-  
-  /**		
-	     * Create a new message if pending messages exist		
-	     * 		
-	     * @return Instance of Message.		
-	     */		
-	    public static Message makePendingMsgNotif() {		
-	        return new Message(MessageType.NOTIFY_PENDING);		
-	    }
+
+	/**
+	 * Create a new message if pending messages exist
+	 * 
+	 * @return Instance of Message.
+	 */
+	public static Message makePendingMsgNotif() {
+		return new Message(MessageType.NOTIFY_PENDING);
+	}
 
 	/**
 	 * Create a new message to delete user wrong password message
@@ -887,25 +899,32 @@ public class Message {
 	public boolean isRecallMessage() {
 		return (msgType == MessageType.RECALL);
 	}
+
 	public boolean isSearchMessage() {
 		return (msgType == MessageType.SEARCH);
 	}
-	   /**
-     * Determine if this message is restricted to a group.
-     * 
-     * @return True if the message is a group message; false otherwise.
-     */
-    public boolean isGroupMessage() {
-        return (msgType == MessageType.GROUP);
-    }
-    
-    /**
-     * Determine if this message is of type MIME
-     * @return
-     */
-    public boolean isMIME() {
-        return (msgType == MessageType.MIME);
-    }
+	
+	public boolean isParentalControl() {
+		return (msgType == MessageType.PARENTAL_CONTROL);
+	}
+
+	/**
+	 * Determine if this message is restricted to a group.
+	 * 
+	 * @return True if the message is a group message; false otherwise.
+	 */
+	public boolean isGroupMessage() {
+		return (msgType == MessageType.GROUP);
+	}
+
+	/**
+	 * Determine if this message is of type MIME
+	 * 
+	 * @return
+	 */
+	public boolean isMIME() {
+		return (msgType == MessageType.MIME);
+	}
 
 	/**
 	 * Determine if this message contains text which the recipient should display.
