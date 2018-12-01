@@ -37,21 +37,25 @@ import edu.northeastern.ccs.im.service.SubpoenaServicePrattle;
  */
 public class ClientRunnableTest {
 
-	ClientRunnable client;
+	 ClientRunnable client;
 	ServerSocketChannel serverSocket;
+	
+	 SocketChannel sChannel;
 
 	static PrattleRunabale server;
 	private MongoDatabase db = MongoConnection.createConnection();
 	private SubpoenaServicePrattle subpoenaService = new SubpoenaServicePrattle(db);
 
 	@BeforeAll
-	public static void setUp() {
+	public static void setUp() throws IOException {
 		server = new PrattleRunabale();
 		server.start();
+		
 	}
 
 	@AfterAll
-	public static void stopServer() {
+	public static void stopServer() throws IOException {
+//		socket.close();
 		server.terminate();
 	}
 
@@ -62,8 +66,7 @@ public class ClientRunnableTest {
 	 */
 	@Test
 	public void checkInitialization() throws IOException {
-		SocketNB s = new SocketNB("127.0.0.1", 4545);
-		client = new ClientRunnable(s.getSocket());
+		
 		try {
 			try {
 				client.run();
@@ -85,10 +88,8 @@ public class ClientRunnableTest {
 	@Test
 	public void BroadCastMessageFalseTest() throws IOException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		SocketNB socket = new SocketNB("127.0.0.1", 4545);
-		SocketChannel sChannel;
-		sChannel = socket.getSocket();
 
+		sChannel = SocketChannel.open();
 		client = new ClientRunnable(sChannel);
 		client.setName("Test");
 		Class cls = client.getClass();
@@ -110,10 +111,12 @@ public class ClientRunnableTest {
 	@Test
 	public void BroadCastMessageTest() throws IOException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		SocketNB socket = new SocketNB("127.0.0.1", 4545);
-		SocketChannel sChannel;
-		sChannel = socket.getSocket();
+//		SocketNB socket = new SocketNB("127.0.0.1", 4545);
+//		SocketChannel sChannel;
+//		sChannel = socket.getSocket();
 
+//		client = new ClientRunnable(sChannel);
+		sChannel = SocketChannel.open();
 		client = new ClientRunnable(sChannel);
 		client.setName("Test");
 		Class cls = client.getClass();
@@ -126,9 +129,10 @@ public class ClientRunnableTest {
 	@Test
 	public void testSubpoenaCreate() throws IOException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
-		SocketNB socket = new SocketNB("127.0.0.1", 4545);
-		SocketChannel sChannel;
-		sChannel = socket.getSocket();
+//		SocketNB socket = new SocketNB("127.0.0.1", 4545);
+//		SocketChannel sChannel;
+//		sChannel = socket.getSocket();
+		sChannel = SocketChannel.open();
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");
 		LocalDate fromDate = LocalDate.parse("11-20-2019", formatter);
 		LocalDate toDate = LocalDate.parse("12-20-2019", formatter);
@@ -219,12 +223,11 @@ public class ClientRunnableTest {
 	public void checkMessageTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
 		SocketNB socket = new SocketNB("127.0.0.1", 4545);
-		SocketChannel sChannel;
 		sChannel = socket.getSocket();
+//		sChannel = SocketChannel.open();
+		client = new ClientRunnable(sChannel);
 		Message msg = Message.makeBroadcastMessage("Test", "How are you?");
 		Message nullMsg = Message.makeBroadcastMessage(null, "How are you?");
-
-		client = new ClientRunnable(sChannel);
 		client.setName("Test");
 		Class cls = client.getClass();
 		Field input = cls.getDeclaredField("input");
@@ -256,10 +259,12 @@ public class ClientRunnableTest {
 	@Test
 	public void checkMessageTestFail() throws IOException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		SocketNB socket = new SocketNB("127.0.0.1", 4545);
-		SocketChannel sChannel;
-		sChannel = socket.getSocket();
+//		SocketNB socket = new SocketNB("127.0.0.1", 4545);
+//		SocketChannel sChannel;
+//		sChannel = socket.getSocket();
 
+//		client = new ClientRunnable(sChannel);
+		sChannel = SocketChannel.open();
 		client = new ClientRunnable(sChannel);
 		client.setName("Test");
 		Class cls = client.getClass();
@@ -272,7 +277,7 @@ public class ClientRunnableTest {
 		assertFalse((Boolean) messageChecks.invoke(client, msg));
 		Message msg1 = Message.makeBroadcastMessage(null, "");
 		assertFalse((Boolean) messageChecks.invoke(client, msg1));
-		socket.close();
+//		socket.close();
 	}
 
 	/*
@@ -284,10 +289,12 @@ public class ClientRunnableTest {
 	@Test
 	public void setUserNameTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException {
-		SocketNB socket = new SocketNB("127.0.0.1", 4545);
-		SocketChannel sChannel;
-		sChannel = socket.getSocket();
+//		SocketNB socket = new SocketNB("127.0.0.1", 4545);
+//		SocketChannel sChannel;
+//		sChannel = socket.getSocket();
 
+//		client = new ClientRunnable(sChannel);
+		sChannel = SocketChannel.open();
 		client = new ClientRunnable(sChannel);
 		client.setName("Test");
 		Class cls = client.getClass();
@@ -309,14 +316,15 @@ public class ClientRunnableTest {
 	public void TestForRunIntialized() throws IOException, NoSuchFieldException, SecurityException,
 			IllegalArgumentException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
 		SocketNB socket = new SocketNB("127.0.0.1", 4545);
-		SocketChannel sChannel;
 		sChannel = socket.getSocket();
+//		sChannel = SocketChannel.open();
+		client = new ClientRunnable(sChannel);
 		Message msg = Message.makeBroadcastMessage("Test", "How are you?");
 		Message nonSpeacialBroadMsg = Message.makeBroadcastMessage("Test", null);
 		Message nonNameMessage = Message.makeBroadcastMessage(null, null);
 		Message nonBroad = Message.makeAcknowledgeMessage("");
 		Message terminate = Message.makeQuitMessage("Test");
-		client = new ClientRunnable(sChannel);
+//		client = new ClientRunnable(sChannel);
 		Class cls = client.getClass();
 		Field input = cls.getDeclaredField("input");
 		input.setAccessible(true);
@@ -512,9 +520,11 @@ public class ClientRunnableTest {
 	public void testPublicMethods() throws IOException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		Message msg = Message.makeBroadcastMessage("Test", "How are you?");
-		SocketNB socket = new SocketNB("127.0.0.1", 4545);
-		SocketChannel sChannel;
-		sChannel = socket.getSocket();
+//		SocketNB socket = new SocketNB("127.0.0.1", 4545);
+//		SocketChannel sChannel;
+//		sChannel = socket.getSocket();
+//		client = new ClientRunnable(sChannel);
+		sChannel = SocketChannel.open();
 		client = new ClientRunnable(sChannel);
 		Class cls = client.getClass();
 		Method setUserName = cls.getDeclaredMethod("setUserName", String.class);
@@ -551,10 +561,12 @@ public class ClientRunnableTest {
 	public void testGetUserId() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
 		Message msg = Message.makeBroadcastMessage("Test", "How are you?");
-		SocketNB socket = new SocketNB("127.0.0.1", 4545);
-		SocketChannel sChannel;
-		sChannel = socket.getSocket();
+		sChannel = SocketChannel.open();
 		client = new ClientRunnable(sChannel);
+//		SocketNB socket = new SocketNB("127.0.0.1", 4545);
+//		SocketChannel sChannel;
+//		sChannel = socket.getSocket();
+//		client = new ClientRunnable(sChannel);
 		assertEquals(0, client.getUserId());
 	}
 
