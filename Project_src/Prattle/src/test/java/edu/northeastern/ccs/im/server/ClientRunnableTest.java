@@ -71,9 +71,6 @@ public class ClientRunnableTest {
     @Test
     public void checkInitialization() throws IOException {
         SocketNB socketNB = new SocketNB("127.0.0.1", 4545);
-        /*if(socketNB == null)
-            socketNB = new SocketNB("127.0.0.1", 4545);
-         */
         client = new ClientRunnable(socketNB.getSocket());
          try {
              try {
@@ -136,7 +133,7 @@ public class ClientRunnableTest {
 
     public void testSubpoenaCreate() throws IOException, NoSuchMethodException, SecurityException,
     IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
-        // SocketNB socketNB = new SocketNB("127.0.0.14", 4545);
+        SocketNB socketNB = new SocketNB("127.0.0.1", 4545);
         SocketChannel sChannel;
         sChannel = socketNB.getSocket();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");

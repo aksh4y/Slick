@@ -90,7 +90,6 @@ class ScanNetNBTest {
      */
     @Test()
     public void IOExceptionTest() throws IOException {
-        socketNB = createClientSocket(HOST, PORT);
         ScanNetNB scanNetNB = new ScanNetNB(socketNB);
         //socketNB.close();
         try {
@@ -106,7 +105,6 @@ class ScanNetNBTest {
      */
     @Test()
     public void NextDoesNotExistExceptionTest() throws IOException {
-        socketNB = createClientSocket(HOST, PORT);
         ScanNetNB scanNetNB = new ScanNetNB(socketNB);
         Assertions.assertThrows(NextDoesNotExistException.class, () -> {
             scanNetNB.nextMessage();
@@ -124,7 +122,6 @@ class ScanNetNBTest {
     @Test()
     public void ReadArgumentsTest() throws IOException, NoSuchMethodException, SecurityException,
     IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-        socketNB = createClientSocket(HOST, PORT);
         ScanNetNB scanNetNB = new ScanNetNB(socketNB);
         Class cls = scanNetNB.getClass();
         Method readArguments = cls.getDeclaredMethod("readArgument", CharBuffer.class);
@@ -163,7 +160,7 @@ class ScanNetNBTest {
     @Test()
     public void hasNextMessageTest()
             throws InterruptedException, IllegalAccessException, IOException, NoSuchFieldException, SecurityException {
-        socketNB = createClientSocket(HOST, PORT);
+       
         ScanNetNB scanNetNB = new ScanNetNB(socketNB);
         Message msg = Message.makeBroadcastMessage("TestUser", "Hey");
         Class cls = scanNetNB.getClass();
