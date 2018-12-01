@@ -132,6 +132,7 @@ public class ClientRunnableTest {
 		assertTrue((Boolean) broadcastMessageIsSpecial.invoke(client, msg));
 	}
 
+	@Test
 	public void testSubpoenaCreate() throws IOException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
 		SocketNB socketNB = new SocketNB("127.0.0.1", 4545);
@@ -504,7 +505,7 @@ public class ClientRunnableTest {
 		queue.add(correctLoginMessage);
 		client.run();
 
-		testSubpoenaCreate();
+		//testSubpoenaCreate();
 
 		assertTrue(client.isInitialized());
 		queue.add(terminate);
