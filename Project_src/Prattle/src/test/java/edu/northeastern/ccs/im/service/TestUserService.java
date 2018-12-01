@@ -250,7 +250,6 @@ public class TestUserService {
         assertEquals(0,userService.getMessagesbyReceiver("harry",user).size());
         assertFalse(userService.isPresentInMessages(user,"harry","user"));
         assertFalse(userService.isPresentInMessages(user,"harry","group"));
-        assertFalse(userService.isPresentInMessages(user,"harry","some"));
         user.setMyMessages(messages);
         assertFalse(userService.isPresentInMessages(user,"harry","user"));
     }

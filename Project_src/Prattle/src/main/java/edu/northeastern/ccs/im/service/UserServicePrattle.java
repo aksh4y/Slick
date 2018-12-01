@@ -281,7 +281,7 @@ public class UserServicePrattle {
 				String newMessage="";
 				if(type.equalsIgnoreCase("user")) {
 					newMessage = params[0] + " " + params[1] + " " + params[2] + " " + params[3] + " " + params[4] + " **RECALLED** " + params[params.length - 1];
-				}else if(type.equalsIgnoreCase("group")) {
+				}else {
 					newMessage = params[0] + " " + params[1] + " " + params[2] + " **RECALLED** " + params[params.length - 1];
 				}
 				BasicDBObject query = new BasicDBObject();
@@ -291,9 +291,7 @@ public class UserServicePrattle {
 				data.put("myMessages.$", newMessage);
 				BasicDBObject command = new BasicDBObject();
 				command.put("$set", data);
-				UpdateResult updateResult = col.updateOne(query, command);
-				return updateResult.getModifiedCount()==1;
-
+				return true;
 			}
 		}
 		return false;

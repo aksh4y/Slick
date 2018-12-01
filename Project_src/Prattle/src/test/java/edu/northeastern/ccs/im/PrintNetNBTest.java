@@ -109,14 +109,6 @@ public class PrintNetNBTest {
      * Makes an acknowledge message
      */
     private void makeAcknowledgeMessage(){
-        message= message.makeAcknowledgeMessage(SENDER);
-    }
-
-    /**
-     * Sets up a socket
-     * @throws IOException
-     */
-    private static void setUpSocket() throws IOException {
-        socket = new SocketNB(HOST, PORT);
+        message= Message.makeAcknowledgeMessage(SENDER);
     }
 }
