@@ -68,13 +68,16 @@ public class CommandLineMain {
 					connect.disconnect();
 					break;
 				}
-				if (!isSubpoena) {
+				if (!isSubpoena || line.contains("SEARCH")) {
 					if (line.equalsIgnoreCase("HELP")) {
 						System.out.println(
-								"\t\t::Use The Following Commands::\n\nHello\tWTF\tHow are you?\tWhat time is it Mr. Fox?\tWhat is the date?\tWhat time is it?\t" + ANSI_RED +"/quit\n" + ANSI_RESET
-										+ "\nCREATE_USER <username> <password>\tLOGIN_USER <username> <password>\n\nUPDATE_PASSWORD <current password> <new password>\t" + ANSI_RED + "DELETE_USER <password>\n\n" + ANSI_RESET
+								"\t\t::Use The Following Commands::\n\nHello\tWTF\tHow are you?\tWhat time is it Mr. Fox?\tWhat is the date?\tWhat time is it?\t"
+										+ ANSI_RED + "/quit\n" + ANSI_RESET
+										+ "\nCREATE_USER <username> <password>\tLOGIN_USER <username> <password>\n\nUPDATE_PASSWORD <current password> <new password>\t"
+										+ ANSI_RED + "DELETE_USER <password>\n\n" + ANSI_RESET
 										+ "PRIVATE <username> <message>\tBROADCAST <message>\tGROUP <group name> <message>\tMIME <username> <file path>\n\n"
-										+ "CREATE_GROUP <group name>\tJOIN_GROUP <group name>\t" + ANSI_RED + "EXIT_GROUP <group name> \tDELETE_GROUP <group name>\n\n" + ANSI_RESET
+										+ "CREATE_GROUP <group name>\tJOIN_GROUP <group name>\t" + ANSI_RED
+										+ "EXIT_GROUP <group name> \tDELETE_GROUP <group name>\n\n" + ANSI_RESET
 										+ "RECALL <message_id> <user/group> <name>\t\tSEARCH <sender/receiver> <name>\n\n"
 										+ "SUBPOENA <id>\tSUBPOENA_GROUP <group name> <from_date> <to_date>\tSUBPOENA_USER <username> <from_date> <to_date>\n\n"
 										+ "PARENTAL_CONTROL <on/off>\n");
@@ -95,15 +98,14 @@ public class CommandLineMain {
 			// Get any recent messages received from the IM server.
 			if (mess.hasNext()) {
 				Message message = mess.next();
-				if (message.isSubpoenaLoginSuccess())
+				if (message.isSubpoenaLoginSuccess()) {
 					isSubpoena = true;
-				else if(message.isHistoryMessage() && isSubpoena) {
+					connect.setUsername(message.getSender());
+				} else if (message.isHistoryMessage() && isSubpoena) {
 					System.out.println(message.getSender());
-				}
-				else if(message.isHistoryMessage() && !isSubpoena) {
+				} else if (message.isHistoryMessage() && !isSubpoena) {
 					MessagePrinter.printMessage(message.getSender());
-				}
-				else if (message.isLoginSuccess() || message.isCreateSuccess())
+				} else if (message.isLoginSuccess() || message.isCreateSuccess())
 					connect.setUsername(message.getSender());
 				else if (!message.getSender().equals(connect.getUserName())) {
 					if (message.isBroadcastMessage())

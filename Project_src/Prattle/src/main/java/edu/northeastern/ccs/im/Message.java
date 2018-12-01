@@ -373,7 +373,7 @@ public class Message {
         } else if (handle.compareTo(MessageType.SUBPOENA_SUCCESS.toString()) == 0) {
             result = makeSubpoenaSuccess(srcName);
         } else if (handle.compareTo(MessageType.SUBPOENA_LOGIN_SUCCESS.toString()) == 0) {
-            result = makeSubpoenaLoginSuccess();
+            result = makeSubpoenaLoginSuccess(srcName);
 
         } else if (handle.compareTo(MessageType.PARENTAL_CONTROL.toString()) == 0) {
 			result = makeParentalControlMessage(srcName);
@@ -438,8 +438,8 @@ public class Message {
      * @return Instance of Message.
      */
 
-    public static Message makeSubpoenaLoginSuccess() {
-        return new Message(MessageType.SUBPOENA_LOGIN_SUCCESS);
+    public static Message makeSubpoenaLoginSuccess(String id) {
+        return new Message(MessageType.SUBPOENA_LOGIN_SUCCESS, id);
     }
 
     /**
