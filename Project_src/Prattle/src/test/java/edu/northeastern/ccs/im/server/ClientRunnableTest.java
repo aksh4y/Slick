@@ -232,7 +232,7 @@ public class ClientRunnableTest {
     @Test
     public void checkMessageTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException,
     IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
-        SocketNB socketNB = new SocketNB("127.0.0.15", 4545);
+        //SocketNB socketNB = new SocketNB("127.0.0.15", 4545);
         SocketChannel sChannel;
         sChannel = socketNB.getSocket();
         Message msg = Message.makeBroadcastMessage("Test", "How are you?");
@@ -565,12 +565,11 @@ public class ClientRunnableTest {
     public void testGetUserId() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException,
     IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
         Message msg = Message.makeBroadcastMessage("Test", "How are you?");
-        SocketNB socketNB = new SocketNB("127.0.0.20", 4545);
+        //SocketNB socketNB = new SocketNB("127.0.0.20", 4545);
         SocketChannel sChannel;
         sChannel = socketNB.getSocket();
         client = new ClientRunnable(sChannel);
         assertEquals(0, client.getUserId());
-
     }
 
     private static SocketNB createClientSocket(String clientName, int port){
