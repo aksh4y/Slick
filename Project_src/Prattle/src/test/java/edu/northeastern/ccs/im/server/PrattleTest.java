@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import org.junit.jupiter.api.Test;
 
 import edu.northeastern.ccs.im.PrattleRunabale;
+import edu.northeastern.ccs.im.ServerSingleton;
 
 /**
  * Test the Prattle class
@@ -19,23 +20,23 @@ public class PrattleTest {
      */
     @Test
     public void prattleTest() {
-        PrattleRunabale p = new PrattleRunabale();
+        //PrattleRunabale p = new PrattleRunabale();
         //     p.start();
-        if(p.isDone()) {
-            assertEquals(true, p.isDone());
-            p.start();
+        if(PrattleRunabale.isDone()) {
+            assertEquals(true, PrattleRunabale.isDone());
+            ServerSingleton.runServer();
         }
         else
-            assertEquals(false, p.isDone());
+            assertEquals(false, PrattleRunabale.isDone());
         try {
-            p.sendMsg();
+            PrattleRunabale.sendMsg();
         }
         catch(NullPointerException e) { 
             assertFalse(false);
         }
         ClientRunnable client = null;
-        p.removeClient(client);
-        p.terminate();
-        assertEquals(true, p.isDone());
+        PrattleRunabale.removeClient(client);
+        ServerSingleton.terminate();
+        assertEquals(true, PrattleRunabale.isDone());
     }
 }

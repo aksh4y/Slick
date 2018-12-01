@@ -28,23 +28,38 @@ import org.junit.jupiter.api.Test;
  * @version 1.0
  */
 class ScanNetNBTest {
-	private int PORT = 4545;
-	private String HOST = "127.0.0.1";
-	private static PrattleRunabale server;
+	private static final int PORT = 4545;
+	private static final String HOST = "127.0.0.1";
+	//private static PrattleRunabale server;
 	private static final int BUFFER_SIZE = 64 * 1024;
 	private static final String CHARSET_NAME = "us-ascii";
 	private static final int MIN_MESSAGE_LENGTH = 7;
 	private static final int HANDLE_LENGTH = 3;
+	private static SocketNB socketNB;
 
 	@BeforeAll
 	public static void setUp() {
-		server = new PrattleRunabale();
-		server.start();
+		/*server = new PrattleRunabale();
+		server.start();*/
+	    ServerSingleton.runServer();
+		
+		try {
+            socketNB = new SocketNB(HOST, PORT);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 	}
 
 	@AfterAll
 	public static void stopServer() {
-		server.terminate();
+	    try {
+            socketNB.close();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+		ServerSingleton.terminate();
 	}
 
 	/**
@@ -54,11 +69,11 @@ class ScanNetNBTest {
 	 */
 	@Test
 	public void hasNextFail() throws IOException {
-		SocketNB socketNB = new SocketNB(HOST, PORT);
+		//SocketNB socketNB = new SocketNB("127.0.0.200", PORT);
 		ScanNetNB scanNetNB = new ScanNetNB(socketNB);
 
 		assertFalse(scanNetNB.hasNextMessage());
-		socketNB.close();
+		//socketNB.close();
 		scanNetNB.close();
 	}
 
@@ -81,9 +96,9 @@ class ScanNetNBTest {
 	 */
 	@Test()
 	public void IOExceptionTest() throws IOException {
-		SocketNB socketNB = new SocketNB(HOST, PORT);
+		//SocketNB socketNB = new SocketNB("127.0.0.203", PORT);
 		ScanNetNB scanNetNB = new ScanNetNB(socketNB);
-		socketNB.close();
+		//socketNB.close();
 		try {
 			scanNetNB.close();
 		} catch (Exception e) {
@@ -97,12 +112,12 @@ class ScanNetNBTest {
 	 */
 	@Test()
 	public void NextDoesNotExistExceptionTest() throws IOException {
-		SocketNB socketNB = new SocketNB(HOST, PORT);
+		//SocketNB socketNB = new SocketNB("127.0.0.204", PORT);
 		ScanNetNB scanNetNB = new ScanNetNB(socketNB);
 		Assertions.assertThrows(NextDoesNotExistException.class, () -> {
 			scanNetNB.nextMessage();
 		});
-		socketNB.close();
+		//socketNB.close();
 		scanNetNB.close();
 	}
 
@@ -115,7 +130,7 @@ class ScanNetNBTest {
 	@Test()
 	public void ReadArgumentsTest() throws IOException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		SocketNB socketNB = new SocketNB(HOST, PORT);
+		//SocketNB socketNB = new SocketNB("127.0.0.205", PORT);
 		ScanNetNB scanNetNB = new ScanNetNB(socketNB);
 		Class cls = scanNetNB.getClass();
 		Method readArguments = cls.getDeclaredMethod("readArgument", CharBuffer.class);
@@ -138,7 +153,7 @@ class ScanNetNBTest {
 		// Read the first argument containing the sender's name
 		String sender = (String) readArguments.invoke(scanNetNB, charBuffer);
 		assertTrue(sender.equalsIgnoreCase("TestUser"));
-		socketNB.close();
+		//socketNB.close();
 		scanNetNB.close();
 	}
 
@@ -154,7 +169,7 @@ class ScanNetNBTest {
 	@Test()
 	public void hasNextMessageTest()
 			throws InterruptedException, IllegalAccessException, IOException, NoSuchFieldException, SecurityException {
-		SocketNB socketNB = new SocketNB(HOST, PORT);
+		//SocketNB socketNB = new SocketNB("127.0.0.206", PORT);
 		ScanNetNB scanNetNB = new ScanNetNB(socketNB);
 		Message msg = Message.makeBroadcastMessage("TestUser", "Hey");
 		Class cls = scanNetNB.getClass();
@@ -164,7 +179,7 @@ class ScanNetNBTest {
 		queue.add(msg);
 		assertTrue(scanNetNB.hasNextMessage());
 		assertEquals(msg, scanNetNB.nextMessage());
-		socketNB.close();
+		//socketNB.close();
 		scanNetNB.close();
 	}
 

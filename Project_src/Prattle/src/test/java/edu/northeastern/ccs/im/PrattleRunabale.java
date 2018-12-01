@@ -13,15 +13,14 @@ import edu.northeastern.ccs.im.server.Prattle;
 public class PrattleRunabale extends Thread {
     private  int PORT = 4545;  // holds the port
     private  String HOST= "127.0.0.1"; // holds the host
-    private Prattle prattle;   // the Prattle instance
-
+    
     /**
      * Runs the thread
      */
-    public void run() {
+    public  void run() {
         String[] args = new String[2];
         try {
-            prattle.main(args);
+            Prattle.main(args);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -31,29 +30,29 @@ public class PrattleRunabale extends Thread {
      * Terminates the thread
      */
     public void terminate(){
-        prattle.setDone(true);
+        Prattle.setDone(true);
     }
 
     /**
      * Send a null broadcast msg
      */
-    public void sendMsg() {
-        prattle.broadcastMessage(null);
+    public static void sendMsg() {
+        Prattle.broadcastMessage(null);
     }
 
     /**
      * 
      * @return true iff isDone is true
      */
-    public boolean isDone() {
-        return prattle.isDone();
+    public static boolean isDone() {
+        return Prattle.isDone();
     }
 
     /**
      * Remove the given client
      * @param client the client
      */
-    public void removeClient(ClientRunnable client) {
-        prattle.removeClient(client);
+    public static void removeClient(ClientRunnable client) {
+        Prattle.removeClient(client);
     }
 }
