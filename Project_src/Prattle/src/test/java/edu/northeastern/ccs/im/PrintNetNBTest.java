@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 public class PrintNetNBTest {
 
     //private static PrattleRunabale server; // Holds the server instance
-    SocketNB socket;    // holds the socket
+    static SocketNB socket;    // holds the socket
     Message message;    // holds the message
     private static final String SENDER = "Sender";  // static sender
     private static final String MY_MESSAGE = "my_message_goes_here"; // static message
@@ -30,6 +30,12 @@ public class PrintNetNBTest {
     @BeforeAll
     public static void setUp(){
        ServerSingleton.runServer();
+       try {
+        setUpSocket();
+    } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+    }
     }
 
     @AfterAll
@@ -43,7 +49,7 @@ public class PrintNetNBTest {
      */
     @Test
     public void nullMsgErrorTest () throws IOException {   
-        setUpSocket();
+        //setUpSocket();
         message = null;
         PrintNetNB testObj = new PrintNetNB(socket);
         assertThrows(NullPointerException.class,
@@ -71,7 +77,6 @@ public class PrintNetNBTest {
      */
     @Test
     public void printTest() throws IOException {
-        setUpSocket();
         makeAcknowledgeMessage();
         PrintNetNB testObj = new PrintNetNB(socket);
         assertEquals(true, testObj.print(message));
@@ -83,7 +88,6 @@ public class PrintNetNBTest {
      */
     @Test
     public void socketChannelTest() throws IOException {
-        setUpSocket();
         makeAcknowledgeMessage();
         SocketChannel sockChan = socket.getSocket();
         PrintNetNB testObj = new PrintNetNB(sockChan);
@@ -101,7 +105,7 @@ public class PrintNetNBTest {
      * Sets up a socket
      * @throws IOException
      */
-    private void setUpSocket() throws IOException {
+    private static void setUpSocket() throws IOException {
         socket = new SocketNB(HOST, PORT);
     }
 }
