@@ -32,5 +32,5 @@ public class GroupTest {
         group1.addUserTOGroup(user2);
         assertEquals(2, group1.getListOfUsers().size());
     }
-    
+
 }
