@@ -1,4 +1,4 @@
-package edu.northeastern.ccs.im.server;
+package edu.northeastern.ccs.im;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
