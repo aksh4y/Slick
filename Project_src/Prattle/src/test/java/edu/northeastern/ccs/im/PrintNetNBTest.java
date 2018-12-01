@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 import org.junit.jupiter.api.AfterAll;
@@ -122,7 +123,7 @@ public class PrintNetNBTest {
     private void makeAcknowledgeMessage(){
         message= Message.makeAcknowledgeMessage(SENDER);
     }
-    
+
     private static SocketNB createClientSocket(String clientName, int port){
 
         boolean scanning = true;
@@ -144,5 +145,10 @@ public class PrintNetNBTest {
 
         }
         return socket;
+    }
+    @Test
+    public void testLoggerFunction(){
+        PrintNetNB testObj = new PrintNetNB(socket.getSocket());
+        assertFalse(testObj.loggerFunction());
     }
 }

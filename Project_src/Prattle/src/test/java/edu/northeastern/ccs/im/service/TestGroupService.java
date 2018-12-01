@@ -11,8 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  *
@@ -25,6 +24,9 @@ public class TestGroupService {
 
     @Test
     public void testCreateAndDeleteGroup() throws JsonProcessingException{
+        if(groupService.findGroupByName("Rock")!=null){
+            assertTrue(groupService.deleteGroup("Rock"));
+        }
         Group g = groupService.createGroup("Rock");
         assertEquals("rock", g.getName());
         boolean check = groupService.deleteGroup("rock");
@@ -70,6 +72,12 @@ public class TestGroupService {
 
     @Test
     public void testExitGroupBadData() throws JsonProcessingException {
+        if(userService.findUserByUsername("BadOne")!=null){
+            assertTrue(userService.deleteUser("BadOne"));
+        }
+        if(groupService.findGroupByName("BadGroup")!=null){
+            assertTrue(groupService.deleteGroup("BadOne"));
+        }
         User user = userService.createUser("BadOne", "BadOnePass");
         Group group = groupService.createGroup("BadGroup");
         groupService.addUserToGroup(group,user);
@@ -80,7 +88,7 @@ public class TestGroupService {
     }
 
     @Test
-    public void testRemoveAbsentUserFromGroup() throws JsonProcessingException {
+    public void testRemoveAbsentUserFromGroup() {
         List<String> lgroup = new ArrayList<>(Arrays.asList("petergroup"));
         assertEquals(false, groupService.removeUserFromGroups(lgroup, "chetan"));
         groupService.addUserToGroup(groupService.findGroupByName("petergroup"),userService.findUserByUsername("dummy"));
@@ -88,6 +96,12 @@ public class TestGroupService {
     }
     @Test
     public void testDeleteGroupBadData() throws JsonProcessingException {
+        if(userService.findUserByUsername("BadTwo")!=null){
+            assertTrue(userService.deleteUser("BadTwo"));
+        }
+        if(groupService.findGroupByName("badgrouptwo")!=null){
+            assertTrue(groupService.deleteGroup("badgrouptwo"));
+        }
         User user1 = userService.createUser("BadTwo", "BadPass");
         Group group = groupService.createGroup("badgrouptwo");
         groupService.addUserToGroup(group,user1);
