@@ -9,10 +9,6 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.github.seratch.jslack.Slack;
-import com.github.seratch.jslack.api.webhook.Payload;
-import com.github.seratch.jslack.api.webhook.WebhookResponse;
-
 /**
  * This class is similar to the java.io.PrintWriter class, but this class's
  * methods work with our non-blocking Socket classes. This class could easily be
@@ -40,8 +36,6 @@ public class PrintNetNB {
     private static final int MAXIMUM_TRIES_SENDING = 100;
 
     private static final String TRANSFER_ERR_MSG = "Something went wrong during data transfer @ Slick";
-
-    private static final String INTEGRATION_ERR_MSG = "Slack integration failed!";
 
     Properties prop = new Properties();
     InputStream input;
@@ -82,23 +76,6 @@ public class PrintNetNB {
     }
 
     /**
-     * Notify slack of this error
-     */
-    private void notifySlack() {
-        Payload payload = Payload.builder().channel("#cs5500-team-203-f18").username("Slick Bot")
-                .iconEmoji(":man-facepalming:").text(TRANSFER_ERR_MSG).build();
-        Slack slack = Slack.getInstance();
-        WebhookResponse response = null;
-        try {
-            response = slack.send(slackURL, payload);
-            if (!response.getMessage().equalsIgnoreCase("OK"))
-                LOGGER.log(Level.SEVERE, INTEGRATION_ERR_MSG);
-        } catch (IOException e1) {
-            LOGGER.log(Level.SEVERE, INTEGRATION_ERR_MSG);
-        }
-    }
-
-    /**
      * Send a Message over the network. This method performs its actions by printing
      * the given Message over the SocketNB instance with which the PrintNetNB was
      * instantiated. This returns whether our attempt to send the message was
@@ -118,7 +95,7 @@ public class PrintNetNB {
                 bytesWritten += channel.write(wrapper);
             } catch (IOException e) {
                 // Show that this was unsuccessful
-                notifySlack();
+                SlackNotification.notifySlack(slackURL);
                 LOGGER.log(Level.SEVERE, TRANSFER_ERR_MSG);
                 return false;
             }
@@ -126,7 +103,7 @@ public class PrintNetNB {
         // Check to see if we were successful in our attempt to write the message
         if (wrapper.hasRemaining()) {
             LOGGER.log(Level.SEVERE, "Something went wrong: {0} out of {1} bytes -- dropping this user", new Object[]{bytesWritten, wrapper.limit()}); 
-            notifySlack();
+            SlackNotification.notifySlack(slackURL);
             LOGGER.log(Level.SEVERE, TRANSFER_ERR_MSG);
             return false;
         }

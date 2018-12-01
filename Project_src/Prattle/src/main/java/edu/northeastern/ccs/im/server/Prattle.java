@@ -30,13 +30,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.github.seratch.jslack.Slack;
-import com.github.seratch.jslack.api.webhook.Payload;
-import com.github.seratch.jslack.api.webhook.WebhookResponse;
 import com.mongodb.client.MongoDatabase;
 
 import edu.northeastern.ccs.im.Message;
 import edu.northeastern.ccs.im.MongoConnection;
+import edu.northeastern.ccs.im.SlackNotification;
 import edu.northeastern.ccs.im.MongoDB.Model.Subpoena;
 import edu.northeastern.ccs.im.MongoDB.Model.User;
 import edu.northeastern.ccs.im.service.SubpoenaServicePrattle;
@@ -69,10 +67,6 @@ public abstract class Prattle {
 
     /** Constant for Offline users */
     private static final String OFFLINE = " /Offline";
-
-    private static final String TRANSFER_ERR_MSG = "Something went wrong during data transfer @ Slick";
-
-    private static final String INTEGRATION_ERR_MSG = "Slack integration failed!";
 
     /** Collection of threads that are currently being used. */
     private static ConcurrentLinkedQueue<ClientRunnable> active;
@@ -507,29 +501,13 @@ public abstract class Prattle {
             }
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Exception while trying to open socket: " + e.toString(), e);
-            notifySlack();
+            SlackNotification.notifySlack(slackURL);
         } finally {
             if (serverSocket != null)
                 serverSocket.close();
         }
     }
 
-    /**
-     * Notify slack of this error
-     */
-    private static void notifySlack() {
-        Payload payload = Payload.builder().channel("#cs5500-team-203-f18").username("Slick Bot")
-                .iconEmoji(":man-facepalming:").text(TRANSFER_ERR_MSG).build();
-        Slack slack = Slack.getInstance();
-        WebhookResponse response = null;
-        try {
-            response = slack.send(slackURL, payload);
-            if (!response.getMessage().equalsIgnoreCase("OK"))
-                LOGGER.log(Level.SEVERE, INTEGRATION_ERR_MSG);
-        } catch (IOException e1) {
-            LOGGER.log(Level.SEVERE, INTEGRATION_ERR_MSG);
-        }
-    }
 
     /**
      * Accept client connection

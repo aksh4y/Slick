@@ -16,10 +16,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.github.seratch.jslack.Slack;
-import com.github.seratch.jslack.api.webhook.Payload;
-import com.github.seratch.jslack.api.webhook.WebhookResponse;
-
 /**
  * This class is similar to the java.util.Scanner class, but this class's
  * methods return immediately and does not wait for network input (it is
@@ -45,8 +41,6 @@ public class ScanNetNB {
     private static final String CHARSET_NAME = "us-ascii";
 
     private static final String TRANSFER_ERR_MSG = "Something went wrong during data transfer @ Slick";
-
-    private static final String INTEGRATION_ERR_MSG = "Slack integration failed!";
 
     private SocketChannel channel;
 
@@ -97,29 +91,13 @@ public class ScanNetNB {
         } catch (IOException e) {
             // Log this exception
             LOGGER.log(Level.SEVERE, e.toString());
-            notifySlack();
+            SlackNotification.notifySlack(slackURL);
             LOGGER.log(Level.SEVERE, TRANSFER_ERR_MSG);
             assert false;
         }
     }
 
-    /**
-     * Notify slack of this error
-     */
-    private void notifySlack() {
-        Payload payload = Payload.builder().channel("#cs5500-team-203-f18").username("Slick Bot")
-                .iconEmoji(":man-facepalming:").text(TRANSFER_ERR_MSG).build();
-        Slack slack = Slack.getInstance();
-        WebhookResponse response = null;
-        try {
-            response = slack.send(slackURL, payload);
-            if (!response.getMessage().equalsIgnoreCase("OK"))
-                LOGGER.log(Level.SEVERE, INTEGRATION_ERR_MSG);
-        } catch (IOException e1) {
-            LOGGER.log(Level.SEVERE, INTEGRATION_ERR_MSG);
-        }
-    }
-
+    
     /**
      * Creates a new instance of this class. Since, by definition, this class takes
      * in input from the network, we need to supply the non-blocking Socket instance
@@ -243,7 +221,7 @@ public class ScanNetNB {
             // Move all of the remaining data to the start of the buffer.
             buff.compact();
         } catch (IOException ioe) {
-            notifySlack();
+            SlackNotification.notifySlack(slackURL);
             LOGGER.log(Level.SEVERE, TRANSFER_ERR_MSG);
             assert false;
         }
