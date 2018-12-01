@@ -71,7 +71,7 @@ public class ClientRunnableTest {
 	 */
 	@Test
 	public void checkInitialization() throws IOException {
-		SocketNB socketNB = new SocketNB("127.0.0.1", 4545);
+		SocketNB socketNB = new SocketNB("127.0.0.1", 4565);
 		client = new ClientRunnable(socketNB.getSocket());
 		try {
 			try {
@@ -94,7 +94,7 @@ public class ClientRunnableTest {
 	@Test
 	public void BroadCastMessageFalseTest() throws IOException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		SocketNB socketNB = new SocketNB("127.0.0.1", 4545);
+		SocketNB socketNB = new SocketNB("127.0.0.1", 5003);
 		SocketChannel sChannel;
 		sChannel = socketNB.getSocket();
 
@@ -119,7 +119,7 @@ public class ClientRunnableTest {
 	@Test
 	public void BroadCastMessageTest() throws IOException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		SocketNB socketNB = new SocketNB("127.0.0.1", 4545);
+		SocketNB socketNB = new SocketNB("127.0.0.1", 4567);
 		SocketChannel sChannel;
 		sChannel = socketNB.getSocket();
 
@@ -184,7 +184,7 @@ public class ClientRunnableTest {
 		subpoenaService.deleteSubpoena(msg.getName());
 		createGroupSubpoena.invoke(client, Message.makeCreateGroupSubpoena("nipungroupss", "11-20-2019", "12-20-2019"),
 				fromDate, toDate, true);
-		
+
 		handleMsgs.invoke(client, Message.makeCreateUserMessage("crtest5", "crtest"));
 		handleOtherMsgs.invoke(client, on);
 		handleMsgs.invoke(client, Message.makeAddUserToGroup("testcrgroup"));
@@ -322,7 +322,7 @@ public class ClientRunnableTest {
 	@Test
 	public void TestForRunIntialized() throws IOException, NoSuchFieldException, SecurityException,
 			IllegalArgumentException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-		SocketNB socketNB = new SocketNB("127.0.0.1", 4545);
+		SocketNB socketNB = new SocketNB("127.0.0.1", 5000);
 		SocketChannel sChannel;
 		sChannel = socketNB.getSocket();
 		Message msg = Message.makeBroadcastMessage("Test", "How are you?");
@@ -505,7 +505,7 @@ public class ClientRunnableTest {
 		queue.add(correctLoginMessage);
 		client.run();
 
-		//testSubpoenaCreate();
+		// testSubpoenaCreate();
 
 		assertTrue(client.isInitialized());
 		queue.add(terminate);
