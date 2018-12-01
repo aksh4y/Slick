@@ -199,7 +199,6 @@ class ScanNetNBTest {
     }
 
     private static SocketNB createClientSocket(String clientName, int port){
-
         boolean scanning = true;
         SocketNB socket = null;
         int numberOfTry = 0;
