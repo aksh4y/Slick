@@ -260,7 +260,7 @@ public class UserServicePrattle {
 				BasicDBObject match = new BasicDBObject(USERNAME, user.getUsername());
 				BasicDBObject update = new BasicDBObject(MY_UNREAD_MESSAGES, message);
 				UpdateResult updateResult = col.updateOne(match, new BasicDBObject("$pull", update));
-				return true;
+				return updateResult.getModifiedCount()==1;
 			}
 		}
 		return false;
@@ -292,7 +292,7 @@ public class UserServicePrattle {
 				BasicDBObject command = new BasicDBObject();
 				command.put("$set", data);
 				UpdateResult updateResult = col.updateOne(query, command);
-				return true;
+				return updateResult.getModifiedCount()==1;
 
 			}
 		}
@@ -384,6 +384,7 @@ public class UserServicePrattle {
 		return(passwordVerified);
 	}
 
+	
 	/**
 	 * Switch parental control boolean.
 	 *
@@ -393,7 +394,7 @@ public class UserServicePrattle {
 	public Boolean switchParentalControl(String username) {
 		User user = findUserByUsername(username);
 		UpdateResult updateResult=col.updateOne(Filters.eq(USERNAME, username), Updates.set("parentalControl", !user.getParentalControl()));
-		return true;
+		return updateResult.getModifiedCount()==1;
 	}
 
 	/**
@@ -416,7 +417,7 @@ public class UserServicePrattle {
 				BasicDBObject command = new BasicDBObject();
 				command.put("$set", data);
 				UpdateResult updateResult = col.updateOne(query, command);
-				return true;
+				return updateResult.getModifiedCount()==1;
 
 			}else{
 				BasicDBObject query = new BasicDBObject();
