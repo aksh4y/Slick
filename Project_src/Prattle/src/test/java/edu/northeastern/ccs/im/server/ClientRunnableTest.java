@@ -153,19 +153,20 @@ public class ClientRunnableTest {
 				LocalDate.class, Boolean.class);
 		createGroupSubpoena.setAccessible(true);
 
-		Message msg = (Message) createUserSubpoena.invoke(client,
+		Message msg1 = (Message) createUserSubpoena.invoke(client,
 				Message.makeCreateUserSubpoena("akshay$%$peter", "11-20-2019", "12-20-2019"), fromDate, toDate, true);
-		subpoenaService.deleteSubpoena(msg.getName());
-		msg = (Message) createUserSubpoena.invoke(client,
-				Message.makeCreateUserSubpoena("akshay$%$all", "11-20-2019", "12-20-2019"), fromDate, toDate, true);
+		subpoenaService.deleteSubpoena(msg1.getName());
+		handleMsgs.invoke(client, Message.makeCreateUserMessage("crtest4", "crtest"));
+		handleMsgs.invoke(client, Message.makeCreateUserMessage("crtest5", "crtest"));
+		msg1 = (Message) createUserSubpoena.invoke(client,
+				Message.makeCreateUserSubpoena("crtest4$%$all", "11-20-2019", "12-20-2019"), fromDate, toDate, true);
 		createUserSubpoena.invoke(client, Message.makeCreateUserSubpoena("akshay$%$allki", "11-20-2019", "12-20-2019"),
 				fromDate, toDate, true);
 		createUserSubpoena.invoke(client, Message.makeCreateUserSubpoena("akshswway$%$all", "11-20-2019", "12-20-2019"),
 				fromDate, toDate, true);
-		handleMsgs.invoke(client, Message.makeSubpoenaLogin(msg.getName()));
-		assertTrue(subpoenaService.deleteSubpoena(msg.getName()));
+		handleMsgs.invoke(client, Message.makeSubpoenaLogin(msg1.getName()));
 
-		msg = (Message) createGroupSubpoena.invoke(client,
+		Message msg = (Message) createGroupSubpoena.invoke(client,
 				Message.makeCreateGroupSubpoena("nipungroup", "11-20-2019", "12-20-2019"), fromDate, toDate, true);
 		createGroupSubpoena.invoke(client, Message.makeCreateGroupSubpoena("nipungroupss", "11-20-2019", "12-20-2019"),
 				fromDate, toDate, true);
@@ -173,8 +174,7 @@ public class ClientRunnableTest {
 		assertTrue(client.isSubpoena());
 		assertTrue(subpoenaService.deleteSubpoena(msg.getName()));
 
-		handleMsgs.invoke(client, Message.makeCreateUserMessage("crtest4", "crtest"));
-		handleMsgs.invoke(client, Message.makeCreateUserMessage("crtest5", "crtest"));
+
 		Message on = Message.makeParentalControlMessage("ON");
 		Message off = Message.makeParentalControlMessage("off");
 		handleMsgs.invoke(client, Message.makeLoginMessage("nipun", "test"));
@@ -192,6 +192,9 @@ public class ClientRunnableTest {
 		handleMsgs.invoke(client, Message.makeDeleteUserMessage("crtest"));
 		handleMsgs.invoke(client, Message.makeLoginMessage("crtest5", "crtest"));
 		handleMsgs.invoke(client, Message.makeDeleteUserMessage("crtest"));
+		
+		
+		assertTrue(subpoenaService.deleteSubpoena(msg1.getName()));
 		client.setName("DUMMYUSER");
 		handleMsgs.invoke(client, Message.makeSubpoenaLogin(msg.getName()));
 
