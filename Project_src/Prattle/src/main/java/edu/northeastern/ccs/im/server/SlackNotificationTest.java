@@ -9,8 +9,8 @@ public class SlackNotificationTest {
     @Test
     public void runTest() {
         SlackNotification.notifySlack("https://hooks.slack.com/services/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");
-        assertThrows(NullPointerException.class, ()->{
-            SlackNotification.notifySlack(null);
-        }); 
+        assertThrows(NullPointerException.class, ()->
+            SlackNotification.notifySlack(null)
+        ); 
     }
 }
