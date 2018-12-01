@@ -149,4 +149,25 @@ public class SubpoenaServicePrattle {
         DeleteResult deleteResult = scol.deleteOne(Filters.eq("_id",new ObjectId(id)));
         return deleteResult.getDeletedCount() == 1;
     }
+
+    public List<String> searchSubpoenaMessages(String sid, String type, String name){
+        Subpoena subpoena = querySubpoenaById(sid);
+        name= name.toLowerCase();
+        List<String> listOfMessages = new ArrayList<>();
+        if(type.equalsIgnoreCase("sender")){
+            for(String message: subpoena.getListOfMessages()){
+                if(message.contains("[Private Msg] "+name+":") || (message.contains("["+name+"@"))){
+                    listOfMessages.add(message);
+                }
+            }
+        }
+        else if (type.equalsIgnoreCase("receiver")){
+            for(String message: subpoena.getListOfMessages()){
+                if(message.contains("-> "+name)){
+                    listOfMessages.add(message);
+                }
+            }
+        }
+        return listOfMessages;
+    }
 }
