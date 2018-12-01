@@ -58,7 +58,7 @@ public class CommandLineMain {
 			// Check if the user has typed in a line of text to broadcast to the
 			// IM server.
 			// If there is a line of text to be
-			// broadcast:
+			// broadcast: 
 			if (scan.hasNext()) {
 				// Read in the text they typed
 				String line = scan.nextLine();
