@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledFuture;
@@ -1060,5 +1061,9 @@ public class ClientRunnable implements Runnable {
             // And remove the client from our client pool.
             runnableMe.cancel(false);
         }
+    }
+    
+    public Map<String, ClientRunnable> getActiveList(){
+    	return Prattle.getActiveClients();
     }
 }

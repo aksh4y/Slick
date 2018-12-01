@@ -602,6 +602,10 @@ public abstract class Prattle {
     public static void addToActiveClients(String name, ClientRunnable clientRunnable) {
         activeClients.put(name, clientRunnable);
     }
+    
+    public static Map<String, ClientRunnable> getActiveClients() {
+        return activeClients;
+    }
 
     /** Check each message for flagging */
     private static String checkVulgar(String line) {
