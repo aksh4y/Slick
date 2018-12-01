@@ -13,14 +13,15 @@ import edu.northeastern.ccs.im.server.Prattle;
 public class PrattleRunabale extends Thread {
     private  int PORT = 4545;  // holds the port
     private  String HOST= "127.0.0.1"; // holds the host
-    
+
     /**
      * Runs the thread
      */
     public  void run() {
         String[] args = new String[2];
         try {
-            Prattle.main(args);
+            if(!Prattle.isDone())
+                Prattle.main(args);
         } catch (IOException e) {
             e.printStackTrace();
         }

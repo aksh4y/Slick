@@ -21,20 +21,18 @@ import java.net.BindException;
  */
 public class SocketNbTest {
 
-    private static PrattleRunabale server; // Holds the server instance
+   // private static PrattleRunabale server; // Holds the server instance
 
     SocketNB socket;  // socket instance
 
     @BeforeAll
     public static void setUp(){
-        server = new PrattleRunabale();
-//        server.terminate();
-        server.start();
+        ServerSingleton.runServer();
     }
 
     @AfterAll
     public static void stopServer() {
-        server.terminate();
+        ServerSingleton.terminate();
     }
 
 

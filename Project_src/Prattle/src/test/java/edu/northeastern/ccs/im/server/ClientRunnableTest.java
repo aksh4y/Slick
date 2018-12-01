@@ -179,13 +179,7 @@ public class ClientRunnableTest {
 		client.getActiveList().remove("crtest5");
 		Message privateMsg = Message.makePrivateMessage("crtest4", "crtest5", "private test");
 		Message groupMsg = Message.makeGroupMessage("crtest4", "testCRCRGroup", "test group");
-		Message on = Message.makeParentalControlMessage("ON");
-		Message off = Message.makeParentalControlMessage("off");
-		handleMsgs.invoke(client, Message.makeLoginMessage("nipun", "test"));
-		handleOtherMsgs.invoke(client, off);
-		handleOtherMsgs.invoke(client, on);
-		handleOtherMsgs.invoke(client, on);
-		handleOtherMsgs.invoke(client, off);
+		
 
 		client.setIP("/192.104.0.0:45435");
 		handleMsgs.invoke(client, privateMsg);
@@ -203,6 +197,14 @@ public class ClientRunnableTest {
 		assertTrue(subpoenaService.deleteSubpoena(msg1.getName()));
 		client.setName("DUMMYUSER");
 		handleMsgs.invoke(client, Message.makeSubpoenaLogin(msg.getName()));
+		Message on = Message.makeParentalControlMessage("ON");
+        Message off = Message.makeParentalControlMessage("off");
+        handleMsgs.invoke(client, Message.makeLoginMessage("nipun", "test"));
+        handleOtherMsgs.invoke(client, off);
+        handleOtherMsgs.invoke(client, on);
+        handleOtherMsgs.invoke(client, on);
+        handleOtherMsgs.invoke(client, off);
+        
 		assertTrue(subpoenaService.deleteSubpoena(msg.getName()));
 
 	}

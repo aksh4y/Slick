@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
  */
 public class PrintNetNBTest {
 
-    private static PrattleRunabale server; // Holds the server instance
+    //private static PrattleRunabale server; // Holds the server instance
     SocketNB socket;    // holds the socket
     Message message;    // holds the message
     private static final String SENDER = "Sender";  // static sender
@@ -29,13 +29,12 @@ public class PrintNetNBTest {
 
     @BeforeAll
     public static void setUp(){
-        server = new PrattleRunabale();
-        server.start();
+       ServerSingleton.runServer();
     }
 
     @AfterAll
     public static void stopServer() {
-        server.terminate();
+        ServerSingleton.terminate();
     }
 
     /**

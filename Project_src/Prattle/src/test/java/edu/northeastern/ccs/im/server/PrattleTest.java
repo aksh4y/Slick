@@ -3,6 +3,8 @@ package edu.northeastern.ccs.im.server;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import edu.northeastern.ccs.im.PrattleRunabale;
@@ -15,6 +17,15 @@ import edu.northeastern.ccs.im.ServerSingleton;
  */
 public class PrattleTest {
 
+    @BeforeAll
+    public static void setup() {
+        ServerSingleton.runServer();
+    }
+    @AfterAll
+    public static void cleanUp() {
+        ServerSingleton.terminate();
+    }
+    
     /**
      * Prattle test.
      */
@@ -36,7 +47,12 @@ public class PrattleTest {
         }
         ClientRunnable client = null;
         PrattleRunabale.removeClient(client);
-        ServerSingleton.terminate();
-        assertEquals(true, PrattleRunabale.isDone());
+        
+        if(!PrattleRunabale.isDone())
+            assertEquals(false, PrattleRunabale.isDone());
+        else
+            assertEquals(true, PrattleRunabale.isDone());
+        
+        
     }
 }
