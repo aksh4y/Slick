@@ -52,7 +52,7 @@ public class PrintNetNBTest {
      */
     @Test
     public void nullMsgErrorTest () throws IOException {   
-        socket = new SocketNB(HOST, PORT);
+        SocketNB socket = new SocketNB(HOST, PORT);
         //setUpSocket();
         message = null;
         PrintNetNB testObj = new PrintNetNB(socket);
@@ -87,7 +87,7 @@ public class PrintNetNBTest {
             testObj = new PrintNetNB(socket);
         }
         catch(NullPointerException ne) {
-            socket = new SocketNB(HOST, PORT);
+            SocketNB socket = new SocketNB(HOST, PORT);
             testObj = new PrintNetNB(socket);
         }
         assertEquals(true, testObj.print(message));
@@ -100,6 +100,7 @@ public class PrintNetNBTest {
     @Test
     public void socketChannelTest() throws IOException {
         makeAcknowledgeMessage();
+        SocketNB socket = new SocketNB(HOST, PORT);
         SocketChannel sockChan = socket.getSocket();
         PrintNetNB testObj = new PrintNetNB(sockChan);
         assertEquals(true, testObj.print(message));
