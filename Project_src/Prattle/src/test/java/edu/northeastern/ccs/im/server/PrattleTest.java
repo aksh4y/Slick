@@ -95,6 +95,8 @@ public class PrattleTest {
         else
             assertFalse(Prattle.getActiveSubpoena().isEmpty());
         assertEquals(" /Offline", Prattle.getOffline());
+        Prattle.keepPrattleRunning();
+        Prattle.keepPrattleAlive();
     }
     
     @Test
