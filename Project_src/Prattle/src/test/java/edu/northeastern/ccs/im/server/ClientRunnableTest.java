@@ -133,6 +133,9 @@ public class ClientRunnableTest {
 		LocalDate fromDate = LocalDate.parse("11-20-2019", formatter);
 		LocalDate toDate = LocalDate.parse("12-20-2019", formatter);
 
+		Message on = Message.makeParentalControlMessage("ON");
+		Message off = Message.makeParentalControlMessage("off");
+		
 		client = new ClientRunnable(sChannel);
 		Class cls = client.getClass();
 
@@ -175,19 +178,14 @@ public class ClientRunnableTest {
 		handleMsgs.invoke(client, Message.makeSubpoenaLogin(msg.getName()));
 		assertTrue(client.isSubpoena());
 		handleMsgs.invoke(client, Message.makeCreateUserMessage("crtest5", "crtest"));
+		handleOtherMsgs.invoke(client, on);
+
 		handleMsgs.invoke(client, Message.makeAddUserToGroup("testCRCRGroup"));
 	
 		client.getActiveList().remove("crtest5");
-		Message privateMsg = Message.makePrivateMessage("crtest4", "crtest5", "private test");
-		Message groupMsg = Message.makeGroupMessage("crtest4", "testCRCRGroup", "test group");
-		Message on = Message.makeParentalControlMessage("ON");
-		Message off = Message.makeParentalControlMessage("off");
-		handleMsgs.invoke(client, Message.makeLoginMessage("nipun", "test"));
-		handleOtherMsgs.invoke(client, off);
-		handleOtherMsgs.invoke(client, on);
-		handleOtherMsgs.invoke(client, on);
-		handleOtherMsgs.invoke(client, off);
-
+		Message privateMsg = Message.makePrivateMessage("crtest4", "crtest5", "private fuck");
+		Message groupMsg = Message.makeGroupMessage("crtest4", "testCRCRGroup", "fuck group");
+		
 		client.setIP("/192.104.0.0:45435");
 		handleMsgs.invoke(client, privateMsg);
 		handleMsgs.invoke(client, groupMsg);
@@ -200,11 +198,19 @@ public class ClientRunnableTest {
 		handleMsgs.invoke(client, Message.makeDeleteUserMessage("crtest"));
 		handleMsgs.invoke(client, Message.makeLoginMessage("crtest5", "crtest"));
 		handleMsgs.invoke(client, Message.makeDeleteUserMessage("crtest"));
+		handleMsgs.invoke(client, Message.makeLoginMessage("crtest6", "crtest"));
+		handleMsgs.invoke(client, Message.makeDeleteUserMessage("crtest"));
 
 		handleMsgs.invoke(client, Message.makeDeleteGroupMessage("testCRCRGroup"));
 		assertTrue(subpoenaService.deleteSubpoena(msg1.getName()));
 		client.setName("DUMMYUSER");
 		handleMsgs.invoke(client, Message.makeSubpoenaLogin(msg.getName()));
+		handleMsgs.invoke(client, Message.makeLoginMessage("nipun", "test"));
+		handleOtherMsgs.invoke(client, off);
+		handleOtherMsgs.invoke(client, on);
+		handleOtherMsgs.invoke(client, on);
+		handleOtherMsgs.invoke(client, off);
+		handleOtherMsgs.invoke(client, on);
 		assertTrue(subpoenaService.deleteSubpoena(msg.getName()));
 
 	}
