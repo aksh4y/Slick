@@ -273,13 +273,17 @@ public class UserServicePrattle {
 	 * @param key  the key
 	 * @return the boolean
 	 */
-	public Boolean isPresentInMessages(User user, String key){
+	public Boolean isPresentInMessages(User user, String key,String type){
 		for(String message: user.getMyMessages()){
 			if(message.contains(key) && !message.contains("**RECALLED**")){
 
 				String[] params=message.split(" ");
-
-				String newMessage= params[0]+" "+params[1]+" "+params[2]+" "+params[3]+" "+params[4]+" **RECALLED** "+params[params.length-1];
+				String newMessage="";
+				if(type.equalsIgnoreCase("user")) {
+					newMessage = params[0] + " " + params[1] + " " + params[2] + " " + params[3] + " " + params[4] + " **RECALLED** " + params[params.length - 1];
+				}else if(type.equalsIgnoreCase("group")) {
+					newMessage = params[0] + " " + params[1] + " " + params[2] + " **RECALLED** " + params[params.length - 1];
+				}
 				BasicDBObject query = new BasicDBObject();
 				query.put(USERNAME, user.getUsername());
 				query.put(MY_MESSAGES, message);
@@ -335,7 +339,7 @@ public class UserServicePrattle {
 		if(type.equalsIgnoreCase("user")){
 			User user = findUserByUsername(recepient);
 			if(!isPresentInUnreadMessages(user,uid)){
-				isPresentInMessages(user,uid);
+				isPresentInMessages(user,uid,type);
 			}
 		}else if(type.equalsIgnoreCase("group")){
 			Group group= groupService.findGroupByName(recepient);
@@ -344,7 +348,7 @@ public class UserServicePrattle {
 			for(String username: users){
 				User user = findUserByUsername(username);
 				if(!isPresentInUnreadMessages(user,uid)){
-					isPresentInMessages(user,uid);
+					isPresentInMessages(user,uid,type);
 				}
 			}
 		}

@@ -932,6 +932,7 @@ public class ClientRunnable implements Runnable {
                 ackMsg = Message.makeCreateUserFail();
             } else {
                 name = user.getUsername();
+                Prattle.addToActiveClients(name, this);
                 ackMsg = Message.makeCreateUserSuccess(name);
             }
         } else {
