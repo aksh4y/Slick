@@ -207,7 +207,7 @@ public class ClientRunnableTest {
 		handleMsgs.invoke(client, Message.makeDeleteUserMessage("crtest"));
 
 		handleMsgs.invoke(client, Message.makeDeleteGroupMessage("testcrGroup"));
-//		assertTrue(subpoenaService.deleteSubpoena(msg1.getName()));
+
 		client.setName("DUMMYUSER");
 		handleMsgs.invoke(client, Message.makeSubpoenaLogin(msg.getName()));
 		handleMsgs.invoke(client, Message.makeLoginMessage("nipun", "test"));
