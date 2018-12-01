@@ -23,7 +23,7 @@ public class PrattleRunabale extends Thread {
         args[0] = HOST;
         args[1] = "4545";
         try {
-            if(!Prattle.isDone())
+           // if(!Prattle.isDone())
                 Prattle.main(args);
         } catch (IOException e) {
             e.printStackTrace();
