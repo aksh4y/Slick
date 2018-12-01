@@ -273,7 +273,7 @@ public abstract class Prattle {
             ClientRunnable tt = activeClients.get(sID);
             String newMsg = receiverMsg.substring(0, receiverMsg.length() - 9);
             if (cr != null && cr.isInitialized()) {
-                newMsg += " ->" + receiver + " " + cr.getIP();
+                newMsg += " -> " + receiver + " " + cr.getIP();
                 if (tt != null && tt.isInitialized()) {
                     tt.enqueueMessage(Message.makeHistoryMessage(newMsg));
                 }

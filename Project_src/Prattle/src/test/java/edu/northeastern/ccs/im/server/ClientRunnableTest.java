@@ -175,6 +175,8 @@ public class ClientRunnableTest {
 				fromDate, toDate, true);
 		handleMsgs.invoke(client, Message.makeLoginMessage("crtest4", "crtest"));
 		handleMsgs.invoke(client, Message.makeCreateGroupMessage("testCRGroup"));
+		handleMsgs.invoke(client, Message.makeLoginMessage("crtest4", "crtest"));
+		handleMsgs.invoke(client, Message.makeAddUserToGroup("testcrgroup"));
 		Message msg = (Message) createGroupSubpoena.invoke(client,
 				Message.makeCreateGroupSubpoena("chetangroup", "11-20-2019", "12-20-2019"), fromDate, toDate, true);
 		assertTrue(client.isSubpoena());
@@ -204,7 +206,7 @@ public class ClientRunnableTest {
 		handleMsgs.invoke(client, Message.makeLoginMessage("crtest5", "crtest"));
 		handleMsgs.invoke(client, Message.makeDeleteUserMessage("crtest"));
 
-		handleMsgs.invoke(client, Message.makeDeleteGroupMessage("testCRCRGroup"));
+		handleMsgs.invoke(client, Message.makeDeleteGroupMessage("testcrGroup"));
 //		assertTrue(subpoenaService.deleteSubpoena(msg1.getName()));
 		client.setName("DUMMYUSER");
 		handleMsgs.invoke(client, Message.makeSubpoenaLogin(msg.getName()));
