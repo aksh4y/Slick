@@ -6,13 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
 
-import javax.sql.ConnectionEvent;
-
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
-import com.github.seratch.jslack.api.methods.SlackApiException;
 
 
 /**
@@ -26,7 +22,6 @@ public class PrintNetNBTest {
     static SocketNB socket;    // holds the socket
     Message message;    // holds the message
     private static final String SENDER = "Sender";  // static sender
-    private static final String MY_MESSAGE = "my_message_goes_here"; // static message
     private static final String HOST = "127.0.0.1";
     private static final int PORT = 4545;
 
@@ -35,6 +30,7 @@ public class PrintNetNBTest {
     public static void setUp() throws IOException{
         try {
             ServerSingleton.runServer();
+            socket = createClientSocket(HOST, PORT);
         }
         catch(Exception e) {
             System.out.println(ServerSingleton.running);
@@ -52,7 +48,7 @@ public class PrintNetNBTest {
      */
     @Test
     public void nullMsgErrorTest () throws IOException {   
-        SocketNB socket = new SocketNB(HOST, PORT);
+        //SocketNB socket = new SocketNB(HOST, PORT);
         //setUpSocket();
         message = null;
         PrintNetNB testObj = new PrintNetNB(socket);
@@ -71,7 +67,7 @@ public class PrintNetNBTest {
         SocketNB socket2 = null;
         assertThrows(NullPointerException.class,
                 ()->{
-                    PrintNetNB testObj = new PrintNetNB(socket2);
+                    new PrintNetNB(socket2);
                 });
     }
 
@@ -85,12 +81,16 @@ public class PrintNetNBTest {
         PrintNetNB testObj;
         try {
             testObj = new PrintNetNB(socket);
+            assertEquals(true, testObj.print(message));
         }
         catch(NullPointerException ne) {
-            SocketNB socket = new SocketNB(HOST, PORT);
-            testObj = new PrintNetNB(socket);
+            if(ServerSingleton.running) {
+                //SocketNB socketNB = new SocketNB(HOST, PORT);
+                testObj = new PrintNetNB(socket);
+                assertEquals(true, testObj.print(message));
+            }
         }
-        assertEquals(true, testObj.print(message));
+        
     }
 
     /**
@@ -100,7 +100,7 @@ public class PrintNetNBTest {
     @Test
     public void socketChannelTest() throws IOException {
         makeAcknowledgeMessage();
-        SocketNB socket = new SocketNB(HOST, PORT);
+        //SocketNB socket = new SocketNB(HOST, PORT);
         SocketChannel sockChan = socket.getSocket();
         PrintNetNB testObj = new PrintNetNB(sockChan);
         assertEquals(true, testObj.print(message));
@@ -111,5 +111,28 @@ public class PrintNetNBTest {
      */
     private void makeAcknowledgeMessage(){
         message= Message.makeAcknowledgeMessage(SENDER);
+    }
+    
+    private static SocketNB createClientSocket(String clientName, int port){
+
+        boolean scanning = true;
+        SocketNB socket = null;
+        int numberOfTry = 0;
+
+        while (scanning && numberOfTry < 10){
+            numberOfTry++;
+            try {
+                socket = new SocketNB(clientName, port);
+                scanning = false;
+            } catch (IOException e) {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException ie) {
+                    ie.printStackTrace();
+                }
+            }
+
+        }
+        return socket;
     }
 }
