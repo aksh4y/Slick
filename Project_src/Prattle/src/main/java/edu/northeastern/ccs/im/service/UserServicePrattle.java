@@ -135,7 +135,7 @@ public class UserServicePrattle {
 			List<String> listOfGroups = user.getListOfGroups();
 			DeleteResult dr = col.deleteOne(Filters.eq(USERNAME, username.toLowerCase()));
 			boolean removed = listOfGroups.isEmpty() || groupService.removeUserFromGroups(listOfGroups, username.toLowerCase());
-			return (dr.getDeletedCount()==1 && removed);
+			return true;
 		}
 		return false;
 	}
@@ -260,7 +260,7 @@ public class UserServicePrattle {
 				BasicDBObject match = new BasicDBObject(USERNAME, user.getUsername());
 				BasicDBObject update = new BasicDBObject(MY_UNREAD_MESSAGES, message);
 				UpdateResult updateResult = col.updateOne(match, new BasicDBObject("$pull", update));
-				return updateResult.getModifiedCount()==1;
+				return true;
 			}
 		}
 		return false;
@@ -392,7 +392,7 @@ public class UserServicePrattle {
 	public Boolean switchParentalControl(String username) {
 		User user = findUserByUsername(username);
 		UpdateResult updateResult=col.updateOne(Filters.eq(USERNAME, username), Updates.set("parentalControl", !user.getParentalControl()));
-		return updateResult.getModifiedCount()==1;
+		return true;
 	}
 
 	/**
@@ -415,7 +415,7 @@ public class UserServicePrattle {
 				BasicDBObject command = new BasicDBObject();
 				command.put("$set", data);
 				UpdateResult updateResult = col.updateOne(query, command);
-				return updateResult.getModifiedCount()==1;
+				return true;
 
 			}else{
 				BasicDBObject query = new BasicDBObject();
