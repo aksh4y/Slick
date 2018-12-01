@@ -131,10 +131,15 @@ public class ClientRunnableTest {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");
 		LocalDate fromDate = LocalDate.parse("11-20-2019", formatter);
 		LocalDate toDate = LocalDate.parse("12-20-2019", formatter);
+		
 
 		client = new ClientRunnable(sChannel);
 		Class cls = client.getClass();
 
+		Field userField = cls.getDeclaredField("user");
+		userField.setAccessible(true);
+		User user = (User) userField.get(client);
+		
 		Method handleMsgs = cls.getDeclaredMethod("handleMsgs", Message.class);
 		handleMsgs.setAccessible(true);
 		Method handleOtherMsgs = cls.getDeclaredMethod("handleOtherMsgs", Message.class);
@@ -168,6 +173,8 @@ public class ClientRunnableTest {
 		assertTrue(client.isSubpoena());
 		assertTrue(subpoenaService.deleteSubpoena(msg.getName()));
 
+		handleMsgs.invoke(client, Message.makeCreateUserMessage("crtest4", "crtest"));
+		handleMsgs.invoke(client, Message.makeCreateUserMessage("crtest5", "crtest"));
 		Message on = Message.makeParentalControlMessage("ON");
 		Message off = Message.makeParentalControlMessage("off");
 		handleMsgs.invoke(client, Message.makeLoginMessage("nipun", "test"));
@@ -175,7 +182,16 @@ public class ClientRunnableTest {
 		handleOtherMsgs.invoke(client, on);
 		handleOtherMsgs.invoke(client, on);
 		handleOtherMsgs.invoke(client, off);
-
+		
+		Message privateMsg = Message.makePrivateMessage("crtest4", "crtest5", "private test");
+		client.setIP("/192.104.0.0:45435");
+		handleMsgs.invoke(client, privateMsg);
+		client.setIP("/192.104.1.1:34324");
+		
+		handleMsgs.invoke(client, Message.makeLoginMessage("crtest4", "crtest"));
+		handleMsgs.invoke(client, Message.makeDeleteUserMessage("crtest"));
+		handleMsgs.invoke(client, Message.makeLoginMessage("crtest5", "crtest"));
+		handleMsgs.invoke(client, Message.makeDeleteUserMessage("crtest"));
 		client.setName("DUMMYUSER");
 		handleMsgs.invoke(client, Message.makeSubpoenaLogin(msg.getName()));
 
@@ -360,8 +376,8 @@ public class ClientRunnableTest {
 		// Message incorrectLoginMessage = Message.makeLoginMessage("crtest1", "tewst");
 		Message groupDeleteMessage = Message.makeDeleteGroupMessage("crGroupTest");
 		Message userDeleteMessage = Message.makeDeleteUserMessage("crtest");
-		Message userDeleteMessage2 = Message.makeDeleteUserMessage("crtest2");
-		Message userDeleteWrongPasswordMessage = Message.makeDeleteUserMessage("crtest1");
+		Message userDeleteMessage2 = Message.makeDeleteUserMessage("crtest");
+		Message userDeleteWrongPasswordMessage = Message.makeDeleteUserMessage("crtest");
 		Message userUpdateMessage = Message.makeUpdateUserMessage("crtest", "crtest");
 		Message userUpdateWrongPasswordMessage = Message.makeUpdateUserMessage("crtest1", "crtest");
 		Message userAddToWrongGroupMessage = Message.makeAddUserToGroup("crGroupTest1");
