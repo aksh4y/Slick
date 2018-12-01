@@ -254,4 +254,111 @@ public class ScanNetNB {
             assert false;
         }
     }
+
+
+    /**
+     * @return
+     */
+    public static int getBufferSize() {
+        return BUFFER_SIZE;
+    }
+
+
+    /**
+     * @return
+     */
+    public static int getDecimalRadix() {
+        return DECIMAL_RADIX;
+    }
+
+
+    /**
+     * @return
+     */
+    public static int getHandleLength() {
+        return HANDLE_LENGTH;
+    }
+
+
+    /**
+     * @return
+     */
+    public static int getMinMessageLength() {
+        return MIN_MESSAGE_LENGTH;
+    }
+
+
+    /**
+     * @return
+     */
+    public static String getCharsetName() {
+        return CHARSET_NAME;
+    }
+
+
+    /**
+     * @return
+     */
+    public static String getTransferErrMsg() {
+        return TRANSFER_ERR_MSG;
+    }
+
+
+    /**
+     * @return
+     */
+    public SocketChannel getChannel() {
+        return channel;
+    }
+
+
+    /**
+     * @return
+     */
+    public Selector getSelector() {
+        return selector;
+    }
+
+
+    /**
+     * @return
+     */
+    public SelectionKey getKey() {
+        return key;
+    }
+
+
+    public ByteBuffer getBuff() {
+        return buff;
+    }
+
+
+    /**
+     * @return
+     */
+    public Queue<Message> getMessages() {
+        return messages;
+    }
+
+
+    /**
+     * @return
+     */
+    public static Logger getLogger() {
+        return LOGGER;
+    }
+
+
+    public Properties getProp() {
+        return prop;
+    }
+
+
+    /**
+     * @return
+     */
+    public InputStream getInput() {
+        return input;
+    }
+    
 }

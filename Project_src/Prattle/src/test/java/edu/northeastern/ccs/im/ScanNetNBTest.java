@@ -163,7 +163,7 @@ class ScanNetNBTest {
     @Test()
     public void hasNextMessageTest()
             throws InterruptedException, IllegalAccessException, IOException, NoSuchFieldException, SecurityException {
-        //SocketNB socketNB = new SocketNB("127.0.0.206", PORT);
+        //SocketNB socketNB = new SocketNB("127.0.0.1", PORT);
         ScanNetNB scanNetNB = new ScanNetNB(socketNB);
         Message msg = Message.makeBroadcastMessage("TestUser", "Hey");
         Class cls = scanNetNB.getClass();
@@ -177,6 +177,26 @@ class ScanNetNBTest {
         scanNetNB.close();
     }
 
+    
+    @Test
+    public void testGetters() {
+        ScanNetNB scanNetNB = new ScanNetNB(socketNB);
+        assertEquals(64 * 1024, ScanNetNB.getBufferSize());
+        assertEquals(10, ScanNetNB.getDecimalRadix());
+        assertEquals(3, ScanNetNB.getHandleLength());
+        assertEquals(7, ScanNetNB.getMinMessageLength());
+        assertEquals("Something went wrong during data transfer @ Slick", ScanNetNB.getTransferErrMsg());
+        assertEquals("us-ascii", ScanNetNB.getCharsetName());
+        scanNetNB.getKey();
+        scanNetNB.getSelector();
+        scanNetNB.getChannel();
+        scanNetNB.getMessages().isEmpty();
+        scanNetNB.getProp();
+        scanNetNB.getBuff();
+        ScanNetNB.getLogger();
+        scanNetNB.getInput();
+        scanNetNB.close();
+    }
 
     private static SocketNB createClientSocket(String clientName, int port){
 
