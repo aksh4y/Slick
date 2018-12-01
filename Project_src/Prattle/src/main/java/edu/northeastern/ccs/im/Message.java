@@ -417,7 +417,7 @@ public class Message {
         return result;
     }
 
-    private static Message makeMIMEMessage(String srcName, String recipient, String url) {
+    public static Message makeMIMEMessage(String srcName, String recipient, String url) {
         return new Message(MessageType.MIME, srcName, recipient, url);
     }
 

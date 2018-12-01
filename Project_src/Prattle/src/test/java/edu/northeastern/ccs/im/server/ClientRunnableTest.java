@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.awt.TrayIcon.MessageType;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -216,6 +217,9 @@ public class ClientRunnableTest {
         handleOtherMsgs.invoke(client, on);
         handleOtherMsgs.invoke(client, on);
         handleOtherMsgs.invoke(client, off);
+        
+        handleMsgs.invoke(client, Message.makeMIMEMessage("crtest3", "crtest4", "C:\\Users\\Admin\\Desktop\\Bg.jpg"));
+
         
 		assertTrue(subpoenaService.deleteSubpoena(msg.getName()));
 

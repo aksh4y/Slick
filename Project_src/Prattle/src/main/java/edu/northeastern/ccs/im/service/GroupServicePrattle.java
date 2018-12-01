@@ -160,12 +160,4 @@ public class GroupServicePrattle {
 		boolean removeGroup = userService.removeGroupFromUser(username,groupname);
 		return (update && removeGroup);
 	}
-
-	/**
-	 * Clear group table.
-	 */
-	public void clearGroupTable(){
-		gcol.deleteMany(new Document());
-	}
-
 }

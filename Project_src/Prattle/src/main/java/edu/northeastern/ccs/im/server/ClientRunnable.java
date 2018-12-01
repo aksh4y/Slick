@@ -1,6 +1,7 @@
 
 package edu.northeastern.ccs.im.server;
 
+import java.awt.TrayIcon.MessageType;
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
 import java.time.LocalDate;
@@ -441,7 +442,7 @@ public class ClientRunnable implements Runnable {
         // Handle MIME messages
         else if (msg.isMIME()) {
             this.initialized = true;
-            sendMIME(msg);
+            enqueueMessage(Message.makeFailMsg());
         }
         // If it is create group message
         else if (msg.isCreateGroup()) {
@@ -810,19 +811,6 @@ public class ClientRunnable implements Runnable {
         } else {
             this.enqueueMessage(Message.makeGroupExist());
         }
-    }
-
-    /**
-     * Send MIME msg
-     * 
-     * @param msg
-     */
-    private void sendMIME(Message msg) {
-        long timestamp = new java.sql.Timestamp(System.currentTimeMillis()).getTime();
-        String m = timestamp + " " + getIP() + "File Sent To " + msg.getMsgRecipient();
-        String mg = timestamp + " " + getIP() + "File Received From " + user.getUsername();
-        this.enqueueMessage(Message.makeUID("" + timestamp));
-        Prattle.broadcastPrivateMessage(user, msg, msg.getMsgRecipient(), m, mg);
     }
 
     /**

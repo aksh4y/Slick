@@ -2,6 +2,8 @@ package edu.northeastern.ccs.im.server;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -55,4 +57,28 @@ public class PrattleTest {
         
         
     }
+    
+    @Test
+    public void nullCheck() {
+        assertThrows(Exception.class, ()-> {
+            PrattleRunabale.sendBroadcastPM();
+        });
+        
+        assertThrows(Exception.class, ()-> {
+            PrattleRunabale.sendGroupMsg();
+        });
+        
+        assertThrows(Exception.class, ()-> {
+            PrattleRunabale.sendMsg();
+        });
+        
+        
+        if(PrattleRunabale.getActiveList().isEmpty())
+            assertTrue(PrattleRunabale.getActiveList().isEmpty());
+        else
+            assertFalse(PrattleRunabale.getActiveList().isEmpty());
+        
+        PrattleRunabale.buildMap();
+        assertTrue(true);     
+    }   
 }

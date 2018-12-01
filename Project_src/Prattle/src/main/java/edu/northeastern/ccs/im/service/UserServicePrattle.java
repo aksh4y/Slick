@@ -385,13 +385,6 @@ public class UserServicePrattle {
 	}
 
 	/**
-	 * Clear user table.
-	 */
-	public void clearUserTable(){
-		col.deleteMany(new Document());
-	}
-
-	/**
 	 * Switch parental control boolean.
 	 *
 	 * @param username the username

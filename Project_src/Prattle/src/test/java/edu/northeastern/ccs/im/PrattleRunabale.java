@@ -1,6 +1,7 @@
 package edu.northeastern.ccs.im;
 
 import java.io.IOException;
+import java.util.Map;
 
 import edu.northeastern.ccs.im.server.ClientRunnable;
 import edu.northeastern.ccs.im.server.Prattle;
@@ -41,6 +42,22 @@ public class PrattleRunabale extends Thread {
      */
     public static void sendMsg() {
         Prattle.broadcastMessage(null);
+    }
+    
+    public static void sendBroadcastPM() {
+        Prattle.broadcastPrivateMessage(null, null, null, null, null);
+    }
+    
+    public static void sendGroupMsg () {
+        Prattle.broadcastGroupMessage(null, null, null, null, null);
+    }
+    
+    public static Map<String, ClientRunnable> getActiveList() {
+        return Prattle.getActiveClients();
+    }
+    
+    public static void buildMap() {
+        Prattle.prepareVulgarMap();
     }
 
     /**
