@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
@@ -609,4 +610,48 @@ public abstract class Prattle {
             LOGGER.log(Level.SEVERE, "IO Exception when trying to read file for parental control", e);
         }
     }
+    
+
+    /**
+     * @return
+     */
+    public static Queue<ClientRunnable> getActive() {
+        return active;
+    }
+
+    /**
+     * @return
+     */
+    public static Map<String, Subpoena> getActiveSubpoena() {
+        return activeSubpoena;
+    }
+
+    /**
+     * @return
+     */
+    public static InputStream getInput() {
+        return input;
+    }
+
+    /**
+     * @return
+     */
+    public static String getSlackURL() {
+        return slackURL;
+    }
+    /**
+     * @return
+     */
+    public static String getOffline() {
+        return OFFLINE;
+    }
+
+    /**
+     * @return
+     */
+    public static Properties getProp() {
+        return prop;
+    }
+    
+    
 }

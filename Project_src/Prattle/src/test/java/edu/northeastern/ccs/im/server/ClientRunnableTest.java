@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.awt.TrayIcon.MessageType;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -74,17 +73,17 @@ public class ClientRunnableTest {
         //SocketNB s = new SocketNB("127.0.0.1", 4545);
         /*if(socketNB == null)
             socketNB = new SocketNB("127.0.0.1", 4545);
-        */client = new ClientRunnable(socketNB.getSocket());
-        try {
-            try {
-                client.run();
-                assertEquals(true, client instanceof ClientRunnable);
-                client.terminateClient();
-            } catch (Exception e) {
+         */client = new ClientRunnable(socketNB.getSocket());
+         try {
+             try {
+                 client.run();
+                 assertEquals(true, client instanceof ClientRunnable);
+                 client.terminateClient();
+             } catch (Exception e) {
 
-            }
-        } catch (Exception e) {
-        }
+             }
+         } catch (Exception e) {
+         }
     }
 
     /*
@@ -136,7 +135,7 @@ public class ClientRunnableTest {
 
     public void testSubpoenaCreate() throws IOException, NoSuchMethodException, SecurityException,
     IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
-       // SocketNB socketNB = new SocketNB("127.0.0.14", 4545);
+        // SocketNB socketNB = new SocketNB("127.0.0.14", 4545);
         SocketChannel sChannel;
         sChannel = socketNB.getSocket();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");
@@ -232,12 +231,14 @@ public class ClientRunnableTest {
     @Test
     public void checkMessageTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException,
     IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
-        //SocketNB socketNB = new SocketNB("127.0.0.15", 4545);
+        SocketNB socketNB = new SocketNB("127.0.0.15", 4545);
         SocketChannel sChannel;
         sChannel = socketNB.getSocket();
         Message msg = Message.makeBroadcastMessage("Test", "How are you?");
         Message nullMsg = Message.makeBroadcastMessage(null, "How are you?");
-
+        if(!sChannel.isOpen())
+            SocketChannel.open();
+        client = new ClientRunnable(sChannel);
         client = new ClientRunnable(sChannel);
         client.setName("Test");
         Class cls = client.getClass();
@@ -565,18 +566,25 @@ public class ClientRunnableTest {
     public void testGetUserId() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException,
     IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
         Message msg = Message.makeBroadcastMessage("Test", "How are you?");
-        //SocketNB socketNB = new SocketNB("127.0.0.20", 4545);
+        SocketNB socketNB = new SocketNB("127.0.0.20", 4545);
         SocketChannel sChannel;
         sChannel = socketNB.getSocket();
-        client = new ClientRunnable(sChannel);
-        assertEquals(0, client.getUserId());
+        if(sChannel.isOpen()){
+            client = new ClientRunnable(sChannel);
+            assertEquals(0, client.getUserId());
+        }
+        else {
+            SocketChannel.open();
+            client = new ClientRunnable(sChannel);
+            assertEquals(0, client.getUserId());
+        }
+
     }
 
     private static SocketNB createClientSocket(String clientName, int port){
         boolean scanning = true;
         SocketNB socket = null;
         int numberOfTry = 0;
-
         while (scanning && numberOfTry < 10){
             numberOfTry++;
             try {
@@ -589,9 +597,7 @@ public class ClientRunnableTest {
                     ie.printStackTrace();
                 }
             }
-
         }
         return socket;
     }
-
 }

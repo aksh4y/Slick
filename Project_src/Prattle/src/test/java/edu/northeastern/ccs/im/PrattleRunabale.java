@@ -38,29 +38,6 @@ public class PrattleRunabale extends Thread {
     }
 
     /**
-     * Send a null broadcast msg
-     */
-    public static void sendMsg() {
-        Prattle.broadcastMessage(null);
-    }
-    
-    public static void sendBroadcastPM() {
-        Prattle.broadcastPrivateMessage(null, null, null, null, null);
-    }
-    
-    public static void sendGroupMsg () {
-        Prattle.broadcastGroupMessage(null, null, null, null, null);
-    }
-    
-    public static Map<String, ClientRunnable> getActiveList() {
-        return Prattle.getActiveClients();
-    }
-    
-    public static void buildMap() {
-        Prattle.prepareVulgarMap();
-    }
-
-    /**
      * 
      * @return true iff isDone is true
      */

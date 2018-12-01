@@ -5,6 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -42,7 +46,7 @@ public class PrattleTest {
         else
             assertEquals(false, PrattleRunabale.isDone());
         try {
-            PrattleRunabale.sendMsg();
+            Prattle.broadcastPrivateMessage(null, null, null, null, null);
         }
         catch(NullPointerException e) { 
             assertFalse(false);
@@ -54,31 +58,50 @@ public class PrattleTest {
             assertEquals(false, PrattleRunabale.isDone());
         else
             assertEquals(true, PrattleRunabale.isDone());
-        
-        
     }
-    
+        
     @Test
     public void nullCheck() {
         assertThrows(Exception.class, ()-> {
-            PrattleRunabale.sendBroadcastPM();
+            Prattle.broadcastPrivateMessage(null, null, null, null, null);
         });
         
         assertThrows(Exception.class, ()-> {
-            PrattleRunabale.sendGroupMsg();
+            Prattle.broadcastGroupMessage(null, null, null, null, null);
         });
         
         assertThrows(Exception.class, ()-> {
-            PrattleRunabale.sendMsg();
+            Prattle.broadcastMessage(null);
         });
         
         
-        if(PrattleRunabale.getActiveList().isEmpty())
-            assertTrue(PrattleRunabale.getActiveList().isEmpty());
+        if(Prattle.getActiveClients().isEmpty())
+            assertTrue(Prattle.getActiveClients().isEmpty());
         else
-            assertFalse(PrattleRunabale.getActiveList().isEmpty());
+            assertFalse(Prattle.getActiveClients().isEmpty());
         
-        PrattleRunabale.buildMap();
+        Prattle.prepareVulgarMap();
         assertTrue(true);     
     }   
+    
+    @Test
+    public void checkGetters() {
+        if(Prattle.getActive().isEmpty()) 
+            assertTrue(Prattle.getActive().isEmpty());
+        else
+            assertFalse(Prattle.getActive().isEmpty());
+        if(Prattle.getActiveSubpoena().isEmpty()) 
+            assertTrue(Prattle.getActiveSubpoena().isEmpty());
+        else
+            assertFalse(Prattle.getActiveSubpoena().isEmpty());
+        assertEquals(" /Offline", Prattle.getOffline());
+    }
+    
+    @Test
+    public void checkPropertiesIntegrity() throws IOException {
+        InputStream input = Prattle.getInput();
+        Properties prop = Prattle.getProp();
+        prop.load(input);
+        assertEquals(prop.getProperty("slackURL"), Prattle.getSlackURL());
+    }
 }

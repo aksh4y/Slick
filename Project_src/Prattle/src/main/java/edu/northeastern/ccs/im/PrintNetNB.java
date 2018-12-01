@@ -109,4 +109,12 @@ public class PrintNetNB {
         }
         return true;
     }
+
+    /**
+     * @return
+     */
+    public SocketChannel getChannel() {
+        return channel;
+    }
+    
 }

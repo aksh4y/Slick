@@ -1,14 +1,23 @@
 package edu.northeastern.ccs.im;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
 import org.junit.jupiter.api.Test;
-import edu.northeastern.ccs.im.SlackNotification;
 
 public class SlackNotificationTest {
 
     @Test
-    public void legitTest() {
-        /** This is not a valid hook */
+    public void legitTest() throws IOException {
+        Properties prop = new Properties();
+        InputStream input = new FileInputStream("config.properties");
+        prop.load(input);
+        SlackNotification.notifySlack(prop.getProperty("slackURL"));
+        /** This is not a valid hook. It's a dummy URL in a valid form */
         SlackNotification.notifySlack("https://hooks.slack.com/services/T2CR59JN7/BEDGKFU07/");
         try {
             SlackNotification.notifySlack(null);
@@ -16,6 +25,7 @@ public class SlackNotificationTest {
         catch(NullPointerException e) {
             assertTrue(true);
         }
+        input.close();
     }
     
     @Test
