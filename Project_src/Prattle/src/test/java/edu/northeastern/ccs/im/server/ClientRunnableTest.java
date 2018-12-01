@@ -515,8 +515,8 @@ public class ClientRunnableTest {
 		queue.add(userDeleteMessage);
 		user = new User("crtest", "crtest");
 		client.run();
-		queue.add(userDeleteMessage2);
 		user = new User("crtest2", "crtest");
+		queue.add(userDeleteMessage2);
 		client.run();
 		queue.add(correctLoginMessage);
 		client.run();

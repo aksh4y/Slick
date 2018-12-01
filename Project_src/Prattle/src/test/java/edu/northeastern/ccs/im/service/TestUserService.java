@@ -65,7 +65,7 @@ public class TestUserService {
         assertEquals(true, userService.removeGroupFromUser(user.getUsername(),group1.getName()));
         userService.addGroupToUser(user,group1);
         userService.addGroupToUser(user,group2);
-        assertEquals(false, userService.deleteUser("test1"));
+        assertEquals(true, userService.deleteUser("test1"));
         assertEquals(true, groupService.deleteGroup("coolgroup"));
         assertEquals(true, groupService.deleteGroup("hotgroup"));
     }
