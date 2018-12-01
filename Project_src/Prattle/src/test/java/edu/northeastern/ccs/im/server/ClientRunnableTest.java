@@ -189,6 +189,7 @@ public class ClientRunnableTest {
         client.getActiveList().remove("crtest5");
         Message privateMsg = Message.makePrivateMessage("crtest4", "crtest5", "fuck test");
         Message groupMsg = Message.makeGroupMessage("crtest4", "testCRCRGroup", "fuck group");
+        Message broad = Message.makeBroadcastMessage("crtest4", "fuck all");
 
 
         client.setIP("/192.104.0.0:45435");
@@ -197,7 +198,7 @@ public class ClientRunnableTest {
         client.setIP("/192.104.1.1:34324");
 
         handleMsgs.invoke(client, Message.makeLoginMessage("crtest5", "crtest"));
-
+        handleMsgs.invoke(client, broad);
         handleMsgs.invoke(client, Message.makeLoginMessage("crtest4", "crtest"));
         handleMsgs.invoke(client, Message.makeDeleteUserMessage("crtest"));
         handleMsgs.invoke(client, Message.makeLoginMessage("crtest5", "crtest"));
