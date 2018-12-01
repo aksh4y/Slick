@@ -143,7 +143,8 @@ public class ClientRunnableTest {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");
 		LocalDate fromDate = LocalDate.parse("11-20-2019", formatter);
 		LocalDate toDate = LocalDate.parse("12-20-2019", formatter);
-
+		Message on = Message.makeParentalControlMessage("ON");
+        Message off = Message.makeParentalControlMessage("off");
 		client = new ClientRunnable(sChannel);
 		Class cls = client.getClass();
 
@@ -186,11 +187,12 @@ public class ClientRunnableTest {
 		handleMsgs.invoke(client, Message.makeSubpoenaLogin(msg.getName()));
 		assertTrue(client.isSubpoena());
 		handleMsgs.invoke(client, Message.makeCreateUserMessage("crtest5", "crtest"));
+		handleOtherMsgs.invoke(client, on);
 		handleMsgs.invoke(client, Message.makeAddUserToGroup("testCRCRGroup"));
 	
 		client.getActiveList().remove("crtest5");
-		Message privateMsg = Message.makePrivateMessage("crtest4", "crtest5", "private test");
-		Message groupMsg = Message.makeGroupMessage("crtest4", "testCRCRGroup", "test group");
+		Message privateMsg = Message.makePrivateMessage("crtest4", "crtest5", "fuck test");
+		Message groupMsg = Message.makeGroupMessage("crtest4", "testCRCRGroup", "fuck group");
 		
 
 		client.setIP("/192.104.0.0:45435");
@@ -209,9 +211,7 @@ public class ClientRunnableTest {
 		assertTrue(subpoenaService.deleteSubpoena(msg1.getName()));
 		client.setName("DUMMYUSER");
 		handleMsgs.invoke(client, Message.makeSubpoenaLogin(msg.getName()));
-		Message on = Message.makeParentalControlMessage("ON");
-        Message off = Message.makeParentalControlMessage("off");
-        handleMsgs.invoke(client, Message.makeLoginMessage("nipun", "test"));
+		handleMsgs.invoke(client, Message.makeLoginMessage("nipun", "test"));
         handleOtherMsgs.invoke(client, off);
         handleOtherMsgs.invoke(client, on);
         handleOtherMsgs.invoke(client, on);
