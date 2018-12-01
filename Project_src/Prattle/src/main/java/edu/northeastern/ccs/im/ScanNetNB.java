@@ -90,14 +90,18 @@ public class ScanNetNB {
             key = channel.register(selector, SelectionKey.OP_READ);
         } catch (IOException e) {
             // Log this exception
-            LOGGER.log(Level.SEVERE, e.toString());
-            SlackNotification.notifySlack(slackURL);
-            LOGGER.log(Level.SEVERE, TRANSFER_ERR_MSG);
+            loggerFunction(e.toString());
             assert false;
         }
     }
 
-    
+    public void loggerFunction(String e) {
+        LOGGER.log(Level.SEVERE, e);
+        SlackNotification.notifySlack(slackURL);
+        LOGGER.log(Level.SEVERE, TRANSFER_ERR_MSG);
+    }
+
+
     /**
      * Creates a new instance of this class. Since, by definition, this class takes
      * in input from the network, we need to supply the non-blocking Socket instance

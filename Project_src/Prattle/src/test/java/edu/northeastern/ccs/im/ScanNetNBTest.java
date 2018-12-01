@@ -215,5 +215,11 @@ class ScanNetNBTest {
         }
         return socket;
     }
+    @Test
+    public void testLoggerFunction(){
+        ScanNetNB scanNetNB = new ScanNetNB(socketNB.getSocket());
+        scanNetNB.loggerFunction("test notification");
+        assertTrue(true);
+    }
 
 }

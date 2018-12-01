@@ -41,6 +41,9 @@ public class TestUserService {
 
     @Test
     public void testCreateDeleteUser() throws JsonProcessingException {
+        if(userService.findUserByUsername("test1")!=null){
+            assertTrue(userService.deleteUser("test1"));
+        }
         User user = userService.createUser("test1","test2");
         assertEquals(true, userService.isUsernameTaken(user.getUsername()));
         assertEquals(true, userService.deleteUser("test1"));
@@ -58,6 +61,15 @@ public class TestUserService {
 
     @Test
     public void testAddRemoveGroupToUser() throws JsonProcessingException {
+        if(userService.findUserByUsername("test1")!=null){
+            assertTrue(userService.deleteUser("test1"));
+        }
+        if(groupService.findGroupByName("hotgroup")!=null){
+            assertTrue(groupService.deleteGroup("hotgroup"));
+        }
+        if(groupService.findGroupByName("coolgroup")!=null){
+            assertTrue(groupService.deleteGroup("coolgroup"));
+        }
         User user = userService.createUser("test1", "test1");
         Group group1 = groupService.createGroup("coolgroup");
         Group group2 = groupService.createGroup("hotgroup");
@@ -72,7 +84,12 @@ public class TestUserService {
 
     @Test
     public void testUpdateUser() throws JsonProcessingException {
-
+        if(userService.findUserByUsername("failTest")!=null){
+            assertTrue(userService.deleteUser("test1"));
+        }
+        if(userService.findUserByUsername("test1")!=null){
+            assertTrue(userService.deleteUser("test1"));
+        }
         User user = new User("failTest", "failTest");
         assertEquals(false,userService.updateUser(user, "failTest123"));
         user = userService.createUser("test1", "test1");

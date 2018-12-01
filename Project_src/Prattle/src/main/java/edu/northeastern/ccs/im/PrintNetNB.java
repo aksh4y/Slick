@@ -95,19 +95,21 @@ public class PrintNetNB {
                 bytesWritten += channel.write(wrapper);
             } catch (IOException e) {
                 // Show that this was unsuccessful
-                SlackNotification.notifySlack(slackURL);
-                LOGGER.log(Level.SEVERE, TRANSFER_ERR_MSG);
-                return false;
+                return loggerFunction();
             }
         }
         // Check to see if we were successful in our attempt to write the message
         if (wrapper.hasRemaining()) {
-            LOGGER.log(Level.SEVERE, "Something went wrong: {0} out of {1} bytes -- dropping this user", new Object[]{bytesWritten, wrapper.limit()}); 
-            SlackNotification.notifySlack(slackURL);
-            LOGGER.log(Level.SEVERE, TRANSFER_ERR_MSG);
-            return false;
+            LOGGER.log(Level.SEVERE, "Something went wrong: {0} out of {1} bytes -- dropping this user", new Object[]{bytesWritten, wrapper.limit()});
+            return loggerFunction();
         }
         return true;
+    }
+
+    public boolean loggerFunction() {
+        SlackNotification.notifySlack(slackURL);
+        LOGGER.log(Level.SEVERE, TRANSFER_ERR_MSG);
+        return false;
     }
 
     /**
