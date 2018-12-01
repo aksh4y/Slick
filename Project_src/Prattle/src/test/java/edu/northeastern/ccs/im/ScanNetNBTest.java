@@ -191,7 +191,6 @@ class ScanNetNBTest {
         scanNetNB.getProp();
         scanNetNB.getBuff();
         ScanNetNB.getLogger();
-        scanNetNB.getInput();
         scanNetNB.close();
     }
 

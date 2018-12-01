@@ -1,6 +1,5 @@
 package edu.northeastern.ccs.im;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -55,7 +54,6 @@ public class ScanNetNB {
     private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
 
     Properties prop = new Properties();
-    InputStream input;
 
     /** Slack WebHook URL */
     private String slackURL;
@@ -76,8 +74,11 @@ public class ScanNetNB {
         // Remember the channel that we will be using.
         channel = sockChan;
         try {
-            input = new FileInputStream("config.properties");
-            prop.load(input);
+            String resourceName = "config.properties"; 
+            ClassLoader loader = Thread.currentThread().getContextClassLoader();
+            try(InputStream input = loader.getResourceAsStream(resourceName)) {
+                prop.load(input);
+            }
             slackURL = prop.getProperty("slackURL");
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Could not load config file", e);
@@ -355,14 +356,6 @@ public class ScanNetNB {
 
     public Properties getProp() {
         return prop;
-    }
-
-
-    /**
-     * @return
-     */
-    public InputStream getInput() {
-        return input;
     }
     
 }

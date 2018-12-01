@@ -2,17 +2,17 @@
 package edu.northeastern.ccs.im.server;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -86,7 +86,7 @@ public abstract class Prattle {
     private static Map<String, Subpoena> activeSubpoena;
 
     private static HashSet<String> vulgar;
-    
+
     private static boolean alive = true;;
 
     /** Logger */
@@ -104,8 +104,11 @@ public abstract class Prattle {
         activeSubpoena = new HashMap<>();
         db = MongoConnection.createConnection();
         try {
-            input = new FileInputStream("config.properties");
-            prop.load(input);
+            String resourceName = "config.properties"; 
+            ClassLoader loader = Thread.currentThread().getContextClassLoader();
+            try(InputStream input = loader.getResourceAsStream(resourceName)) {
+                prop.load(input);
+            }
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Could not load config file", e);
         }
@@ -598,7 +601,7 @@ public abstract class Prattle {
     public static void addToActiveClients(String name, ClientRunnable clientRunnable) {
         activeClients.put(name, clientRunnable);
     }
-    
+
     public static Map<String, ClientRunnable> getActiveClients() {
         return activeClients;
     }
@@ -615,7 +618,10 @@ public abstract class Prattle {
     }
 
     public static void prepareVulgarMap() {
-        try (BufferedReader file = new BufferedReader(new FileReader("Pc.txt"))) {
+        InputStream inputStream = Prattle.class.getClassLoader().getResourceAsStream("Pc.txt");
+        InputStreamReader streamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+
+        try (BufferedReader file = new BufferedReader(streamReader)) {
             String word = file.readLine();
             while (word != null) {
                 vulgar.add(word);
@@ -627,8 +633,8 @@ public abstract class Prattle {
             LOGGER.log(Level.SEVERE, "IO Exception when trying to read file for parental control", e);
         }
     }
-    
-    
+
+
     /** Mock for final coverage */
     public static boolean keepPrattleRunning() {
         keepPrattleAlive();
@@ -718,9 +724,9 @@ public abstract class Prattle {
     public static Properties getProp() {
         return prop;
     }
-    
+
     public static void keepPrattleAlive(){
         alive = true;
     }
-    
+
 }

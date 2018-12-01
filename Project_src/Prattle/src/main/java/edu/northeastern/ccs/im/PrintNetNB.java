@@ -1,6 +1,5 @@
 package edu.northeastern.ccs.im;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -38,7 +37,6 @@ public class PrintNetNB {
     private static final String TRANSFER_ERR_MSG = "Something went wrong during data transfer @ Slick";
 
     Properties prop = new Properties();
-    InputStream input;
     /** Slack WebHook URL */
     private String slackURL;
 
@@ -53,8 +51,9 @@ public class PrintNetNB {
     public PrintNetNB(SocketChannel sockChan) {
         // Remember the channel that we will be using.
         channel = sockChan;
-        try {
-            input = new FileInputStream("config.properties");
+        String resourceName = "config.properties"; 
+        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        try(InputStream input = loader.getResourceAsStream(resourceName)) {
             prop.load(input);
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Could not load config file", e);
