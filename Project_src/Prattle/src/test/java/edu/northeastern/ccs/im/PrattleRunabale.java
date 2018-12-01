@@ -1,6 +1,7 @@
 package edu.northeastern.ccs.im;
 
 import java.io.IOException;
+import java.util.Map;
 
 import edu.northeastern.ccs.im.server.ClientRunnable;
 import edu.northeastern.ccs.im.server.Prattle;
@@ -13,15 +14,17 @@ import edu.northeastern.ccs.im.server.Prattle;
 public class PrattleRunabale extends Thread {
     private  int PORT = 4545;  // holds the port
     private  String HOST= "127.0.0.1"; // holds the host
-    private Prattle prattle;   // the Prattle instance
 
     /**
      * Runs the thread
      */
-    public void run() {
+    public  void run() {
         String[] args = new String[2];
+        args[0] = HOST;
+        args[1] = "4545";
         try {
-            prattle.main(args);
+           // if(!Prattle.isDone())
+                Prattle.main(args);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -31,29 +34,22 @@ public class PrattleRunabale extends Thread {
      * Terminates the thread
      */
     public void terminate(){
-        prattle.setDone(true);
-    }
-
-    /**
-     * Send a null broadcast msg
-     */
-    public void sendMsg() {
-        prattle.broadcastMessage(null);
+        Prattle.setDone(true);
     }
 
     /**
      * 
      * @return true iff isDone is true
      */
-    public boolean isDone() {
-        return prattle.isDone();
+    public static boolean isDone() {
+        return Prattle.isDone();
     }
 
     /**
      * Remove the given client
      * @param client the client
      */
-    public void removeClient(ClientRunnable client) {
-        prattle.removeClient(client);
+    public static void removeClient(ClientRunnable client) {
+        Prattle.removeClient(client);
     }
 }

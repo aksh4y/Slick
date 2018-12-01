@@ -1,9 +1,12 @@
 package edu.northeastern.ccs.im;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 import org.junit.jupiter.api.AfterAll;
@@ -17,32 +20,39 @@ import org.junit.jupiter.api.Test;
  * @version 1.0
  */
 public class PrintNetNBTest {
-    
-    private static PrattleRunabale server; // Holds the server instance
-    SocketNB socket;    // holds the socket
+
+    // private static PrattleRunabale server; // Holds the server instance
+    static SocketNB socket;    // holds the socket
     Message message;    // holds the message
     private static final String SENDER = "Sender";  // static sender
-    private static final String MY_MESSAGE = "my_message_goes_here"; // static message
+    private static final String HOST = "127.0.0.1";
+    private static final int PORT = 4545;
 
-    
+
     @BeforeAll
-    public static void setUp(){
-        server = new PrattleRunabale();
-        server.start();
+    public static void setUp() throws IOException{
+        try {
+            ServerSingleton.runServer();
+            socket = createClientSocket(HOST, PORT);
+        }
+        catch(Exception e) {
+            System.out.println(ServerSingleton.running);
+        }
     }
-    
+
     @AfterAll
     public static void stopServer() {
-        server.terminate();
+        ServerSingleton.terminate();
     }
-    
+
     /**
      * Test method that tests the PrintNetNB class
      * @throws IOException 
      */
     @Test
     public void nullMsgErrorTest () throws IOException {   
-        setUpSocket();
+        //SocketNB socket = new SocketNB(HOST, PORT);
+        //setUpSocket();
         message = null;
         PrintNetNB testObj = new PrintNetNB(socket);
         assertThrows(NullPointerException.class,
@@ -50,57 +60,95 @@ public class PrintNetNBTest {
                     testObj.print(message);
                 });
     }
-    
+
     /**
      * Test no socket error
      * @throws IOException
      */
     @Test
     public void noSocketErrorTest() throws IOException { 
-        SocketNB socket = null;
+        SocketNB socket2 = null;
         assertThrows(NullPointerException.class,
                 ()->{
-                    PrintNetNB testObj = new PrintNetNB(socket);
+                    new PrintNetNB(socket2);
                 });
     }
-    
+
     /**
      * Test print function
      * @throws IOException
      */
     @Test
     public void printTest() throws IOException {
-        setUpSocket();
         makeAcknowledgeMessage();
-        PrintNetNB testObj = new PrintNetNB(socket);
-        assertEquals(true, testObj.print(message));
+        PrintNetNB testObj;
+        try {
+            testObj = new PrintNetNB(socket);
+            assertEquals(true, testObj.print(message));
+        }
+        catch(NullPointerException ne) {
+            if(ServerSingleton.running) {
+                //SocketNB socketNB = new SocketNB(HOST, PORT);
+                testObj = new PrintNetNB(socket);
+                assertEquals(true, testObj.print(message));
+            }
+        }
+        
+        try {
+            testObj = new PrintNetNB(socket);
+            testObj.getChannel();
+            assertTrue(true);
+        }
+        catch(Exception e) {
+            assertFalse(false);
+        }
     }
-    
+
     /**
      * Test constructing PrintNetNB using a socket channel
      * @throws IOException
      */
     @Test
     public void socketChannelTest() throws IOException {
-        setUpSocket();
         makeAcknowledgeMessage();
+        //SocketNB socket = new SocketNB(HOST, PORT);
         SocketChannel sockChan = socket.getSocket();
         PrintNetNB testObj = new PrintNetNB(sockChan);
         assertEquals(true, testObj.print(message));
     }
-    
+
     /**
      * Makes an acknowledge message
      */
     private void makeAcknowledgeMessage(){
-        message= message.makeAcknowledgeMessage(SENDER);
+        message= Message.makeAcknowledgeMessage(SENDER);
     }
-    
-    /**
-     * Sets up a socket
-     * @throws IOException
-     */
-    private void setUpSocket() throws IOException {
-        socket = new SocketNB("127.0.0.1", 4545);
+
+    private static SocketNB createClientSocket(String clientName, int port){
+
+        boolean scanning = true;
+        SocketNB socket = null;
+        int numberOfTry = 0;
+
+        while (scanning && numberOfTry < 10){
+            numberOfTry++;
+            try {
+                socket = new SocketNB(clientName, port);
+                scanning = false;
+            } catch (IOException e) {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException ie) {
+                    ie.printStackTrace();
+                }
+            }
+
+        }
+        return socket;
+    }
+    @Test
+    public void testLoggerFunction(){
+        PrintNetNB testObj = new PrintNetNB(socket.getSocket());
+        assertFalse(testObj.loggerFunction());
     }
 }

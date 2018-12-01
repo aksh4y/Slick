@@ -2,27 +2,30 @@ package edu.northeastern.ccs.im.server;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Queue;
 
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import com.mongodb.client.MongoDatabase;
+
 import edu.northeastern.ccs.im.Message;
-import edu.northeastern.ccs.im.PrattleRunabale;
+import edu.northeastern.ccs.im.MongoConnection;
 import edu.northeastern.ccs.im.ScanNetNB;
+import edu.northeastern.ccs.im.ServerSingleton;
 import edu.northeastern.ccs.im.SocketNB;
 import edu.northeastern.ccs.im.MongoDB.Model.User;
+import edu.northeastern.ccs.im.service.SubpoenaServicePrattle;
 
 /**
  * Tests for ClientRunnable class
@@ -33,19 +36,32 @@ import edu.northeastern.ccs.im.MongoDB.Model.User;
 public class ClientRunnableTest {
 
 	ClientRunnable client;
-	ServerSocketChannel serverSocket;
 
-	static PrattleRunabale server;
+	/* static PrattleRunabale server; */
+	private MongoDatabase db = MongoConnection.createConnection();
+	private SubpoenaServicePrattle subpoenaService = new SubpoenaServicePrattle(db);
+
+	static SocketNB socketNB = null;
 
 	@BeforeAll
 	public static void setUp() {
-		server = new PrattleRunabale();
-		server.start();
+		ServerSingleton.runServer();
+		socketNB = createClientSocket("127.0.0.1", 4545);
+
+		// server = new PrattleRunabale();
+		// server.start();
 	}
 
 	@AfterAll
 	public static void stopServer() {
-		server.terminate();
+		// server.terminate();
+		ServerSingleton.terminate();
+		try {
+			socketNB.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -55,8 +71,8 @@ public class ClientRunnableTest {
 	 */
 	@Test
 	public void checkInitialization() throws IOException {
-		SocketNB s = new SocketNB("127.0.0.1", 4545);
-		client = new ClientRunnable(s.getSocket());
+		socketNB = new SocketNB("127.0.0.1", 4545);
+		client = new ClientRunnable(socketNB.getSocket());
 		try {
 			try {
 				client.run();
@@ -78,9 +94,9 @@ public class ClientRunnableTest {
 	@Test
 	public void BroadCastMessageFalseTest() throws IOException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		SocketNB socket = new SocketNB("127.0.0.1", 4545);
+		socketNB = new SocketNB("127.0.0.1", 4545);
 		SocketChannel sChannel;
-		sChannel = socket.getSocket();
+		sChannel = socketNB.getSocket();
 
 		client = new ClientRunnable(sChannel);
 		client.setName("Test");
@@ -103,9 +119,9 @@ public class ClientRunnableTest {
 	@Test
 	public void BroadCastMessageTest() throws IOException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		SocketNB socket = new SocketNB("127.0.0.1", 4545);
+		 socketNB = new SocketNB("127.0.0.1", 4545);
 		SocketChannel sChannel;
-		sChannel = socket.getSocket();
+		sChannel = socketNB.getSocket();
 
 		client = new ClientRunnable(sChannel);
 		client.setName("Test");
@@ -114,6 +130,95 @@ public class ClientRunnableTest {
 		broadcastMessageIsSpecial.setAccessible(true);
 		Message msg = Message.makeBroadcastMessage("test user", "How are you?");
 		assertTrue((Boolean) broadcastMessageIsSpecial.invoke(client, msg));
+	}
+
+	@Test
+	public void testSubpoenaCreate() throws IOException, NoSuchMethodException, SecurityException,
+			IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
+		 socketNB = new SocketNB("127.0.0.1", 4545);
+		SocketChannel sChannel;
+		sChannel = socketNB.getSocket();
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");
+		LocalDate fromDate = LocalDate.parse("11-20-2019", formatter);
+		LocalDate toDate = LocalDate.parse("12-20-2019", formatter);
+		Message on = Message.makeParentalControlMessage("ON");
+		Message off = Message.makeParentalControlMessage("off");
+		client = new ClientRunnable(sChannel);
+		Class cls = client.getClass();
+
+		Field userField = cls.getDeclaredField("user");
+		userField.setAccessible(true);
+		User user = (User) userField.get(client);
+
+		Method handleMsgs = cls.getDeclaredMethod("handleMsgs", Message.class);
+		handleMsgs.setAccessible(true);
+		Method handleOtherMsgs = cls.getDeclaredMethod("handleOtherMsgs", Message.class);
+		handleOtherMsgs.setAccessible(true);
+
+		Method createUserSubpoena = cls.getDeclaredMethod("createUserSubpoena", Message.class, LocalDate.class,
+				LocalDate.class, Boolean.class);
+		createUserSubpoena.setAccessible(true);
+
+		Method createGroupSubpoena = cls.getDeclaredMethod("createGroupSubpoena", Message.class, LocalDate.class,
+				LocalDate.class, Boolean.class);
+		createGroupSubpoena.setAccessible(true);
+
+		Message msg1 = (Message) createUserSubpoena.invoke(client,
+				Message.makeCreateUserSubpoena("akshay$%$peter", "11-20-2019", "12-20-2019"), fromDate, toDate, true);
+		handleMsgs.invoke(client, Message.makeSubpoenaLogin(msg1.getName()));
+		subpoenaService.deleteSubpoena(msg1.getName());
+
+		handleMsgs.invoke(client, Message.makeCreateUserMessage("crtest4", "crtest"));
+
+		createUserSubpoena.invoke(client, Message.makeCreateUserSubpoena("akshay$%$allki", "11-20-2019", "12-20-2019"),
+				fromDate, toDate, true);
+		createUserSubpoena.invoke(client, Message.makeCreateUserSubpoena("akshswway$%$all", "11-20-2019", "12-20-2019"),
+				fromDate, toDate, true);
+		handleMsgs.invoke(client, Message.makeLoginMessage("crtest4", "crtest"));
+		handleMsgs.invoke(client, Message.makeCreateGroupMessage("testCRGroup"));
+		handleMsgs.invoke(client, Message.makeLoginMessage("crtest4", "crtest"));
+		handleMsgs.invoke(client, Message.makeAddUserToGroup("testcrgroup"));
+		Message msg = (Message) createGroupSubpoena.invoke(client,
+				Message.makeCreateGroupSubpoena("chetangroup", "11-20-2019", "12-20-2019"), fromDate, toDate, true);
+		assertTrue(client.isSubpoena());
+		subpoenaService.deleteSubpoena(msg.getName());
+		createGroupSubpoena.invoke(client, Message.makeCreateGroupSubpoena("nipungroupss", "11-20-2019", "12-20-2019"),
+				fromDate, toDate, true);
+		
+		handleMsgs.invoke(client, Message.makeCreateUserMessage("crtest5", "crtest"));
+		handleOtherMsgs.invoke(client, on);
+		handleMsgs.invoke(client, Message.makeAddUserToGroup("testcrgroup"));
+
+		client.getActiveList().remove("crtest5");
+		Message privateMsg = Message.makePrivateMessage("crtest4", "crtest5", "fuck test");
+		Message groupMsg = Message.makeGroupMessage("crtest4", "testCRGroup", "fuck group");
+		Message broad = Message.makeBroadcastMessage("crtest4", "fuck all");
+
+		client.setIP("/192.104.0.0:45435");
+		handleMsgs.invoke(client, privateMsg);
+		handleMsgs.invoke(client, groupMsg);
+		client.setIP("/192.104.1.1:34324");
+
+		handleMsgs.invoke(client, Message.makeLoginMessage("crtest5", "crtest"));
+		handleMsgs.invoke(client, Message.makeLoginMessage("crtest4", "crtest"));
+		handleMsgs.invoke(client, broad);
+		handleMsgs.invoke(client, Message.makeLoginMessage("crtest4", "crtest"));
+		handleMsgs.invoke(client, Message.makeDeleteUserMessage("crtest"));
+		handleMsgs.invoke(client, Message.makeLoginMessage("crtest5", "crtest"));
+		handleMsgs.invoke(client, Message.makeDeleteUserMessage("crtest"));
+
+		handleMsgs.invoke(client, Message.makeDeleteGroupMessage("testcrGroup"));
+
+		client.setName("DUMMYUSER");
+		handleMsgs.invoke(client, Message.makeSubpoenaLogin(msg.getName()));
+		handleMsgs.invoke(client, Message.makeLoginMessage("nipun", "test"));
+		handleOtherMsgs.invoke(client, off);
+		handleOtherMsgs.invoke(client, on);
+		handleOtherMsgs.invoke(client, on);
+		handleOtherMsgs.invoke(client, off);
+
+		handleMsgs.invoke(client, Message.makeMIMEMessage("crtest3", "crtest4", "C:\\Users\\Admin\\Desktop\\Bg.jpg"));
+
 	}
 
 	/*
@@ -125,12 +230,14 @@ public class ClientRunnableTest {
 	@Test
 	public void checkMessageTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
-		SocketNB socket = new SocketNB("127.0.0.1", 4545);
+		 socketNB = new SocketNB("127.0.0.1", 4545);
 		SocketChannel sChannel;
-		sChannel = socket.getSocket();
+		sChannel = socketNB.getSocket();
 		Message msg = Message.makeBroadcastMessage("Test", "How are you?");
 		Message nullMsg = Message.makeBroadcastMessage(null, "How are you?");
-
+		if (!sChannel.isOpen())
+			SocketChannel.open();
+		client = new ClientRunnable(sChannel);
 		client = new ClientRunnable(sChannel);
 		client.setName("Test");
 		Class cls = client.getClass();
@@ -151,6 +258,7 @@ public class ClientRunnableTest {
 		sendMessage.setAccessible(true);
 		sendMessage.invoke(client, msg);
 		assertTrue((Boolean) messageChecks.invoke(client, msg));
+
 	}
 
 	/*
@@ -162,9 +270,9 @@ public class ClientRunnableTest {
 	@Test
 	public void checkMessageTestFail() throws IOException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		SocketNB socket = new SocketNB("127.0.0.1", 4545);
+		 socketNB = new SocketNB("127.0.0.1", 4545);
 		SocketChannel sChannel;
-		sChannel = socket.getSocket();
+		sChannel = socketNB.getSocket();
 
 		client = new ClientRunnable(sChannel);
 		client.setName("Test");
@@ -178,7 +286,7 @@ public class ClientRunnableTest {
 		assertFalse((Boolean) messageChecks.invoke(client, msg));
 		Message msg1 = Message.makeBroadcastMessage(null, "");
 		assertFalse((Boolean) messageChecks.invoke(client, msg1));
-		socket.close();
+		// socket.close();
 	}
 
 	/*
@@ -190,9 +298,9 @@ public class ClientRunnableTest {
 	@Test
 	public void setUserNameTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException {
-		SocketNB socket = new SocketNB("127.0.0.1", 4545);
+		 socketNB = new SocketNB("127.0.0.1", 4545);
 		SocketChannel sChannel;
-		sChannel = socket.getSocket();
+		sChannel = socketNB.getSocket();
 
 		client = new ClientRunnable(sChannel);
 		client.setName("Test");
@@ -214,9 +322,9 @@ public class ClientRunnableTest {
 	@Test
 	public void TestForRunIntialized() throws IOException, NoSuchFieldException, SecurityException,
 			IllegalArgumentException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-		SocketNB socket = new SocketNB("127.0.0.1", 4545);
+		 socketNB = new SocketNB("127.0.0.1", 4545);
 		SocketChannel sChannel;
-		sChannel = socket.getSocket();
+		sChannel = socketNB.getSocket();
 		Message msg = Message.makeBroadcastMessage("Test", "How are you?");
 		Message nonSpeacialBroadMsg = Message.makeBroadcastMessage("Test", null);
 		Message nonNameMessage = Message.makeBroadcastMessage(null, null);
@@ -294,8 +402,8 @@ public class ClientRunnableTest {
 		// Message incorrectLoginMessage = Message.makeLoginMessage("crtest1", "tewst");
 		Message groupDeleteMessage = Message.makeDeleteGroupMessage("crGroupTest");
 		Message userDeleteMessage = Message.makeDeleteUserMessage("crtest");
-		Message userDeleteMessage2 = Message.makeDeleteUserMessage("crtest2");
-		Message userDeleteWrongPasswordMessage = Message.makeDeleteUserMessage("crtest1");
+		Message userDeleteMessage2 = Message.makeDeleteUserMessage("crtest");
+		Message userDeleteWrongPasswordMessage = Message.makeDeleteUserMessage("crtest");
 		Message userUpdateMessage = Message.makeUpdateUserMessage("crtest", "crtest");
 		Message userUpdateWrongPasswordMessage = Message.makeUpdateUserMessage("crtest1", "crtest");
 		Message userAddToWrongGroupMessage = Message.makeAddUserToGroup("crGroupTest1");
@@ -307,25 +415,23 @@ public class ClientRunnableTest {
 		Message groupMsg = Message.makeGroupMessage("crtest", "crGroupTest", "Hey hello group");
 		Message wrongGroupMsg = Message.makeGroupMessage("crtest1", "crGroupTest", "Hey hello group");
 		Message wrongGroupMsg2 = Message.makeGroupMessage("crtest", "crGroupTest22", "Hey hello group");
-		
-		
+
 		queue.add(correctCreateUserMessage);
 		client.run();
 		queue.add(correctCreateUserMessage);
 		client.run();
-		
+
 		queue.add(correctCreateUser2Message);
 		client.run();
 
-		
 		queue.add(privateMsg);
 		user = new User("crtest", "crtest");
 		client.run();
-		
+
 		queue.add(privateWrongMsg);
 		user = new User("crtest", "crtest");
 		client.run();
-		
+
 		queue.add(correctCreateGroupMessage);
 		user = new User("crtest", "crtest");
 		client.run();
@@ -337,15 +443,15 @@ public class ClientRunnableTest {
 		queue.add(groupMsg);
 		user = new User("crtest", "crtest");
 		client.run();
-		
+
 		queue.add(wrongGroupMsg);
 		user = new User("crtest", "crtest");
 		client.run();
-		
+
 		queue.add(wrongGroupMsg2);
 		user = new User("crtest", "crtest");
 		client.run();
-		
+
 		queue.add(correctLoginMessage);
 		client.run();
 
@@ -362,8 +468,8 @@ public class ClientRunnableTest {
 		queue.add(userAddToGroupMessage);
 		user = new User("crtest", "crtest");
 		client.run();
-		
-		//Exit Group
+
+		// Exit Group
 
 		queue.add(userExitWrongGroupMessage);
 		user = new User("crtest", "crtest");
@@ -374,7 +480,7 @@ public class ClientRunnableTest {
 		queue.add(userExitGroupMessage);
 		user = new User("crtest", "crtest");
 		client.run();
-		//Group Delete
+		// Group Delete
 		queue.add(groupDeleteMessage);
 		user = new User("crtest", "crtest");
 		client.run();
@@ -393,18 +499,21 @@ public class ClientRunnableTest {
 		queue.add(userDeleteMessage);
 		user = new User("crtest", "crtest");
 		client.run();
-		queue.add(userDeleteMessage2);
 		user = new User("crtest2", "crtest");
+		queue.add(userDeleteMessage2);
 		client.run();
 		queue.add(correctLoginMessage);
 		client.run();
-		
-		 assertTrue(client.isInitialized());
-		 queue.add(terminate);
-		 Assertions.assertThrows(NullPointerException.class, () -> {
-			client.run();
-		});
 
+		//testSubpoenaCreate();
+
+		assertTrue(client.isInitialized());
+		queue.add(terminate);
+		try {
+			client.run();
+		} catch (Exception e) {
+			assertTrue(e == e);
+		}
 	}
 
 	/*
@@ -417,9 +526,9 @@ public class ClientRunnableTest {
 	public void testPublicMethods() throws IOException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		Message msg = Message.makeBroadcastMessage("Test", "How are you?");
-		SocketNB socket = new SocketNB("127.0.0.1", 4545);
+		socketNB = new SocketNB("127.0.0.1", 4545);
 		SocketChannel sChannel;
-		sChannel = socket.getSocket();
+		sChannel = socketNB.getSocket();
 		client = new ClientRunnable(sChannel);
 		Class cls = client.getClass();
 		Method setUserName = cls.getDeclaredMethod("setUserName", String.class);
@@ -429,6 +538,21 @@ public class ClientRunnableTest {
 		client.enqueueMessage(msg);
 		assertTrue(userName.equalsIgnoreCase(client.getName()));
 		assertFalse(client.isInitialized());
+
+		Method handleMsgsMethod = cls.getDeclaredMethod("handleMsgs", Message.class);
+		handleMsgsMethod.setAccessible(true);
+		Method handleOtherMsgsMethod = cls.getDeclaredMethod("handleOtherMsgs", Message.class);
+		handleOtherMsgsMethod.setAccessible(true);
+
+		handleMsgsMethod.invoke(client, Message.makeLoginMessage("nipun", "test"));
+		handleOtherMsgsMethod.invoke(client, Message.makeCreateGroupSubpoena("petergroup", "11-20-2019", "12-20-2019"));
+		// handleMsgsMethod.invoke(client, Message.makeSubpoenaLogin(id));
+
+		handleMsgsMethod.invoke(client, Message.makeLoginMessage("admin", "test"));
+		handleOtherMsgsMethod.invoke(client, Message.makeCreateGroupSubpoena("petergroup", "11-20-2021", "12-20-2019"));
+		handleOtherMsgsMethod.invoke(client, Message.makeSearchMessage("nipun", "peter", "sender"));
+		handleMsgsMethod.invoke(client, Message.makeLoginMessage("peter", "test"));
+		handleMsgsMethod.invoke(client, Message.makeRecallMessage("1543550328118", "user", "akshay"));
 	}
 
 	/*
@@ -441,10 +565,37 @@ public class ClientRunnableTest {
 	public void testGetUserId() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
 		Message msg = Message.makeBroadcastMessage("Test", "How are you?");
-		SocketNB socket = new SocketNB("127.0.0.1", 4545);
+		 socketNB = new SocketNB("127.0.0.1", 4545);
 		SocketChannel sChannel;
-		sChannel = socket.getSocket();
-		client = new ClientRunnable(sChannel);
-		assertEquals(0, client.getUserId());
+		sChannel = socketNB.getSocket();
+		if (sChannel.isOpen()) {
+			client = new ClientRunnable(sChannel);
+			assertEquals(0, client.getUserId());
+		} else {
+			SocketChannel.open();
+			client = new ClientRunnable(sChannel);
+			assertEquals(0, client.getUserId());
+		}
+
+	}
+
+	private static SocketNB createClientSocket(String clientName, int port) {
+		boolean scanning = true;
+		SocketNB socket = null;
+		int numberOfTry = 0;
+		while (scanning && numberOfTry < 10) {
+			numberOfTry++;
+			try {
+				socket = new SocketNB(clientName, port);
+				scanning = false;
+			} catch (IOException e) {
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException ie) {
+					ie.printStackTrace();
+				}
+			}
+		}
+		return socket;
 	}
 }

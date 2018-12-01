@@ -7,8 +7,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Base64;
-
 import javax.imageio.ImageIO;
+
 
 /**
  * Each instance of this class represents a single transmission by our IM
@@ -101,7 +101,27 @@ public class Message {
         /** MIME type */
         MIME("MIM"),
         /** Message for history messages */
-        HISTORY_MESSAGE("HMG");
+        HISTORY_MESSAGE("HMG"),
+        /** Notify pending msgs exist */
+        NOTIFY_PENDING("PEN"),
+        /** Send back a UID on message sending */
+        UID("UID"),
+        /** Message to turn Parental control on and off */
+        PARENTAL_CONTROL("PCR"),
+        RECALL("REC"),
+        SEARCH("SCH"),
+        /** Message for user Subpoena create messages */
+        USER_SUBPOENA_CREATE("SUN"),
+        /** Message for group Subpoena create messages */
+        GROUP_SUBPOENA_CREATE("SGN"),
+        /** Message for No privilege to add Subpoena */
+        SUBPOENA_NO_PRIVILEGE("SNP"),
+        /** Message for group Subpoena create messages */
+        SUBPOENA_LOGIN("SBN"),
+        /** Message for create Subpoena is success */
+        SUBPOENA_SUCCESS("SBC"),
+        /** Message for create Subpoena is success */
+        SUBPOENA_LOGIN_SUCCESS("SLC");
         /** Store the short name of this message type. */
         private String tla;
 
@@ -223,6 +243,15 @@ public class Message {
         return new Message(MessageType.PRIVATE, srcName, recipient, text);
     }
 
+    public static Message makeRecallMessage(String uid, String type, String name) {
+        return new Message(MessageType.RECALL, uid, type, name);
+    }
+
+    public static Message makeSearchMessage(String srcName, String recipient, String text) {
+        return new Message(MessageType.SEARCH, srcName, recipient, text);
+    }
+
+
     /**
      * 
      * @param srcName
@@ -231,18 +260,16 @@ public class Message {
      * @return
      */
     public static Message makeMIMEMessage(String srcName, String recipient, String url) {
-        if(!url.substring(0, 3).equals("REC")) {
+        if (!url.substring(0, 3).equals("REC")) {
             try {
-                File f =  new File(url);
+                File f = new File(url);
                 String encodedstring = "REC" + encodeFileToBase64Binary(f);
                 return new Message(MessageType.MIME, srcName, recipient, encodedstring);
-            }
-            catch(Exception e) {
-                System.err.println("No such file found"); 
+            } catch (Exception e) {
+                System.err.println("No such file found");
                 return null;
             }
-        }
-        else {
+        } else {
             // decode
             url = url.substring(3);
             byte[] imageBytes = Base64.getDecoder().decode(url);
@@ -251,7 +278,7 @@ public class Message {
             try {
                 img = ImageIO.read(new ByteArrayInputStream(imageBytes));
                 int num = 1;
-                while(outputfile.exists()) {
+                while (outputfile.exists()) {
                     outputfile = new File("image" + num++ + ".png");
                 }
                 ImageIO.write(img, "png", outputfile);
@@ -259,18 +286,18 @@ public class Message {
                 System.out.println("FILE RECEIVED " + outputfile.getName() + " FROM " + srcName);
                 return new Message(MessageType.MIME, srcName, recipient, url);
             } catch (IOException e) {
-                //  Auto-generated catch block
+                // Auto-generated catch block
                 e.printStackTrace();
                 return null;
             }
         }
     }
 
-    private static String encodeFileToBase64Binary(File file){
+    private static String encodeFileToBase64Binary(File file) {
         String encodedfile = null;
         try {
             FileInputStream fileInputStreamReader = new FileInputStream(file);
-            byte[] bytes = new byte[(int)file.length()];
+            byte[] bytes = new byte[(int) file.length()];
             fileInputStreamReader.read(bytes);
             encodedfile = new String(Base64.getEncoder().encode(bytes), "UTF-8");
             fileInputStreamReader.close();
@@ -409,8 +436,83 @@ public class Message {
             result = makeUpdateUserMessage(srcName, text);
         } else if (handle.compareTo(MessageType.HISTORY_MESSAGE.toString()) == 0) {
             result = makeHistoryMessage(srcName);
+        }else if (handle.compareTo(MessageType.NOTIFY_PENDING.toString()) == 0) {       
+            result = makePendingMsgNotif();     
+        } else if (handle.compareTo(MessageType.SUBPOENA_NO_PRIVILEGE.toString()) == 0) {
+            result = makeCreateNoPrivilegeMessage();
+        } else if (handle.compareTo(MessageType.SUBPOENA_LOGIN.toString()) == 0) {
+            result = makeSubpoenaLogin(srcName);
+        } else if (handle.compareTo(MessageType.SUBPOENA_SUCCESS.toString()) == 0) {
+            result = makeSubpoenaSuccess(srcName);
+        } else if (handle.compareTo(MessageType.SUBPOENA_LOGIN_SUCCESS.toString()) == 0) {
+            result = makeSubpoenaLoginSuccess(srcName);
+        } else if (handle.compareTo(MessageType.UID.toString()) == 0) {
+            System.out.println("Delivered with UID -> " + srcName);
+            result = makeUID(srcName);
+        } else if (handle.compareTo(MessageType.PARENTAL_CONTROL.toString()) == 0) {
+            result = makeParentalControlMessage(srcName);
         }
         return result;
+    }
+
+    /**
+     * Create a new message Subpoena Login is success.
+     * 
+     * @return Instance of Message.
+     */
+
+    public static Message makeSubpoenaLoginSuccess(String id) {
+        return new Message(MessageType.SUBPOENA_LOGIN_SUCCESS, id);
+    }
+
+    /**
+     * Create a new message Subpoena Create is success.
+     * 
+     * @return Instance of Message.
+     */
+
+    public static Message makeSubpoenaSuccess(String id) {
+        return new Message(MessageType.SUBPOENA_SUCCESS, id);
+    }
+
+    /**
+     * Create a new message to make Subpoena Login request.
+     * 
+     * @return Instance of Message.
+     */
+
+    public static Message makeSubpoenaLogin(String id) {
+        return new Message(MessageType.SUBPOENA_LOGIN, id);
+    }
+
+    /**
+     * Create a new message to make User Subpoena create request.
+     * 
+     * @return Instance of Message.
+     */
+
+    public static Message makeCreateUserSubpoena(String users, String fromDate, String toDate) {
+        return new Message(MessageType.USER_SUBPOENA_CREATE, users, fromDate, toDate);
+    }
+
+    /**
+     * Create a new message to make Group Subpoena create request.
+     * 
+     * @return Instance of Message.
+     */
+
+    public static Message makeCreateGroupSubpoena(String groupName, String fromDate, String toDate) {
+        return new Message(MessageType.GROUP_SUBPOENA_CREATE, groupName, fromDate, toDate);
+    }
+
+    /**
+     * Create a new message to make no PRIVILEGE message
+     * 
+     * @return Instance of Message.
+     */
+
+    public static Message makeCreateNoPrivilegeMessage() {
+        return new Message(MessageType.SUBPOENA_NO_PRIVILEGE);
     }
 
     /**
@@ -467,6 +569,15 @@ public class Message {
      */
     public static Message makeUserWrongPasswordMsg() {
         return new Message(MessageType.USER_WRONG_PASSWORD);
+    }
+
+    /**     
+     * Create a new message if pending messages exist       
+     *      
+     * @return Instance of Message.     
+     */     
+    public static Message makePendingMsgNotif() {       
+        return new Message(MessageType.NOTIFY_PENDING);     
     }
 
     /**
@@ -558,6 +669,16 @@ public class Message {
     public static Message makeLoginFaill() {
         return new Message(MessageType.LOGIN_FAIL);
     }
+    
+    /**
+     * Create a new message Parental Control on/off.
+     * 
+     * @return Instance of Message.
+     */
+
+    public static Message makeParentalControlMessage(String t) {
+        return new Message(MessageType.PARENTAL_CONTROL, t);
+    }
 
     /**
      * Create a new message to Create a user.
@@ -621,6 +742,15 @@ public class Message {
     public static Message makeUserIdExist() {
         return new Message(MessageType.USER_EXIST);
     }
+    
+    /**
+     * Create a new message to return UID of sent message
+     * 
+     * @return Instance of Message.
+     */
+    public static Message makeUID(String uid) {
+        return new Message(MessageType.UID, uid);
+    }
 
     /**
      * Given a handle, name and text, return the appropriate message instance or an
@@ -643,7 +773,7 @@ public class Message {
             result = makePrivateMessage(srcName, recipient, text);
         else if (handle.compareTo(MessageType.GROUP.toString()) == 0)
             result = makeGroupMessage(srcName, recipient, text);
-        else if(handle.compareTo(MessageType.MIME.toString()) == 0)
+        else if (handle.compareTo(MessageType.MIME.toString()) == 0)
             result = makeMIMEMessage(srcName, recipient, text);
         return result;
     }
@@ -764,12 +894,40 @@ public class Message {
     }
 
     /**
+     * Determine if this message is of type Subpoena login success.
+     * 
+     * @return True if the message is of type SUBPOENA_LOGIN_SUCCESS; false otherwise
+     */
+    public boolean isSubpoenaLoginSuccess() {
+        return (msgType == MessageType.SUBPOENA_LOGIN_SUCCESS);
+    }
+
+    
+    /**
+     * Determine if this message is of type History Message.
+     * 
+     * @return True if the message is of type SUBPOENA_LOGIN_SUCCESS; false otherwise
+     */
+    public boolean isHistoryMessage() {
+        return (msgType == MessageType.HISTORY_MESSAGE);
+    }
+
+
+    /**
      * Determine if this message is of type login success.
      * 
      * @return True if the message is of type login_success; false otherwise
      */
     public boolean isLoginSuccess() {
         return (msgType == MessageType.LOGIN_SUCCESS);
+    }
+    
+    /**
+     * 
+     * @return true iff message is of type UID
+     */
+    public boolean isUIDMessage() {
+        return (msgType == MessageType.UID);
     }
 
     /**

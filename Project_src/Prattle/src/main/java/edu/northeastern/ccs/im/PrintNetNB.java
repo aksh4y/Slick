@@ -1,8 +1,11 @@
 package edu.northeastern.ccs.im;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -21,70 +24,99 @@ import java.util.logging.Logger;
  * @version 1.3
  */
 public class PrintNetNB {
-	/** Channel over which we will write out any messages. */
-	private final SocketChannel channel;
-	
+    /** Channel over which we will write out any messages. */
+    private final SocketChannel channel;
+
+    /** Logger */
     private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
 
-	/**
-	 * Number of times to try sending a message before we give up in frustration.
-	 */
-	private static final int MAXIMUM_TRIES_SENDING = 100;
+    /**
+     * Number of times to try sending a message before we give up in frustration.
+     */
+    private static final int MAXIMUM_TRIES_SENDING = 100;
 
-	/**
-	 * Creates a new instance of this class. Since, by definition, this class sends
-	 * output over the network, we need to supply the non-blocking Socket instance
-	 * to which we will write.
-	 * 
-	 * @param sockChan Non-blocking SocketChannel instance to which we will send all
-	 *                 communication.
-	 */
-	public PrintNetNB(SocketChannel sockChan) {
-		// Remember the channel that we will be using.
-		channel = sockChan;
-	}
+    private static final String TRANSFER_ERR_MSG = "Something went wrong during data transfer @ Slick";
 
-	/**
-	 * Creates a new instance of this class. Since, by definition, this class sends
-	 * output over the network, we need to supply the non-blocking Socket instance
-	 * to which we will write.
-	 * 
-	 * @param connection Non-blocking Socket instance to which we will send all
-	 *                   communication.
-	 */
-	public PrintNetNB(SocketNB connection) {
-		// Remember the channel that we will be using.
-		channel = connection.getSocket();
-	}
+    Properties prop = new Properties();
+    InputStream input;
+    /** Slack WebHook URL */
+    private String slackURL;
 
-	/**
-	 * Send a Message over the network. This method performs its actions by printing
-	 * the given Message over the SocketNB instance with which the PrintNetNB was
-	 * instantiated. This returns whether our attempt to send the message was
-	 * successful.
-	 * 
-	 * @param msg Message to be sent out over the network.
-	 * @return True if we successfully send this message; false otherwise.
-	 */
-	public boolean print(Message msg) {
-		String str = msg.toString();
-		ByteBuffer wrapper = ByteBuffer.wrap(str.getBytes());
-		int bytesWritten = 0;
-		int attemptsRemaining = MAXIMUM_TRIES_SENDING;
-		while (wrapper.hasRemaining() && (attemptsRemaining > 0)) {
-			try {
-				attemptsRemaining--;
-				bytesWritten += channel.write(wrapper);
-			} catch (IOException e) {
-				// Show that this was unsuccessful
-				return false;
-			}
-		}
-		// Check to see if we were successful in our attempt to write the message
-		if (wrapper.hasRemaining()) {
-			LOGGER.log(Level.SEVERE, "Something went wrong: {0} out of {1} bytes -- dropping this user", new Object[]{bytesWritten, wrapper.limit()}); 
-			return false;
-		}
-		return true;
-	}
+    /**
+     * Creates a new instance of this class. Since, by definition, this class sends
+     * output over the network, we need to supply the non-blocking Socket instance
+     * to which we will write.
+     * 
+     * @param sockChan Non-blocking SocketChannel instance to which we will send all
+     *                 communication.
+     */
+    public PrintNetNB(SocketChannel sockChan) {
+        // Remember the channel that we will be using.
+        channel = sockChan;
+        try {
+            input = new FileInputStream("config.properties");
+            prop.load(input);
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Could not load config file", e);
+        }
+        slackURL = prop.getProperty("slackURL");
+    }
+
+    /**
+     * Creates a new instance of this class. Since, by definition, this class sends
+     * output over the network, we need to supply the non-blocking Socket instance
+     * to which we will write.
+     * 
+     * @param connection Non-blocking Socket instance to which we will send all
+     *                   communication.
+     */
+    public PrintNetNB(SocketNB connection) {
+        // Remember the channel that we will be using.
+        channel = connection.getSocket();
+    }
+
+    /**
+     * Send a Message over the network. This method performs its actions by printing
+     * the given Message over the SocketNB instance with which the PrintNetNB was
+     * instantiated. This returns whether our attempt to send the message was
+     * successful.
+     * 
+     * @param msg Message to be sent out over the network.
+     * @return True if we successfully send this message; false otherwise.
+     */
+    public boolean print(Message msg) {
+        String str = msg.toString();
+        ByteBuffer wrapper = ByteBuffer.wrap(str.getBytes());        
+        int bytesWritten = 0;
+        int attemptsRemaining = MAXIMUM_TRIES_SENDING;
+        while (wrapper.hasRemaining() && (attemptsRemaining > 0)) {
+            try {
+                attemptsRemaining--;
+                bytesWritten += channel.write(wrapper);
+            } catch (IOException e) {
+                // Show that this was unsuccessful
+                return loggerFunction();
+            }
+        }
+        // Check to see if we were successful in our attempt to write the message
+        if (wrapper.hasRemaining()) {
+            LOGGER.log(Level.SEVERE, "Something went wrong: {0} out of {1} bytes -- dropping this user", new Object[]{bytesWritten, wrapper.limit()});
+            return loggerFunction();
+        }
+        return true;
+    }
+
+    public boolean loggerFunction() {
+        SlackNotification.notifySlack(slackURL);
+        LOGGER.log(Level.SEVERE, TRANSFER_ERR_MSG);
+        return false;
+    }
+
+    /**
+     * @return
+     */
+    public SocketChannel getChannel() {
+        return channel;
+    }
+    
 }

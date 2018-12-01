@@ -10,6 +10,11 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import com.github.seratch.jslack.Slack;
+import com.github.seratch.jslack.api.webhook.Payload;
+import com.github.seratch.jslack.api.webhook.WebhookResponse;
 
 /**
  * This class resembles the traditional Socket, but is designed to be used by my
@@ -49,6 +54,12 @@ public final class SocketNB {
     private static final String CHARSET_NAME = "us-ascii";
 
     private static final int MAX_WAIT_DELAY = 100;
+
+    /** Slack WebHook URL */
+    private static final String SLACK_URL = "https://hooks.slack.com/services/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";
+
+    /** Logger */
+    private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
 
     private Selector selector;
 
@@ -193,6 +204,23 @@ public final class SocketNB {
                 }
                 if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.LOGIN_FAIL) {
                     System.out.println("Username/Password is wrong");
+                    Payload payload = Payload.builder()
+                            .channel("#cs5500-team-203-f18")
+                            .username("Slick Bot")
+                            .iconEmoji(":ghost:")
+                            .text("Invalid Login Attempt @ Slick")
+                            .build();
+
+                    Slack slack = Slack.getInstance();
+                    WebhookResponse response = slack.send(SLACK_URL, payload);
+                    try {
+                    if(!response.getMessage().equalsIgnoreCase("OK"))
+                        LOGGER.log(Level.SEVERE, "Slack integration failed!");
+                    }
+                    catch(Exception e) {
+                        LOGGER.log(Level.SEVERE, "Slack integration failed!");
+                    }
+                    LOGGER.log(Level.SEVERE, "Invalid Login Attempt @ Slick");
                 }
                 if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.LOGIN_SUCCESS) {
                     System.out.println("Login Successful");
@@ -238,8 +266,19 @@ public final class SocketNB {
                     System.out.println("Success");
                 }
                 if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.HISTORY_MESSAGE) {
-                    //System.out.println(newMsg.getSender());
-                    MessagePrinter.printMessage(newMsg.getSender());
+                    //MessagePrinter.printMessage(newMsg.getSender());
+                }
+                if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.NOTIFY_PENDING) {
+                    System.out.println("\u001B[33m--------YOU HAVE UNREAD MESSAGES--------\u001B[0m");
+                }
+                if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.SUBPOENA_SUCCESS) {
+                    System.out.println("Your Subpoena id is: " + newMsg.getSender());
+                }
+                if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.SUBPOENA_NO_PRIVILEGE) {
+                    System.out.println("You are not allowed to perform this operation");
+                }
+                if (newMsg.isSubpoenaLoginSuccess()) {
+                    System.out.println("Subpoena Channel Login Success");
                 }
 
                 // Now pass this message on to the system.

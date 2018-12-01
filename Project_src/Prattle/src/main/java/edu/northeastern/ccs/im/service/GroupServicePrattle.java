@@ -8,7 +8,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
-import com.mongodb.client.result.DeleteResult;
 import edu.northeastern.ccs.im.MongoDB.Model.Group;
 import edu.northeastern.ccs.im.MongoDB.Model.User;
 import org.bson.Document;
@@ -28,7 +27,7 @@ public class GroupServicePrattle {
 	private MongoCollection<Document> gcol;
 	private MongoDatabase db;
 	private Gson gson;
-
+	private static final String LIST_OF_USERS ="listOfUsers";
 
 	/**
 	 *
@@ -67,6 +66,12 @@ public class GroupServicePrattle {
 		gcol.insertOne(Document.parse(json));
 	}
 
+	/**
+	 * Delete group boolean.
+	 *
+	 * @param groupname the groupname
+	 * @return the boolean
+	 */
 	public boolean deleteGroup(String groupname) {
 		UserServicePrattle userService= new UserServicePrattle(db);
 		Group group= findGroupByName(groupname);
@@ -116,30 +121,43 @@ public class GroupServicePrattle {
 	 * @throws JsonProcessingException
 	 */
 	public Boolean addUserToGroup(Group group, User user) {
-		gcol.updateOne(Filters.eq("name", group.getName()), Updates.addToSet("listOfUsers", user.getUsername()));
+		gcol.updateOne(Filters.eq("name", group.getName()), Updates.addToSet(LIST_OF_USERS, user.getUsername()));
 		UserServicePrattle userService= new UserServicePrattle(db);
 		userService.addGroupToUser(user,group);
 		return true;
 	}
 
+	/**
+	 * Remove user from groups boolean.
+	 *
+	 * @param listOfGroups the list of groups
+	 * @param username     the username
+	 * @return the boolean
+	 */
 	public boolean removeUserFromGroups(List<String> listOfGroups, String username) {
 		boolean result=false;
 		for( String group : listOfGroups) {
 			 result = gcol.updateOne(Filters.eq("name", group),
-					 Updates.pull("listOfUsers", username)).getModifiedCount()==1;
+					 Updates.pull(LIST_OF_USERS, username)).getModifiedCount()==1;
 		}
 		return result;
 	}
 
+	/**
+	 * Exit group boolean.
+	 *
+	 * @param username  the username
+	 * @param groupname the groupname
+	 * @return the boolean
+	 */
 	public boolean exitGroup(String username, String groupname){
 		//remove user from group
 		boolean update=gcol.updateOne(Filters.eq("name", groupname),
-				Updates.pull("listOfUsers", username)).getModifiedCount()==1;
+				Updates.pull(LIST_OF_USERS, username)).getModifiedCount()==1;
 
 		//remove group from user
 		UserServicePrattle userService= new UserServicePrattle(db);
 		boolean removeGroup = userService.removeGroupFromUser(username,groupname);
 		return (update && removeGroup);
 	}
-
 }
