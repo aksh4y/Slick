@@ -6,9 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
 
+import javax.sql.ConnectionEvent;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import com.github.seratch.jslack.api.methods.SlackApiException;
 
 
 /**
@@ -18,7 +22,7 @@ import org.junit.jupiter.api.Test;
  */
 public class PrintNetNBTest {
 
-    //private static PrattleRunabale server; // Holds the server instance
+    // private static PrattleRunabale server; // Holds the server instance
     static SocketNB socket;    // holds the socket
     Message message;    // holds the message
     private static final String SENDER = "Sender";  // static sender
@@ -28,14 +32,13 @@ public class PrintNetNBTest {
 
 
     @BeforeAll
-    public static void setUp(){
-       ServerSingleton.runServer();
-       try {
-        setUpSocket();
-    } catch (IOException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-    }
+    public static void setUp() throws IOException{
+        try {
+            ServerSingleton.runServer();
+        }
+        catch(Exception e) {
+            System.out.println(ServerSingleton.running);
+        }
     }
 
     @AfterAll
@@ -49,6 +52,7 @@ public class PrintNetNBTest {
      */
     @Test
     public void nullMsgErrorTest () throws IOException {   
+        socket = new SocketNB(HOST, PORT);
         //setUpSocket();
         message = null;
         PrintNetNB testObj = new PrintNetNB(socket);
@@ -64,10 +68,10 @@ public class PrintNetNBTest {
      */
     @Test
     public void noSocketErrorTest() throws IOException { 
-        SocketNB socket = null;
+        SocketNB socket2 = null;
         assertThrows(NullPointerException.class,
                 ()->{
-                    PrintNetNB testObj = new PrintNetNB(socket);
+                    PrintNetNB testObj = new PrintNetNB(socket2);
                 });
     }
 
@@ -78,7 +82,14 @@ public class PrintNetNBTest {
     @Test
     public void printTest() throws IOException {
         makeAcknowledgeMessage();
-        PrintNetNB testObj = new PrintNetNB(socket);
+        PrintNetNB testObj;
+        try {
+            testObj = new PrintNetNB(socket);
+        }
+        catch(NullPointerException ne) {
+            socket = new SocketNB(HOST, PORT);
+            testObj = new PrintNetNB(socket);
+        }
         assertEquals(true, testObj.print(message));
     }
 
