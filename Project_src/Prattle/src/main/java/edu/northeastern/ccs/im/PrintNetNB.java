@@ -5,8 +5,10 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 
 /**
  * This class is similar to the java.io.PrintWriter class, but this class's
@@ -56,7 +58,7 @@ public class PrintNetNB {
         try(InputStream input = loader.getResourceAsStream(resourceName)) {
             prop.load(input);
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Could not load config file", e);
+            LOGGER.log(Level.WARN, "Could not load config file", e);
         }
         slackURL = prop.getProperty("slackURL");
     }
@@ -99,7 +101,7 @@ public class PrintNetNB {
         }
         // Check to see if we were successful in our attempt to write the message
         if (wrapper.hasRemaining()) {
-            LOGGER.log(Level.SEVERE, "Something went wrong: {0} out of {1} bytes -- dropping this user", new Object[]{bytesWritten, wrapper.limit()});
+            LOGGER.log(Level.FATAL,  new Object[]{bytesWritten, wrapper.limit()});
             return loggerFunction();
         }
         return true;
@@ -107,7 +109,7 @@ public class PrintNetNB {
 
     public boolean loggerFunction() {
         SlackNotification.notifySlack(slackURL);
-        LOGGER.log(Level.SEVERE, TRANSFER_ERR_MSG);
+        LOGGER.log(Level.FATAL, TRANSFER_ERR_MSG);
         return false;
     }
 

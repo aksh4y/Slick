@@ -1,8 +1,9 @@
 package edu.northeastern.ccs.im;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 import com.github.seratch.jslack.Slack;
 import com.github.seratch.jslack.api.webhook.Payload;
@@ -28,9 +29,9 @@ public class SlackNotification {
         try {
             response = slack.send(slackURL, payload);
             if (!response.getMessage().equalsIgnoreCase("OK"))
-                LOGGER.log(Level.SEVERE, INTEGRATION_ERR_MSG);
+                LOGGER.log(Level.FATAL, INTEGRATION_ERR_MSG);
         } catch (IOException e1) {
-            LOGGER.log(Level.SEVERE, INTEGRATION_ERR_MSG);
+            LOGGER.log(Level.FATAL, INTEGRATION_ERR_MSG);
         }
     }
 

@@ -2,8 +2,9 @@ package edu.northeastern.ccs.im;
 
 import java.io.InputStream;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
@@ -30,7 +31,7 @@ public class MongoConnection {
             client = new MongoClient(uri);
         }
         catch(Exception e) { 
-            Logger.getLogger(MongoConnection.class.getSimpleName()).log(Level.SEVERE, "Could not connect to database", e);
+            Logger.getLogger(MongoConnection.class.getSimpleName()).log(Level.FATAL, "Could not connect to database", e);
         }
         if(client != null)
             return client.getDatabase(uri.getDatabase());
