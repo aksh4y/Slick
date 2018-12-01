@@ -7,13 +7,20 @@ import edu.northeastern.ccs.im.SlackNotification;
 public class SlackNotificationTest {
 
     @Test
-    public void runTest() {
-        SlackNotification.notifySlack("https://hooks.slack.com/services/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");
+    public void legitTest() {
+        /** This is not a valid hook */
+        SlackNotification.notifySlack("https://hooks.slack.com/services/T2CR59JN7/BEDGKFU07/");
         try {
             SlackNotification.notifySlack(null);
         }
         catch(NullPointerException e) {
             assertTrue(true);
         }
+    }
+    
+    @Test
+    public void badTests() {
+        SlackNotification.notifySlack("http://abcd");
+        assertTrue(true);
     }
 }
