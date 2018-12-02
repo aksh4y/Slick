@@ -5,9 +5,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.Base64;
-
 import javax.imageio.ImageIO;
-
 import edu.northeastern.ccs.im.IMConnection;
 import edu.northeastern.ccs.im.KeyboardScanner;
 import edu.northeastern.ccs.im.Message;
@@ -79,8 +77,8 @@ public class CommandLineMain {
 										+ "CREATE_GROUP <group name>\tJOIN_GROUP <group name>\t" + ANSI_RED
 										+ "EXIT_GROUP <group name> \tDELETE_GROUP <group name>\n\n" + ANSI_RESET
 										+ "RECALL <message_id> <user/group> <name>\t\tSEARCH <sender/receiver> <name>\n\n"
-										+ "SUBPOENA <id>\tSUBPOENA_GROUP <group name> <from_date> <to_date>\tSUBPOENA_USER <username> <from_date> <to_date>\n\n"
-										+ "PARENTAL_CONTROL <on/off>\n");
+										+ "SUBPOENA <id>\tSUBPOENA_GROUP <group name> <from_date (mm-dd-yyyy)> <to_date (mm-dd-yyyy)>\n\nSUBPOENA_USER <username> <username/all> <from_date (mm-dd-yyyy)> <to_date (mm-dd-yyyy)>\n\n"
+										+ "PARENTAL_CONTROL <on/off>\t\tLOGGER <on/off>\n");
 					} else {
 						// Else, send the text so that it is broadcast to all users
 						// logged in to the IM
@@ -101,11 +99,14 @@ public class CommandLineMain {
 				if (message.isSubpoenaLoginSuccess()) {
 					isSubpoena = true;
 					connect.setUsername(message.getSender());
-				} else if (message.isHistoryMessage() && isSubpoena) {
+				} else if (message.isPendingMessage()) {
+                    System.out.println("\u001B[33m--------YOU HAVE UNREAD MESSAGES--------\u001B[0m");
+                } else if (message.isHistoryMessage() && isSubpoena) {
 					System.out.println(message.getSender());
-				} else if (message.isHistoryMessage() && !isSubpoena) {
+				} else if (message.isHistoryMessage()) {
 					MessagePrinter.printMessage(message.getSender());
-				} else if (message.isLoginSuccess() || message.isCreateSuccess())
+				} 				
+				else if (message.isLoginSuccess() || message.isCreateSuccess())
 					connect.setUsername(message.getSender());
 				else if (!message.getSender().equals(connect.getUserName())) {
 					if (message.isBroadcastMessage())

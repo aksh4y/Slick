@@ -265,12 +265,6 @@ public final class SocketNB {
                 if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.SUCCESS_MESSAGE) {
                     System.out.println("Success");
                 }
-                if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.HISTORY_MESSAGE) {
-                    //MessagePrinter.printMessage(newMsg.getSender());
-                }
-                if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.NOTIFY_PENDING) {
-                    System.out.println("\u001B[33m--------YOU HAVE UNREAD MESSAGES--------\u001B[0m");
-                }
                 if (newMsg.getType() == edu.northeastern.ccs.im.Message.MessageType.SUBPOENA_SUCCESS) {
                     System.out.println("Your Subpoena id is: " + newMsg.getSender());
                 }

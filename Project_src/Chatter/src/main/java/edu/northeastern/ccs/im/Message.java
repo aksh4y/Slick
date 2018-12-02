@@ -957,6 +957,10 @@ public class Message {
 	public boolean isInitialization() {
 		return (msgType == MessageType.HELLO);
 	}
+	
+	public boolean isPendingMessage() {
+	    return (msgType == MessageType.NOTIFY_PENDING);
+	}
 
 	/**
 	 * Determine if this message is a message signing off from the IM server.
