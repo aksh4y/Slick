@@ -90,7 +90,7 @@ public abstract class Prattle {
 
 	private static HashSet<String> vulgar;
 
-	private static boolean alive = true;;
+	private static boolean alive = true;
 
 	/** Logger */
 	private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
@@ -657,7 +657,7 @@ public abstract class Prattle {
 		}
 		console_appender.activateOptions();
 		Logger.getRootLogger().addAppender(console_appender);
-		System.out.println("Your log will show");
+		LOGGER.log(Level.INFO,"Your log will show");
 		LOGGER.log(Level.FATAL, "Fatal");
 		LOGGER.log(Level.INFO, "Info");
 		LOGGER.log(Level.WARN, "Warn");
