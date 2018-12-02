@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.nio.channels.SocketChannel;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import edu.northeastern.ccs.im.Message;
 import edu.northeastern.ccs.im.PrattleRunabale;
 import edu.northeastern.ccs.im.ServerSingleton;
+import edu.northeastern.ccs.im.SocketNB;
 import edu.northeastern.ccs.im.MongoDB.Model.User;
 
 /**
@@ -80,6 +82,14 @@ public class PrattleTest {
         assertThrows(Exception.class, ()-> {
             Prattle.handleOnlineClient(user, Message.makeFailMsg(), "", "", null, null, null);
         });
+        
+        
+        try {
+            ClientRunnable cr = new ClientRunnable(SocketChannel.open());
+            cr.setIP("127.0.0.1");
+            Prattle.handleOnlineClient(user, Message.makeFailMsg(), "", "", null, user, cr);
+        }
+        catch(Exception e) {assertFalse(false);}
 
         assertThrows(Exception.class, ()-> {
             Prattle.broadcastMessage(Message.makeFailMsg());

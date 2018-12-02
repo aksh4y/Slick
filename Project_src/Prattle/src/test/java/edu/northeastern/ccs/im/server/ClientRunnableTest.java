@@ -223,6 +223,7 @@ public class ClientRunnableTest {
 		handleOtherMsgs.invoke(client, Message.makeLoggerMessage("fatal"));
 		handleOtherMsgs.invoke(client, Message.makeLoggerMessage("info"));
 		handleOtherMsgs.invoke(client, Message.makeLoggerMessage("all"));
+		handleOtherMsgs.invoke(client, Message.makeLoggerMessage("error"));
 		handleMsgs.invoke(client, Message.makeMIMEMessage("crtest3", "crtest4", "C:\\Users\\Admin\\Desktop\\Bg.jpg"));
 
 	}
