@@ -1,7 +1,6 @@
 
 package edu.northeastern.ccs.im.server;
 
-import java.awt.TrayIcon.MessageType;
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
 import java.time.LocalDate;
@@ -15,8 +14,9 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledFuture;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mongodb.client.MongoDatabase;
@@ -347,10 +347,10 @@ public class ClientRunnable implements Runnable {
 			try {
 				terminate = checkMessages(terminate);
 			} catch (JsonProcessingException e) {
-				LOGGER.log(Level.SEVERE, e.toString());
+				LOGGER.log(Level.FATAL, e.toString());
 				this.enqueueMessage(Message.makeFailMsg());
 			} catch (NullPointerException ne) {
-				LOGGER.log(Level.SEVERE, ne.toString());
+				LOGGER.log(Level.FATAL, ne.toString());
 				this.enqueueMessage(Message.makeFailMsg());
 			} finally {
 				// When it is appropriate, terminate the current client.
@@ -364,7 +364,7 @@ public class ClientRunnable implements Runnable {
 		// the client.
 		if (!terminate && terminateInactivity.before(new GregorianCalendar())) {
 			String msg = "Timing out or forcing off a user " + name;
-			LOGGER.log(Level.WARNING, msg);
+			LOGGER.log(Level.WARN, msg);
 			terminateClient();
 		}
 	}
@@ -507,6 +507,8 @@ public class ClientRunnable implements Runnable {
 		// If the message is a broadcast message, send it out
 		else if (msg.isDisplayMessage()) {
 			handleDisplayMsg(msg);
+		} else if (msg.isLogMessage()) {
+			changeLogLevel(msg);
 		}
 	}
 
@@ -682,7 +684,7 @@ public class ClientRunnable implements Runnable {
 		if (!isSubpoena) {
 			messages = userService.getMessages(msg.getText(), msg.getMsgRecipient(), msg.getName());
 		} else {
-			messages = subpoenaService.searchSubpoenaMessages(msg.getName(), msg.getText(),  msg.getMsgRecipient());
+			messages = subpoenaService.searchSubpoenaMessages(msg.getName(), msg.getText(), msg.getMsgRecipient());
 		}
 		for (String text : messages) {
 			this.enqueueMessage(Message.makeHistoryMessage(text));
@@ -771,6 +773,15 @@ public class ClientRunnable implements Runnable {
 			}
 		}
 		this.enqueueMessage(ackMsg);
+	}
+
+	private void changeLogLevel(Message msg) {
+		if (name.equalsIgnoreCase("admin")) {
+			Prattle.changeLog(msg.getName());
+			this.enqueueMessage(Message.makeSuccessMsg());
+		} else {
+			this.enqueueMessage(Message.makeFailMsg());
+		}
 	}
 
 	/**
@@ -1042,7 +1053,7 @@ public class ClientRunnable implements Runnable {
 			socket.close();
 		} catch (IOException e) {
 			// If we have an IOException, ignore the problem
-			LOGGER.log(Level.WARNING, e.toString());
+			LOGGER.log(Level.WARN, e.toString());
 		} finally {
 			// Remove the client from our client listing.
 			Prattle.removeClient(this);

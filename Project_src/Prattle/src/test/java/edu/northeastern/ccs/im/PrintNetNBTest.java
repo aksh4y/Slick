@@ -25,24 +25,21 @@ public class PrintNetNBTest {
     static SocketNB socket;    // holds the socket
     Message message;    // holds the message
     private static final String SENDER = "Sender";  // static sender
-    private static final String HOST = "127.0.0.1";
-    private static final int PORT = 4545;
 
 
     @BeforeAll
-    public static void setUp() throws IOException{
-        try {
-            ServerSingleton.runServer();
-            socket = createClientSocket(HOST, PORT);
-        }
-        catch(Exception e) {
-            System.out.println(ServerSingleton.running);
-        }
+    public static void setUp() {
+        socket = createClientSocket("ec2-35-166-190-64.us-west-2.compute.amazonaws.com", 5555);
     }
 
     @AfterAll
     public static void stopServer() {
-        ServerSingleton.terminate();
+        try {
+            socket.close();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -93,7 +90,7 @@ public class PrintNetNBTest {
                 assertEquals(true, testObj.print(message));
             }
         }
-        
+
         try {
             testObj = new PrintNetNB(socket);
             testObj.getChannel();

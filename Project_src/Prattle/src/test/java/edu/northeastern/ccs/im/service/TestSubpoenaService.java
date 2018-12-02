@@ -76,12 +76,12 @@ public class TestSubpoenaService {
         subpoenaService.addToSubpoenaMessages(subpoenaService.getIdOfSubpoena(s2),"1543688445876 /127.0.0.1:57306 [cops@jail] Hi mark zuck,Alexa and Siri -> robbers /Offline");
         subpoenaService.addToSubpoenaMessages(subpoenaService.getIdOfSubpoena(s2),"1543688536693 /127.0.0.1:57332 [robbers@jail] oh oh -> cops /127.0.0.1:57306");
 
-//        assertEquals(3,subpoenaService.searchSubpoenaMessages(subpoenaService.getIdOfSubpoena(s1),"sender","cops").size());
-//        assertEquals(3,subpoenaService.searchSubpoenaMessages(subpoenaService.getIdOfSubpoena(s1),"receiver","robbers").size());
-//        assertEquals(0,subpoenaService.searchSubpoenaMessages(subpoenaService.getIdOfSubpoena(s1),"xyz","cops").size());
-//
-//        assertEquals(1,subpoenaService.searchSubpoenaMessages(subpoenaService.getIdOfSubpoena(s2),"sender","cops").size());
-//        assertEquals(1,subpoenaService.searchSubpoenaMessages(subpoenaService.getIdOfSubpoena(s2),"receiver","robbers").size());
+        assertEquals(3,subpoenaService.searchSubpoenaMessages(subpoenaService.getIdOfSubpoena(s1),"sender","cops").size());
+        assertEquals(3,subpoenaService.searchSubpoenaMessages(subpoenaService.getIdOfSubpoena(s1),"receiver","robbers").size());
+        assertEquals(0,subpoenaService.searchSubpoenaMessages(subpoenaService.getIdOfSubpoena(s1),"xyz","cops").size());
+
+        assertEquals(1,subpoenaService.searchSubpoenaMessages(subpoenaService.getIdOfSubpoena(s2),"sender","cops").size());
+        assertEquals(1,subpoenaService.searchSubpoenaMessages(subpoenaService.getIdOfSubpoena(s2),"receiver","robbers").size());
 
 
         subpoenaService.deleteSubpoena(subpoenaService.getIdOfSubpoena(s1));

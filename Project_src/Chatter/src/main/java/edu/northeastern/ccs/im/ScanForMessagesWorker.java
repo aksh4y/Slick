@@ -87,6 +87,7 @@ public final class ScanForMessagesWorker extends SwingWorker<Void, Message> {
 			case MIME:
 			case SUBPOENA_LOGIN_SUCCESS:
 			case HISTORY_MESSAGE:
+			case NOTIFY_PENDING:
 				publishList.add(m);
 				break;
 			case NO_ACKNOWLEDGE:

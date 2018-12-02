@@ -1,6 +1,5 @@
 package edu.northeastern.ccs.im;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -13,8 +12,10 @@ import java.nio.charset.CharsetDecoder;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 
 /**
  * This class is similar to the java.util.Scanner class, but this class's
@@ -55,7 +56,6 @@ public class ScanNetNB {
     private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
 
     Properties prop = new Properties();
-    InputStream input;
 
     /** Slack WebHook URL */
     private String slackURL;
@@ -76,11 +76,14 @@ public class ScanNetNB {
         // Remember the channel that we will be using.
         channel = sockChan;
         try {
-            input = new FileInputStream("config.properties");
-            prop.load(input);
+            String resourceName = "config.properties"; 
+            ClassLoader loader = Thread.currentThread().getContextClassLoader();
+            try(InputStream input = loader.getResourceAsStream(resourceName)) {
+                prop.load(input);
+            }
             slackURL = prop.getProperty("slackURL");
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Could not load config file", e);
+            LOGGER.log(Level.WARN, "Could not load config file", e);
         }
 
         try {
@@ -96,9 +99,9 @@ public class ScanNetNB {
     }
 
     public void loggerFunction(String e) {
-        LOGGER.log(Level.SEVERE, e);
+        LOGGER.log(Level.FATAL, e);
         SlackNotification.notifySlack(slackURL);
-        LOGGER.log(Level.SEVERE, TRANSFER_ERR_MSG);
+        LOGGER.log(Level.FATAL, TRANSFER_ERR_MSG);
     }
 
 
@@ -226,7 +229,7 @@ public class ScanNetNB {
             buff.compact();
         } catch (IOException ioe) {
             SlackNotification.notifySlack(slackURL);
-            LOGGER.log(Level.SEVERE, TRANSFER_ERR_MSG);
+            LOGGER.log(Level.FATAL, TRANSFER_ERR_MSG);
             assert false;
         }
         // Do we now have any messages?
@@ -254,7 +257,7 @@ public class ScanNetNB {
         try {
             selector.close();
         } catch (IOException e) {
-            LOGGER.log(Level.WARNING, e.toString());
+            LOGGER.log(Level.FATAL, e.toString());
             assert false;
         }
     }
@@ -355,14 +358,6 @@ public class ScanNetNB {
 
     public Properties getProp() {
         return prop;
-    }
-
-
-    /**
-     * @return
-     */
-    public InputStream getInput() {
-        return input;
     }
     
 }

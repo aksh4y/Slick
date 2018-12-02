@@ -6,15 +6,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import edu.northeastern.ccs.im.Message;
 import edu.northeastern.ccs.im.PrattleRunabale;
 import edu.northeastern.ccs.im.ServerSingleton;
+import edu.northeastern.ccs.im.MongoDB.Model.User;
 
 /**
  * Test the Prattle class
@@ -25,13 +25,14 @@ public class PrattleTest {
 
     @BeforeAll
     public static void setup() {
-        ServerSingleton.runServer();
+        if(!Prattle.isDone())
+            ServerSingleton.runServer();
     }
     @AfterAll
     public static void cleanUp() {
         ServerSingleton.terminate();
     }
-    
+
     /**
      * Prattle test.
      */
@@ -53,37 +54,47 @@ public class PrattleTest {
         }
         ClientRunnable client = null;
         PrattleRunabale.removeClient(client);
-        
+
         if(!PrattleRunabale.isDone())
             assertEquals(false, PrattleRunabale.isDone());
         else
             assertEquals(true, PrattleRunabale.isDone());
     }
-        
+
     @Test
     public void nullCheck() {
+        User user = new User("akshay", "akshay");
+
         assertThrows(Exception.class, ()-> {
-            Prattle.broadcastPrivateMessage(null, null, null, null, null);
+            Prattle.broadcastPrivateMessage(user, null, null, null, null);
         });
-        
+
         assertThrows(Exception.class, ()-> {
-            Prattle.broadcastGroupMessage(null, null, null, null, null);
+            Prattle.broadcastGroupMessage(user, null, null, null, null);
         });
-        
+
         assertThrows(Exception.class, ()-> {
-            Prattle.broadcastMessage(null);
+            Prattle.handleParental(Message.makeParentalControlMessage("on"), "on", null, user);
         });
-        
-        
+
+        assertThrows(Exception.class, ()-> {
+            Prattle.handleOnlineClient(user, Message.makeFailMsg(), "", "", null, null, null);
+        });
+
+        assertThrows(Exception.class, ()-> {
+            Prattle.broadcastMessage(Message.makeFailMsg());
+        });
+
+        Prattle.acceptClientConnection(null, null);
+
+
         if(Prattle.getActiveClients().isEmpty())
             assertTrue(Prattle.getActiveClients().isEmpty());
         else
             assertFalse(Prattle.getActiveClients().isEmpty());
-        
-        Prattle.prepareVulgarMap();
         assertTrue(true);     
     }   
-    
+
     @Test
     public void checkGetters() {
         if(Prattle.getActive().isEmpty()) 
@@ -98,12 +109,17 @@ public class PrattleTest {
         Prattle.keepPrattleRunning();
         Prattle.keepPrattleAlive();
     }
-    
+
     @Test
     public void checkPropertiesIntegrity() throws IOException {
-        InputStream input = Prattle.getInput();
-        Properties prop = Prattle.getProp();
-        prop.load(input);
-        assertEquals(prop.getProperty("slackURL"), Prattle.getSlackURL());
+        try {
+            Prattle.getInput();
+            Prattle.getProp();
+            Prattle.getSlackURL();
+            assertTrue(true);
+        }
+        catch(NullPointerException ne) {
+            assertFalse(false);
+        }
     }
 }

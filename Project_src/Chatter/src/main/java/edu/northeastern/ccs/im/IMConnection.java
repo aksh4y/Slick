@@ -251,6 +251,9 @@ public class IMConnection {
 		} else if (message.contains("PARENTAL_CONTROL")) {
 			String[] msgArray = message.split(" ");
 			msg = Message.makeParentalControlMessage(msgArray[1]);
+		} else if (message.contains("LOGGER")) {
+			String[] msgArray = message.split(" ");
+			msg = Message.makeLoggerMessage(msgArray[1]);
 		} else {
 			msg = Message.makeBroadcastMessage(username, message);
 		}

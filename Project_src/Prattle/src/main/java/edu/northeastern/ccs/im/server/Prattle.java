@@ -2,12 +2,14 @@
 package edu.northeastern.ccs.im.server;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -28,8 +30,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
 
 import com.mongodb.client.MongoDatabase;
 
@@ -85,9 +90,9 @@ public abstract class Prattle {
 
     private static Map<String, Subpoena> activeSubpoena;
 
-    private static HashSet<String> vulgar;
-    
-    private static boolean alive = true;;
+    private static final String URL = "https://www.purgomalum.com/service/plain?text=";
+
+    private static boolean alive = true;
 
     /** Logger */
     private static final Logger LOGGER = Logger.getLogger(Logger.class.getName());
@@ -104,18 +109,20 @@ public abstract class Prattle {
         activeSubpoena = new HashMap<>();
         db = MongoConnection.createConnection();
         try {
-            input = new FileInputStream("config.properties");
-            prop.load(input);
+            String resourceName = "config.properties";
+            ClassLoader loader = Thread.currentThread().getContextClassLoader();
+            try (InputStream input = loader.getResourceAsStream(resourceName)) {
+                prop.load(input);
+            }
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Could not load config file", e);
+            LOGGER.log(Level.WARN, "Could not load config file", e);
         }
         slackURL = prop.getProperty("slackURL");
         userService = new UserServicePrattle(db);
         subpoenaService = new SubpoenaServicePrattle(db);
-        vulgar = new HashSet<>();
         createActiveSubpoenaMap();
-        prepareVulgarMap();
         keepPrattleRunning();
+        changeLog("all");
     }
 
     /**
@@ -185,7 +192,7 @@ public abstract class Prattle {
     private static void broadcastToSubpoena(String msg, Set<String> sbIds) {
         for (String sID : sbIds) {
             ClientRunnable tt = activeClients.get(sID);
-            if ( tt!= null && tt.isInitialized()) {
+            if (tt != null && tt.isInitialized()) {
                 tt.enqueueMessage(Message.makeHistoryMessage(msg));
             }
             subpoenaService.addToSubpoenaMessages(sID, msg);
@@ -201,7 +208,7 @@ public abstract class Prattle {
      * @param tt
      * @param u
      */
-    private static void handleParental(Message message, String msg, ClientRunnable tt, User u) {
+    public static void handleParental(Message message, String msg, ClientRunnable tt, User u) {
         String msgText = message.getText();
         userService.addToMyMessages(u, checkVulgar(msg));
         Message filtred = Message.makeBroadcastMessage(message.getName(), checkVulgar(msgText));
@@ -244,11 +251,9 @@ public abstract class Prattle {
         } else {
             if (recipient.getParentalControl()) {
                 userService.addToUnreadMessages(recipient, checkVulgar(receiverMsg));
-            }
-            else {
+            } else {
                 userService.addToUnreadMessages(recipient, receiverMsg);
             }
-
 
             userService.addToMyMessages(sender, senderMsg);
         }
@@ -353,7 +358,7 @@ public abstract class Prattle {
      * @param recipient
      * @param cr
      */
-    private static void handleOnlineClient(User sender, Message msg, String senderMsg, String receiverMsg, String user,
+    public static void handleOnlineClient(User sender, Message msg, String senderMsg, String receiverMsg, String user,
             User recipient, ClientRunnable cr) {
         keepPrattleRunning();
         String newMsg = receiverMsg;
@@ -517,14 +522,13 @@ public abstract class Prattle {
                 }
             }
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Exception while trying to open socket: " + e.toString(), e);
+            LOGGER.log(Level.FATAL, "Exception while trying to open socket: " + e.toString(), e);
             SlackNotification.notifySlack(slackURL);
         } finally {
             if (serverSocket != null)
                 serverSocket.close();
         }
     }
-
 
     /**
      * Accept client connection
@@ -533,7 +537,7 @@ public abstract class Prattle {
      * @param threadPool
      */
     @SuppressWarnings("unchecked")
-    private static void acceptClientConnection(ServerSocketChannel serverSocket, ScheduledExecutorService threadPool) {
+    public static void acceptClientConnection(ServerSocketChannel serverSocket, ScheduledExecutorService threadPool) {
         try {
             keepPrattleRunning();
             // Accept the connection and create a new thread to handle this client.
@@ -557,9 +561,9 @@ public abstract class Prattle {
                 tt.setFuture(clientFuture);
             }
         } catch (AssertionError ae) {
-            LOGGER.log(Level.WARNING, "Caught Assetion: " + ae.toString(), ae);
+            LOGGER.log(Level.WARN, "Caught Assetion: " + ae.toString(), ae);
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Caught Exception: " + e.toString(), e);
+            LOGGER.log(Level.WARN, "Caught Exception: " + e.toString(), e);
         }
     }
 
@@ -591,46 +595,80 @@ public abstract class Prattle {
         // Test and see if the thread was in our list of active clients so that we
         // can remove it.
         if (!active.remove(dead) || !activeClients.remove(dead.getName(), dead)) {
-            LOGGER.log(Level.SEVERE, "Could not find the thread expected to be removed");
+            LOGGER.log(Level.FATAL, "Could not find the thread expected to be removed");
         }
     }
 
     public static void addToActiveClients(String name, ClientRunnable clientRunnable) {
         activeClients.put(name, clientRunnable);
     }
-    
+
     public static Map<String, ClientRunnable> getActiveClients() {
         return activeClients;
     }
 
-    /** Check each message for flagging */
+    /** Check each message for flagging 
+     * @throws MalformedURLException 
+     * @throws ProtocolException */
     private static String checkVulgar(String line) {
-        String l = line;
-        for (String s : l.split(" ")) {
-            if (vulgar.contains(s)) {
-                l = line.replaceAll(s, "*****");
-            }
+        line = line.replaceAll(" ", "%20");
+        String result = line;
+        String url = URL + line;
+        try {
+            URL obj = new URL(url);
+            HttpURLConnection conn = (HttpURLConnection) obj.openConnection();
+            int responseCode = conn.getResponseCode();
+            if(responseCode != 200)
+                return line;
+            BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            result = rd.readLine();
+            rd.close();
         }
-        return l;
+        catch(Exception e) {
+            LOGGER.log(Level.ERROR, "Could not check for profanity", e);
+        }
+        return result;
     }
 
-    public static void prepareVulgarMap() {
-        try (BufferedReader file = new BufferedReader(new FileReader("Pc.txt"))) {
-            String word = file.readLine();
-            while (word != null) {
-                vulgar.add(word);
-                word = file.readLine();
-            }
-        } catch (FileNotFoundException e) {
-            LOGGER.log(Level.SEVERE, "File not found for parental control", e);
-        } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "IO Exception when trying to read file for parental control", e);
+    public static void changeLog(String level) {
+        Logger.getRootLogger().removeAllAppenders();
+        ConsoleAppender consoleAppender = new ConsoleAppender();
+        String pattern = "%d %p [%c,%C{1}] %m%n";
+        consoleAppender.setLayout(new PatternLayout(pattern));
+        if (level.equalsIgnoreCase("info")) {
+            consoleAppender.setThreshold(Level.INFO);
+        } else if (level.equalsIgnoreCase("debug")) {
+            consoleAppender.setThreshold(Level.DEBUG);
+        } else if (level.equalsIgnoreCase("warn")) {
+            consoleAppender.setThreshold(Level.WARN);
+        } else if (level.equalsIgnoreCase("fatal")) {
+            consoleAppender.setThreshold(Level.FATAL);
+        } else if (level.equalsIgnoreCase("off")) {
+            consoleAppender.setThreshold(Level.OFF);
+        } else if (level.equalsIgnoreCase("all")) {
+            consoleAppender.setThreshold(Level.ALL);
+        } else if (level.equalsIgnoreCase("error")) {
+            consoleAppender.setThreshold(Level.ERROR);
         }
+        consoleAppender.activateOptions();
+        Logger.getRootLogger().addAppender(consoleAppender);
+        LOGGER.log(Level.INFO,"Your log will show");
+        LOGGER.log(Level.FATAL, "Fatal");
+        LOGGER.log(Level.INFO, "Info");
+        LOGGER.log(Level.WARN, "Warn");
+        LOGGER.log(Level.DEBUG, "Debug");
+        LOGGER.log(Level.ERROR, "Error");
     }
-    
-    
+
     /** Mock for final coverage */
     public static boolean keepPrattleRunning() {
+        keepPrattleAlive();
+        keepPrattleAlive();
+        keepPrattleAlive();
+        keepPrattleAlive();
+        keepPrattleAlive();
+        keepPrattleAlive();
+        keepPrattleAlive();
         keepPrattleAlive();
         keepPrattleAlive();
         keepPrattleAlive();
@@ -705,6 +743,7 @@ public abstract class Prattle {
     public static String getSlackURL() {
         return slackURL;
     }
+
     /**
      * @return
      */
@@ -718,9 +757,9 @@ public abstract class Prattle {
     public static Properties getProp() {
         return prop;
     }
-    
-    public static void keepPrattleAlive(){
+
+    public static void keepPrattleAlive() {
         alive = true;
     }
-    
+
 }

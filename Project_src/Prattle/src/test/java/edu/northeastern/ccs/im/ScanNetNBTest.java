@@ -28,9 +28,6 @@ import org.junit.jupiter.api.Test;
  * @version 1.0
  */
 class ScanNetNBTest {
-    private static final int PORT = 4545;
-    private static final String HOST = "127.0.0.1";
-    //private static PrattleRunabale server;
     private static final int BUFFER_SIZE = 64 * 1024;
     private static final String CHARSET_NAME = "us-ascii";
     private static final int MIN_MESSAGE_LENGTH = 7;
@@ -39,10 +36,7 @@ class ScanNetNBTest {
 
     @BeforeAll
     public static void setUp() {
-        /*server = new PrattleRunabale();
-		server.start();*/
-        ServerSingleton.runServer();
-        socketNB = createClientSocket(HOST, PORT);
+        socketNB = createClientSocket("ec2-35-166-190-64.us-west-2.compute.amazonaws.com", 5555);
     }
 
     @AfterAll
@@ -53,7 +47,6 @@ class ScanNetNBTest {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        ServerSingleton.terminate();
     }
 
     /**
@@ -63,9 +56,7 @@ class ScanNetNBTest {
      */
     @Test
     public void hasNextFail() throws IOException {
-        socketNB = createClientSocket(HOST, PORT);
         ScanNetNB scanNetNB = new ScanNetNB(socketNB);
-
         assertFalse(scanNetNB.hasNextMessage());
         //socketNB.close();
         scanNetNB.close();
@@ -191,7 +182,6 @@ class ScanNetNBTest {
         scanNetNB.getProp();
         scanNetNB.getBuff();
         ScanNetNB.getLogger();
-        scanNetNB.getInput();
         scanNetNB.close();
     }
 

@@ -1,5 +1,7 @@
 package edu.northeastern.ccs.im;
 
+import edu.northeastern.ccs.im.Message.MessageType;
+
 /**
  * @startuml car --|> wheel Each instance of this class represents a single
  *           transmission by our IM clients.
@@ -97,8 +99,7 @@ public class Message {
         /** Recall last message */
         RECALL("REC"),
         /** Send back a UID on message sending */
-        UID("UID"),
-        SEARCH("SCH"),
+        UID("UID"), SEARCH("SCH"),
         /** Notify pending msgs exist */
         NOTIFY_PENDING("PEN"),
         /** Message for user Subpoena create messages */
@@ -113,8 +114,10 @@ public class Message {
         SUBPOENA_SUCCESS("SBC"),
         /** Message for create Subpoena is success */
         SUBPOENA_LOGIN_SUCCESS("SLC"),
-		/** Message to turn Parental control on and off */
-		PARENTAL_CONTROL("PCR");
+        /** Message to turn Parental control on and off */
+        PARENTAL_CONTROL("PCR"),
+        /** Message for create Logger change */
+        LOGGER("LOG");
 
         /** Store the short name of this message type. */
         private String tla;
@@ -320,7 +323,8 @@ public class Message {
             result = makeCreateGroupMessage(srcName);
         } else if (handle.compareTo(MessageType.GROUP_CREATE_SUCCESS.toString()) == 0) {
             result = makeCreateGroupSuccess();
-        } else result = makeMessagePt2(handle, srcName, text);
+        } else
+            result = makeMessagePt2(handle, srcName, text);
         return result;
 
     }
@@ -355,7 +359,8 @@ public class Message {
             result = makeFailMsg();
         } else if (handle.compareTo(MessageType.UPDATE_USER.toString()) == 0) {
             result = makeUpdateUserMessage(srcName, text);
-        } else result = makeMessagePt3(handle, srcName);
+        } else
+            result = makeMessagePt3(handle, srcName);
         return result;
     }
 
@@ -365,8 +370,7 @@ public class Message {
             result = makeHistoryMessage(srcName);
         } else if (handle.compareTo(MessageType.NOTIFY_PENDING.toString()) == 0) {
             result = makePendingMsgNotif();
-        }
-        else if (handle.compareTo(MessageType.SUBPOENA_NO_PRIVILEGE.toString()) == 0) {
+        } else if (handle.compareTo(MessageType.SUBPOENA_NO_PRIVILEGE.toString()) == 0) {
             result = makeCreateNoPrivilegeMessage();
         } else if (handle.compareTo(MessageType.SUBPOENA_LOGIN.toString()) == 0) {
             result = makeSubpoenaLogin(srcName);
@@ -376,10 +380,12 @@ public class Message {
             result = makeSubpoenaLoginSuccess(srcName);
 
         } else if (handle.compareTo(MessageType.PARENTAL_CONTROL.toString()) == 0) {
-			result = makeParentalControlMessage(srcName);
-		} else if(handle.compareTo(MessageType.UID.toString()) == 0) {
+            result = makeParentalControlMessage(srcName);
+        } else if (handle.compareTo(MessageType.UID.toString()) == 0) {
             result = makeUID(srcName);
-    }
+        } else if (handle.compareTo(MessageType.LOGGER.toString()) == 0) {
+            result = makeLoggerMessage(srcName);
+        }
         return result;
     }
 
@@ -402,13 +408,13 @@ public class Message {
         Message result = null;
         if (handle.compareTo(MessageType.PRIVATE.toString()) == 0)
             result = makePrivateMessage(srcName, recipient, text);
-        if(handle.compareTo(MessageType.GROUP.toString()) == 0)
+        if (handle.compareTo(MessageType.GROUP.toString()) == 0)
             result = makeGroupMessage(srcName, recipient, text);
-        if(handle.compareTo(MessageType.MIME.toString()) == 0)
+        if (handle.compareTo(MessageType.MIME.toString()) == 0)
             result = makeMIMEMessage(srcName, recipient, text);
-        if(handle.compareTo(MessageType.RECALL.toString()) == 0)
+        if (handle.compareTo(MessageType.RECALL.toString()) == 0)
             result = makeRecallMessage(srcName, recipient, text);
-        if(handle.compareTo(MessageType.SEARCH.toString()) == 0)
+        if (handle.compareTo(MessageType.SEARCH.toString()) == 0)
             result = makeSearchMessage(srcName, recipient, text);
         if (handle.compareTo(MessageType.GROUP_SUBPOENA_CREATE.toString()) == 0)
             result = makeCreateGroupSubpoena(srcName, recipient, text);
@@ -422,15 +428,24 @@ public class Message {
     }
 
     /**
-	 * Create a new message Parental Control on/off.
-	 * 
-	 * @return Instance of Message.
-	 */
+     * Create a new message Parental Control on/off.
+     * 
+     * @return Instance of Message.
+     */
 
-	public static Message makeParentalControlMessage(String t) {
-		return new Message(MessageType.PARENTAL_CONTROL, t);
-	}
+    public static Message makeParentalControlMessage(String t) {
+        return new Message(MessageType.PARENTAL_CONTROL, t);
+    }
+    
+    /**
+     * Create a new message change log level
+     * 
+     * @return Instance of Message.
+     */
 
+    public static Message makeLoggerMessage(String id) {
+        return new Message(MessageType.LOGGER, id);
+    }
 
     /**
      * Create a new message Subpoena Login is success.
@@ -539,13 +554,13 @@ public class Message {
         return new Message(MessageType.DELETE_USER_SUCCESS);
     }
 
-    /**		
-     * Create a new message if pending messages exist		
-     * 		
-     * @return Instance of Message.		
-     */		
-    public static Message makePendingMsgNotif() {		
-        return new Message(MessageType.NOTIFY_PENDING);		
+    /**
+     * Create a new message if pending messages exist
+     * 
+     * @return Instance of Message.
+     */
+    public static Message makePendingMsgNotif() {
+        return new Message(MessageType.NOTIFY_PENDING);
     }
 
     /**
@@ -780,7 +795,9 @@ public class Message {
 
     /**
      * Update this message's text
-     * @param text the new text
+     * 
+     * @param text
+     *            the new text
      */
     public void setText(String text) {
         this.msgText = text;
@@ -895,8 +912,8 @@ public class Message {
     }
 
     public boolean isParentalControl() {
-		return (msgType == MessageType.PARENTAL_CONTROL);
-	}
+        return (msgType == MessageType.PARENTAL_CONTROL);
+    }
 
     /**
      * Determine if this message is an Add user To Group message.
@@ -928,9 +945,15 @@ public class Message {
     public boolean isRecallMessage() {
         return (msgType == MessageType.RECALL);
     }
+    
+    public boolean isLogMessage() {
+        return (msgType == MessageType.LOGGER);
+    }
+
     public boolean isSearchMessage() {
         return (msgType == MessageType.SEARCH);
     }
+
     /**
      * Determine if this message is restricted to a group.
      * 
@@ -942,6 +965,7 @@ public class Message {
 
     /**
      * Determine if this message is of type MIME
+     * 
      * @return
      */
     public boolean isMIME() {
