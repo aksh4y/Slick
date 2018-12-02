@@ -6,6 +6,7 @@ team repo for team-203-F18
 ec2-35-166-190-64.us-west-2.compute.amazonaws.com
 
 ### Port
+
 4545
 ### Usage
 From the Chatter root folder (where the pom.xml is located), run the following maven command:
