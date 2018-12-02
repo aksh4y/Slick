@@ -6,15 +6,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import edu.northeastern.ccs.im.Message;
 import edu.northeastern.ccs.im.PrattleRunabale;
 import edu.northeastern.ccs.im.ServerSingleton;
+import edu.northeastern.ccs.im.MongoDB.Model.User;
 
 /**
  * Test the Prattle class
@@ -63,16 +63,18 @@ public class PrattleTest {
 
     @Test
     public void nullCheck() {
+        User user = new User("akshay", "akshay");
+        
         assertThrows(Exception.class, ()-> {
-            Prattle.broadcastPrivateMessage(null, null, null, null, null);
+            Prattle.broadcastPrivateMessage(user, null, null, null, null);
         });
 
         assertThrows(Exception.class, ()-> {
-            Prattle.broadcastGroupMessage(null, null, null, null, null);
+            Prattle.broadcastGroupMessage(user, null, null, null, null);
         });
 
         assertThrows(Exception.class, ()-> {
-            Prattle.broadcastMessage(null);
+            Prattle.broadcastMessage(Message.makeFailMsg());
         });
 
 

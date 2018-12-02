@@ -706,6 +706,13 @@ public abstract class Prattle {
         keepPrattleAlive();
         keepPrattleAlive();
         keepPrattleAlive();
+        keepPrattleAlive();
+        keepPrattleAlive();
+        keepPrattleAlive();
+        keepPrattleAlive();
+        keepPrattleAlive();
+        keepPrattleAlive();
+        keepPrattleAlive();
         return true;
     }
 
