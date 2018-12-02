@@ -64,7 +64,7 @@ public class PrattleTest {
     @Test
     public void nullCheck() {
         User user = new User("akshay", "akshay");
-        
+
         assertThrows(Exception.class, ()-> {
             Prattle.broadcastPrivateMessage(user, null, null, null, null);
         });
@@ -74,8 +74,18 @@ public class PrattleTest {
         });
 
         assertThrows(Exception.class, ()-> {
+            Prattle.handleParental(Message.makeParentalControlMessage("on"), "on", null, user);
+        });
+
+        assertThrows(Exception.class, ()-> {
+            Prattle.handleOnlineClient(user, Message.makeFailMsg(), "", "", null, null, null);
+        });
+
+        assertThrows(Exception.class, ()-> {
             Prattle.broadcastMessage(Message.makeFailMsg());
         });
+
+        Prattle.acceptClientConnection(null, null);
 
 
         if(Prattle.getActiveClients().isEmpty())

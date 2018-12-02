@@ -208,7 +208,7 @@ public abstract class Prattle {
      * @param tt
      * @param u
      */
-    private static void handleParental(Message message, String msg, ClientRunnable tt, User u) {
+    public static void handleParental(Message message, String msg, ClientRunnable tt, User u) {
         String msgText = message.getText();
         userService.addToMyMessages(u, checkVulgar(msg));
         Message filtred = Message.makeBroadcastMessage(message.getName(), checkVulgar(msgText));
@@ -358,7 +358,7 @@ public abstract class Prattle {
      * @param recipient
      * @param cr
      */
-    private static void handleOnlineClient(User sender, Message msg, String senderMsg, String receiverMsg, String user,
+    public static void handleOnlineClient(User sender, Message msg, String senderMsg, String receiverMsg, String user,
             User recipient, ClientRunnable cr) {
         keepPrattleRunning();
         String newMsg = receiverMsg;
@@ -537,7 +537,7 @@ public abstract class Prattle {
      * @param threadPool
      */
     @SuppressWarnings("unchecked")
-    private static void acceptClientConnection(ServerSocketChannel serverSocket, ScheduledExecutorService threadPool) {
+    public static void acceptClientConnection(ServerSocketChannel serverSocket, ScheduledExecutorService threadPool) {
         try {
             keepPrattleRunning();
             // Accept the connection and create a new thread to handle this client.
