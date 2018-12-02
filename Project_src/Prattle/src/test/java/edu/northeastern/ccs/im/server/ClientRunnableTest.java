@@ -13,8 +13,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Queue;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import com.mongodb.client.MongoDatabase;
@@ -43,19 +43,13 @@ public class ClientRunnableTest {
 
 	static SocketNB socketNB = null;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUp() {
-		ServerSingleton.runServer();
-		socketNB = createClientSocket("127.0.0.1", 4545);
-
-		// server = new PrattleRunabale();
-		// server.start();
+		socketNB = createClientSocket("ec2-35-166-190-64.us-west-2.compute.amazonaws.com", 5555);
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void stopServer() {
-		// server.terminate();
-		ServerSingleton.terminate();
 		try {
 			socketNB.close();
 		} catch (IOException e) {
@@ -71,7 +65,7 @@ public class ClientRunnableTest {
 	 */
 	@Test
 	public void checkInitialization() throws IOException {
-		socketNB = new SocketNB("127.0.0.1", 4545);
+		socketNB = createClientSocket("ec2-35-166-190-64.us-west-2.compute.amazonaws.com", 5555);
 		client = new ClientRunnable(socketNB.getSocket());
 		try {
 			try {
@@ -94,7 +88,7 @@ public class ClientRunnableTest {
 	@Test
 	public void BroadCastMessageFalseTest() throws IOException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		socketNB = new SocketNB("127.0.0.1", 4545);
+		socketNB = createClientSocket("ec2-35-166-190-64.us-west-2.compute.amazonaws.com", 5555);
 		SocketChannel sChannel;
 		sChannel = socketNB.getSocket();
 
@@ -119,7 +113,7 @@ public class ClientRunnableTest {
 	@Test
 	public void BroadCastMessageTest() throws IOException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		 socketNB = new SocketNB("127.0.0.1", 4545);
+		 socketNB = createClientSocket("ec2-35-166-190-64.us-west-2.compute.amazonaws.com", 5555);
 		SocketChannel sChannel;
 		sChannel = socketNB.getSocket();
 
@@ -135,7 +129,7 @@ public class ClientRunnableTest {
 	@Test
 	public void testSubpoenaCreate() throws IOException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
-		 socketNB = new SocketNB("127.0.0.1", 4545);
+		 socketNB = createClientSocket("ec2-35-166-190-64.us-west-2.compute.amazonaws.com", 5555);
 		SocketChannel sChannel;
 		sChannel = socketNB.getSocket();
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");
@@ -230,7 +224,7 @@ public class ClientRunnableTest {
 	@Test
 	public void checkMessageTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
-		 socketNB = new SocketNB("127.0.0.1", 4545);
+		 socketNB = createClientSocket("ec2-35-166-190-64.us-west-2.compute.amazonaws.com", 5555);
 		SocketChannel sChannel;
 		sChannel = socketNB.getSocket();
 		Message msg = Message.makeBroadcastMessage("Test", "How are you?");
@@ -270,7 +264,7 @@ public class ClientRunnableTest {
 	@Test
 	public void checkMessageTestFail() throws IOException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		 socketNB = new SocketNB("127.0.0.1", 4545);
+		 socketNB = createClientSocket("ec2-35-166-190-64.us-west-2.compute.amazonaws.com", 5555);
 		SocketChannel sChannel;
 		sChannel = socketNB.getSocket();
 
@@ -298,7 +292,7 @@ public class ClientRunnableTest {
 	@Test
 	public void setUserNameTest() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException {
-		 socketNB = new SocketNB("127.0.0.1", 4545);
+		 socketNB = createClientSocket("ec2-35-166-190-64.us-west-2.compute.amazonaws.com", 5555);
 		SocketChannel sChannel;
 		sChannel = socketNB.getSocket();
 
@@ -322,7 +316,7 @@ public class ClientRunnableTest {
 	@Test
 	public void TestForRunIntialized() throws IOException, NoSuchFieldException, SecurityException,
 			IllegalArgumentException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-		 socketNB = new SocketNB("127.0.0.1", 4545);
+		 socketNB = createClientSocket("ec2-35-166-190-64.us-west-2.compute.amazonaws.com", 5555);
 		SocketChannel sChannel;
 		sChannel = socketNB.getSocket();
 		Message msg = Message.makeBroadcastMessage("Test", "How are you?");
@@ -526,7 +520,7 @@ public class ClientRunnableTest {
 	public void testPublicMethods() throws IOException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		Message msg = Message.makeBroadcastMessage("Test", "How are you?");
-		socketNB = new SocketNB("127.0.0.1", 4545);
+		socketNB = createClientSocket("ec2-35-166-190-64.us-west-2.compute.amazonaws.com", 5555);
 		SocketChannel sChannel;
 		sChannel = socketNB.getSocket();
 		client = new ClientRunnable(sChannel);
@@ -565,7 +559,7 @@ public class ClientRunnableTest {
 	public void testGetUserId() throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
 		Message msg = Message.makeBroadcastMessage("Test", "How are you?");
-		 socketNB = new SocketNB("127.0.0.1", 4545);
+		 socketNB = createClientSocket("ec2-35-166-190-64.us-west-2.compute.amazonaws.com", 5555);
 		SocketChannel sChannel;
 		sChannel = socketNB.getSocket();
 		if (sChannel.isOpen()) {

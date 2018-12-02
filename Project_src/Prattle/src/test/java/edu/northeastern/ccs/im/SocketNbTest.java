@@ -1,16 +1,13 @@
 package edu.northeastern.ccs.im;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-
 import java.io.IOException;
-import java.net.BindException;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 
 /**
@@ -21,18 +18,23 @@ import java.net.BindException;
  */
 public class SocketNbTest {
 
-   // private static PrattleRunabale server; // Holds the server instance
+   static // private static PrattleRunabale server; // Holds the server instance
 
-    SocketNB socket;  // socket instance
+    SocketNB socketNB;  // socket instance
 
     @BeforeAll
-    public static void setUp(){
-        ServerSingleton.runServer();
+    public static void setUp() {
+        socketNB = createClientSocket("ec2-35-166-190-64.us-west-2.compute.amazonaws.com", 5555);
     }
 
     @AfterAll
     public static void stopServer() {
-        ServerSingleton.terminate();
+        try {
+            socketNB.close();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
 
@@ -43,9 +45,9 @@ public class SocketNbTest {
     @Test
     public void socketInitialization() throws IOException {
         try {
-            socket = new SocketNB("127.0.0.1", 4545);
-            assertEquals(true, socket.getSocket().isConnected());
-            socket.close();
+            socketNB = new SocketNB("ec2-35-166-190-64.us-west-2.compute.amazonaws.com", 5555);
+            assertEquals(true, socketNB.getSocket().isConnected());
+            socketNB.close();
         }catch (Exception e){
             assertTrue(true);
         }
@@ -58,11 +60,31 @@ public class SocketNbTest {
     @Test
     public void socketTermination() throws IOException{
         try {
-            socket = new SocketNB("127.0.0.1", 4545);
-            socket.close();
-            assertEquals(false, socket.getSocket().isConnected());
+            socketNB = new SocketNB("ec2-35-166-190-64.us-west-2.compute.amazonaws.com", 5555);
+            socketNB.close();
+            assertEquals(false, socketNB.getSocket().isConnected());
         }catch (Exception e){
             assertTrue(true);
         }
+    }
+    
+    private static SocketNB createClientSocket(String clientName, int port) {
+        boolean scanning = true;
+        SocketNB socket = null;
+        int numberOfTry = 0;
+        while (scanning && numberOfTry < 10) {
+            numberOfTry++;
+            try {
+                socket = new SocketNB(clientName, port);
+                scanning = false;
+            } catch (IOException e) {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException ie) {
+                    ie.printStackTrace();
+                }
+            }
+        }
+        return socket;
     }
 }

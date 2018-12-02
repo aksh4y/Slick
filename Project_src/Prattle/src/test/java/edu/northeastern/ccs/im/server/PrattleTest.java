@@ -25,7 +25,8 @@ public class PrattleTest {
 
     @BeforeAll
     public static void setup() {
-        ServerSingleton.runServer();
+        if(!Prattle.isDone())
+            ServerSingleton.runServer();
     }
     @AfterAll
     public static void cleanUp() {
