@@ -215,6 +215,8 @@ public class ClientRunnableTest {
 		handleOtherMsgs.invoke(client, off);
 		
 		handleOtherMsgs.invoke(client, Message.makeLoggerMessage("all"));
+		handleMsgs.invoke(client, Message.makeLoginMessage("admin", "test"));
+		handleOtherMsgs.invoke(client, Message.makeLoggerMessage("all"));
 		handleOtherMsgs.invoke(client, Message.makeLoggerMessage("debug"));
 		handleOtherMsgs.invoke(client, Message.makeLoggerMessage("warn"));
 		handleOtherMsgs.invoke(client, Message.makeLoggerMessage("off"));
