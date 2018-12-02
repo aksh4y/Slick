@@ -143,6 +143,6 @@ Login as admin using credentials admin/test
 LOGGER <on/off>
 
 PS: The logging hierarchy
- ALL > DEBUG > INFO > WARN > ERROR > FATAL > OFF
+ALL > DEBUG > INFO > WARN > ERROR > FATAL > OFF
 
 ***********************************************************
