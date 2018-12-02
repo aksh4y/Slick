@@ -21,7 +21,6 @@ Queue unread messages:
 
 Messages will now be queued as unread messages if a user is offline.  When this user logs in he/she will see his unread messages on the UI under the Unread Messages tab
 
-
 TEST scenario:
 Login as a user. Send private message to an offline user. 
 
@@ -42,7 +41,6 @@ Only the message’s sender may recall the message.
 If the user is offline and hasn’t received the message the message is deleted. 
 
 If the user is online then the message is edited to **Recalled**
-
 
 
 Use the following command to test
