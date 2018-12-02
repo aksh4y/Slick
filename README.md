@@ -17,7 +17,6 @@ After running the command and entering a username, send one of the reserved mess
 
 ### SPRINT 3
 
-
 Queue unread messages:
 
 Messages will now be queued as unread messages if a user is offline.  When this user logs in he/she will see his unread messages on the UI under the Unread Messages tab
