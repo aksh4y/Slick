@@ -79,8 +79,6 @@ public class PrattleTest {
             assertTrue(Prattle.getActiveClients().isEmpty());
         else
             assertFalse(Prattle.getActiveClients().isEmpty());
-
-        Prattle.prepareVulgarMap();
         assertTrue(true);     
     }   
 
