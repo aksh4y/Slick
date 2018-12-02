@@ -213,7 +213,14 @@ public class ClientRunnableTest {
 		handleOtherMsgs.invoke(client, on);
 		handleOtherMsgs.invoke(client, on);
 		handleOtherMsgs.invoke(client, off);
-
+		
+		handleOtherMsgs.invoke(client, Message.makeLoggerMessage("all"));
+		handleOtherMsgs.invoke(client, Message.makeLoggerMessage("debug"));
+		handleOtherMsgs.invoke(client, Message.makeLoggerMessage("warn"));
+		handleOtherMsgs.invoke(client, Message.makeLoggerMessage("off"));
+		handleOtherMsgs.invoke(client, Message.makeLoggerMessage("fatal"));
+		handleOtherMsgs.invoke(client, Message.makeLoggerMessage("info"));
+		handleOtherMsgs.invoke(client, Message.makeLoggerMessage("all"));
 		handleMsgs.invoke(client, Message.makeMIMEMessage("crtest3", "crtest4", "C:\\Users\\Admin\\Desktop\\Bg.jpg"));
 
 	}
