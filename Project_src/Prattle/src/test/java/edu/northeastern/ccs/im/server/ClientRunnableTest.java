@@ -13,8 +13,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Queue;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.jupiter.api.Test;
 
 import com.mongodb.client.MongoDatabase;
@@ -43,7 +43,7 @@ public class ClientRunnableTest {
 
 	static SocketNB socketNB = null;
 
-	@BeforeAll
+	@BeforeClass
 	public static void setUp() {
 		ServerSingleton.runServer();
 		socketNB = createClientSocket("127.0.0.1", 4545);
@@ -52,7 +52,7 @@ public class ClientRunnableTest {
 		// server.start();
 	}
 
-	@AfterAll
+	@AfterClass
 	public static void stopServer() {
 		// server.terminate();
 		ServerSingleton.terminate();
