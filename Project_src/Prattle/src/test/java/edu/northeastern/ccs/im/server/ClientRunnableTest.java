@@ -129,7 +129,7 @@ public class ClientRunnableTest {
 	@Test
 	public void testSubpoenaCreate() throws IOException, NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
-		 socketNB = createClientSocket("ec2-35-166-190-64.us-west-2.compute.amazonaws.com", 5555);
+		socketNB = createClientSocket("ec2-35-166-190-64.us-west-2.compute.amazonaws.com", 5555);
 		SocketChannel sChannel;
 		sChannel = socketNB.getSocket();
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");
@@ -168,7 +168,10 @@ public class ClientRunnableTest {
 				fromDate, toDate, true);
 		createUserSubpoena.invoke(client, Message.makeCreateUserSubpoena("akshswway$%$all", "11-20-2019", "12-20-2019"),
 				fromDate, toDate, true);
-		handleMsgs.invoke(client, Message.makeLoginMessage("crtest4", "crtest"));
+		try {handleMsgs.invoke(client, Message.makeLoginMessage("crtest4", "crtest"));}
+		catch(NullPointerException ne) { 
+		    // Exists 
+		}
 		handleMsgs.invoke(client, Message.makeCreateGroupMessage("testCRGroup"));
 		handleMsgs.invoke(client, Message.makeLoginMessage("crtest4", "crtest"));
 		handleMsgs.invoke(client, Message.makeAddUserToGroup("testcrgroup"));
