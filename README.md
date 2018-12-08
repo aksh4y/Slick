@@ -1,5 +1,12 @@
 # team-203-F18
-team repo for team-203-F18
+Team repo for Team 203
+
+# Members
+
+* Akshay Sadarangani
+* Chetan Mahale
+* Nipun Midha
+* Peter Mascarenhas 
 
 # AWS
 ### Link
