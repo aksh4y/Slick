@@ -1,5 +1,12 @@
 # team-203-F18
-team repo for team-203-F18
+Team repo for Team 203
+
+# Members
+
+* Akshay Sadarangani
+* Chetan Mahale
+* Nipun Midha
+* Peter Mascarenhas 
 
 # AWS
 ### Link
@@ -47,9 +54,9 @@ If the user is online then the message is edited to **Recalled**
 Use the following command to test
 
 
-RECALL <ID> “user” <recepient> //To recall user messages
+RECALL `<ID`> “user” `<recepient`> //To recall user messages
 
-RECALL <ID> “group” <recepient group> //To recall group messages
+RECALL `<ID`> “group” `<recepient group`> //To recall group messages
 
 
 Note after successful recall the message is removed. You can check this by logging in as the user and seeing his history messages.
@@ -78,7 +85,7 @@ The vulgar word is appended with **** irrespective of the length of the word.
 
 To turn parental control on, run the command
 
-PARENTAL_CONTROL <on/off>
+PARENTAL_CONTROL `<on/off`>
 
 
 This also happens without delay. 
@@ -91,7 +98,7 @@ Searching of Messages.
 
 This can be done by the command 
 
-SEARCH <“sender/receiver”> <name> // SEARCH where (“sender”/ “receiver”) is <name>
+SEARCH `<“sender/receiver”`> `<name`> // SEARCH where (“sender”/ “receiver”) is `<name`>
 
 
 This will list all the messages where sender/receiver is <name>
@@ -115,15 +122,15 @@ There are 3 types of subpoena.
 3. A group
 
 Subpoena can be created with the following command
-SUBPOENA_USER <firstUsername> <secondUsername> <from_date> <to_date> //Date should be of format mm-dd-yyyy
-SUBPOENA_USER <firstUsername> all <from_date> <to_date> //"all" is to get all communication of single user
-SUBPOENA_GROUP <group name> <from_date> <to_date>
+SUBPOENA_USER `<firstUsername`> `<secondUsername`> `<from_date`> `<to_date`> //Date should be of format mm-dd-yyyy
+SUBPOENA_USER `<firstUsername`> all `<from_date`> `<to_date`> //"all" is to get all communication of single user
+SUBPOENA_GROUP `<group name`> `<from_date`> `<to_date`>
 
 This can be done only in the admin flow.
 Login as admin using credentials admin/test
 
 An ID is returned when the subpoena is created. Agency can log in using this ID with the following command
-SUBPOENA <ID>
+SUBPOENA `<ID`>
 
 Agency is allowed only to login, view messages, search messages and quit.
 
@@ -139,7 +146,7 @@ Logging can be dynamically turned to different levels namely “ALL”(default) 
 Logging can only be changed by admin
 Login as admin using credentials admin/test
 
-LOGGER <on/off>
+LOGGER `<on/off`>
 
 PS: The logging hierarchy
 ALL > DEBUG > INFO > WARN > ERROR > FATAL > OFF
