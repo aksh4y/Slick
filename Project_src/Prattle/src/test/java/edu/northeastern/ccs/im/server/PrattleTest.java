@@ -65,7 +65,7 @@ public class PrattleTest {
 
     @Test
     public void nullCheck() {
-        User user = new User("akshay", "akshay");
+        User user = new User("prattleTest", "prattleTest");
 
         assertThrows(Exception.class, ()-> {
             Prattle.broadcastPrivateMessage(user, null, null, null, null);
