@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import edu.northeastern.ccs.im.Message;
 import edu.northeastern.ccs.im.PrattleRunabale;
 import edu.northeastern.ccs.im.ServerSingleton;
-import edu.northeastern.ccs.im.SocketNB;
 import edu.northeastern.ccs.im.MongoDB.Model.User;
 
 /**
@@ -65,7 +64,7 @@ public class PrattleTest {
 
     @Test
     public void nullCheck() {
-        User user = new User("akshay", "akshay");
+        User user = new User("prattleTest", "prattleTest");
 
         assertThrows(Exception.class, ()-> {
             Prattle.broadcastPrivateMessage(user, null, null, null, null);
