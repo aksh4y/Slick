@@ -9,7 +9,6 @@ Team repo for Team 203 - Fall 2018
 * Peter Mascarenhas 
 
 
-
 ## Live AWS System
 ### Link
 ec2-35-166-190-64.us-west-2.compute.amazonaws.com
