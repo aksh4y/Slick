@@ -32,8 +32,23 @@ After running the command and entering a username, send one of the reserved mess
 ## Relevant Files
 All relevant files can be found under the [Final Presentation](https://github.ccs.neu.edu/cs5500/team-203-F18/tree/master/Final%20Submission) folder
 
-# Sprint 3 Sample Commands
+## Sample Commands
 
+Private Message
+
+Send a 1:1 PM to anyone using their username
+```java
+PRIVATE <username> <message>
+```
+**********************************************************
+
+Group Message
+
+Send group messages to all members of a group that you belong to or own:
+```java
+GROUP <group name> <message>
+```
+**********************************************************
 Queue unread messages:
 
 Messages will now be queued as unread messages if a user is offline.  When this user logs in he/she will see his unread messages on the UI under the Unread Messages tab
@@ -72,13 +87,14 @@ Note after successful recall the message is removed. You can check this by loggi
 
 ***********************************************************
 
-
 CALEA compliance.
 
 
 You will notice that all messages are wrapped with leading sender IP and trailing recipient IP
 
-This is for CALEA compliance.
+This is for CALEA compliance and only visible either directly in the database or by fedaral agencies as in the case of subpoenas.
+
+Note: Broadcast messages will always show associated IPs.
 
 
 ***********************************************************
@@ -165,3 +181,7 @@ PS: The logging hierarchy
 ALL > DEBUG > INFO > WARN > ERROR > FATAL > OFF
 
 ***********************************************************
+
+## More Commands
+
+Use the `HELP` command to see a complete list of all commands with their appropriate syntax
