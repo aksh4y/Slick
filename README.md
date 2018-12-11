@@ -63,7 +63,6 @@ Same applies to Group messaging
 
 Recall messages
 
-
 Every time a message is sent, a success message is delivered along with the message ID. The user may use this ID to recall the message sent. 
 
 Only the message’s sender may recall the message.
