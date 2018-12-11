@@ -40,7 +40,6 @@ Send a 1:1 PM to anyone using their username
 PRIVATE <username> <message>
 ```
 **********************************************************
-
 Group Message
 
 Send group messages to all members of a group that you belong to or own:
