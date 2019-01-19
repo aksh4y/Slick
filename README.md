@@ -29,7 +29,7 @@ After running the command and entering a username, send one of the reserved mess
 [Final Presentation](https://youtu.be/urxNehEfwSA)
 
 ## Relevant Files
-All relevant files can be found under the [Final Presentation](https://github.ccs.neu.edu/cs5500/team-203-F18/tree/master/Final%20Submission) folder
+All relevant files can be found under the [Final Presentation](https://github.com/aksh4y/Slick/tree/master/Final%20Submission) folder
 
 ## Sample Commands
 
